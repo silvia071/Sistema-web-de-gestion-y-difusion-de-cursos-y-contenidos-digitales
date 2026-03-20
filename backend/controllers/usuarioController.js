@@ -1,23 +1,19 @@
 const Usuario = require('../models/Usuario');
 const Administrador = require('../models/Administrador');
-const bcrypt = require('bcrypt');
-
+const bcrypt = require('bcryptjs');
 
 exports.registrarse = async (req, res) => {
     try {
         const { nombre, apellido, email, contraseña, direccion, telefono } = req.body;
 
-        
         const usuarioExistente = await Usuario.findOne({ email });
         if (usuarioExistente) {
             return res.status(400).json({ mensaje: "El email ya está registrado" });
         }
 
-        // Hashear contraseña 
         const salt = await bcrypt.genSalt(10);
         const passwordHasheada = await bcrypt.hash(contraseña, salt);
 
-        // Crear nuevo usuario 
         const nuevoUsuario = new Usuario({
             nombre,
             apellido,
@@ -36,33 +32,27 @@ exports.registrarse = async (req, res) => {
     }
 };
 
-
 exports.iniciarSesion = async (req, res) => {
     try {
         const { email, contraseña } = req.body;
 
-        //Buscar usuario po email
         const usuario = await Usuario.findOne({ email });
         if (!usuario) {
             return res.status(404).json({ mensaje: "Usuario no encontrado" });
         }
 
-        // Verificar estado de cuenta 
         if (usuario.estadoCuenta === 'bloqueado') {
-            return res.status(403).json({ mensaje: "Tu cuenta está bloqueada. Contacta al administrador." });
+            return res.status(403).json({ mensaje: "Tu cuenta está bloqueada" });
         }
 
-        // Comparar contraseñas
         const esValida = await bcrypt.compare(contraseña, usuario.contraseña);
         if (!esValida) {
             return res.status(401).json({ mensaje: "Contraseña incorrecta" });
         }
 
-        // Actualizar fecha de último acceso 
         usuario.fechaUltimoAcceso = new Date();
         await usuario.save();
 
-        // Verificar si es Administrador para devolver sus permisos
         const adminInfo = await Administrador.findOne({ usuario: usuario._id });
 
         res.status(200).json({
@@ -80,13 +70,11 @@ exports.iniciarSesion = async (req, res) => {
     }
 };
 
-
 exports.editarPerfil = async (req, res) => {
     try {
         const { id } = req.params;
         const actualizaciones = req.body;
 
-        // Si se intenta cambiar la contraseña, hay que hashearla de nuevo
         if (actualizaciones.contraseña) {
             const salt = await bcrypt.genSalt(10);
             actualizaciones.contraseña = await bcrypt.hash(actualizaciones.contraseña, salt);
