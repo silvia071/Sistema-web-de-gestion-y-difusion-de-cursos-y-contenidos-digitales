@@ -1,5 +1,7 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
+const EstadoCuenta = require('../enums/EstadoCuenta');
+const RolUsuario = require('../enums/RolUsuario');
 
 const UsuarioSchema = new mongoose.Schema({
     nombre: { type: String, required: true },
@@ -12,13 +14,13 @@ const UsuarioSchema = new mongoose.Schema({
     fechaUltimoAcceso: { type: Date },
     estadoCuenta: { 
         type: String, 
-        enum: ['ACTIVO', 'INACTIVO', 'BLOQUEADO'], 
-        default: 'ACTIVO' 
+        enum: Object.values(EstadoCuenta), 
+        default: EstadoCuenta.ACTIVO 
     },
     rol: { 
         type: String, 
-        enum: ['CLIENTE', 'ADMINISTRADOR'], 
-        default: 'CLIENTE' 
+        enum: Object.values(RolUsuario), 
+        default: RolUsuario.CLIENTE 
     },
     datosFacturacion: { type: Object } 
 });
@@ -50,7 +52,7 @@ UsuarioSchema.methods.actualizarEmail = async function(nuevoEmail) {
 };
 
 UsuarioSchema.methods.esAdministrador = function() {
-    return this.rol === 'ADMINISTRADOR';
+    return this.rol === RolUsuario.ADMINISTRADOR;
 };
 
 module.exports = mongoose.model('Usuario', UsuarioSchema);

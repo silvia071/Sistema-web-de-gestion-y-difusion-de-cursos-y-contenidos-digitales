@@ -5,7 +5,7 @@ const registrarUsuario = async (req, res) => {
         const usuario = await usuarioService.registrarUsuario(req.body);
         res.status(201).json(usuario);
     } catch (error) {
-        res.status(400).json({ mensaje: "Error al registrar", error: error.message });
+        res.status(400).json({ mensaje: "Error al registrar", detalle: error.message });
     }
 };
 
@@ -15,7 +15,7 @@ const iniciarSesion = async (req, res) => {
         const usuario = await usuarioService.iniciarSesion(email, contrasenia);
         res.status(200).json({ mensaje: "Login exitoso", usuario });
     } catch (error) {
-        res.status(401).json({ mensaje: "Credenciales incorrectas" });
+        res.status(401).json({ mensaje: error.message });
     }
 };
 
@@ -70,9 +70,7 @@ const editarPerfil = async (req, res) => {
 const cambiarContrasenia = async (req, res) => {
     try {
         const { nuevaContrasenia } = req.body;
-        const usuario = await usuarioService.buscarUsuarioPorId(req.params.id);
-        if (!usuario) return res.status(404).json({ mensaje: "Usuario no encontrado" });
-        await usuario.cambiarContrasenia(nuevaContrasenia);
+        const usuario = await usuarioService.cambiarContrasenia(req.params.id, nuevaContrasenia);
         res.status(200).json({ mensaje: "Contraseña actualizada con éxito" });
     } catch (error) {
         res.status(400).json({ mensaje: "Error al cambiar contraseña", detalle: error.message });
@@ -91,18 +89,18 @@ const eliminarUsuario = async (req, res) => {
 const bloquearUsuario = async (req, res) => {
     try {
         const usuario = await usuarioService.bloquearUsuario(req.params.id);
-        res.status(200).json({ mensaje: "Usuario bloqueado", usuario });
+        res.status(200).json({ mensaje: "Usuario bloqueado con éxito", usuario });
     } catch (error) {
-        res.status(400).json({ mensaje: "Error al bloquear" });
+        res.status(400).json({ mensaje: "Error al bloquear", detalle: error.message });
     }
 };
 
 const activarUsuario = async (req, res) => {
     try {
         const usuario = await usuarioService.activarUsuario(req.params.id);
-        res.status(200).json({ mensaje: "Usuario activado", usuario });
+        res.status(200).json({ mensaje: "Usuario activado con éxito", usuario });
     } catch (error) {
-        res.status(400).json({ mensaje: "Error al activar" });
+        res.status(400).json({ mensaje: "Error al activar", detalle: error.message });
     }
 };
 
@@ -112,7 +110,7 @@ const cambiarRol = async (req, res) => {
         const usuario = await usuarioService.cambiarRol(req.params.id, nuevoRol);
         res.status(200).json({ mensaje: "Rol actualizado", usuario });
     } catch (error) {
-        res.status(400).json({ mensaje: "Error al cambiar rol" });
+        res.status(400).json({ mensaje: "Error al cambiar rol", detalle: error.message });
     }
 };
 
@@ -169,3 +167,6 @@ module.exports = {
     actualizarDireccion,
     actualizarTelefono
 };
+
+
+

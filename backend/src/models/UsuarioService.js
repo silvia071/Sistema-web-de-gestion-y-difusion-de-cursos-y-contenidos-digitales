@@ -1,5 +1,7 @@
 const Usuario = require('./Usuario');
 const bcrypt = require('bcryptjs');
+const EstadoCuenta = require('../enums/EstadoCuenta');
+const RolUsuario = require('../enums/RolUsuario');
 
 class UsuarioService {
     
@@ -8,12 +10,16 @@ class UsuarioService {
         datos.contrasenia = await bcrypt.hash(datos.contrasenia, salt);
         const nuevoUsuario = new Usuario(datos);
         return await nuevoUsuario.save();
-    }
+    }  
 
     async iniciarSesion(email, contrasenia) {
         const usuario = await Usuario.findOne({ email });
         if (!usuario) throw new Error('Credenciales incorrectas');
         
+        if (usuario.estadoCuenta === EstadoCuenta.BLOQUEADO) {
+            throw new Error('Tu cuenta está bloqueada. Contacta al administrador.');
+        }
+
         const esValida = await bcrypt.compare(contrasenia, usuario.contrasenia);
         if (!esValida) throw new Error('Credenciales incorrectas');
         
@@ -58,15 +64,26 @@ class UsuarioService {
     }
 
     async cambiarRol(id, nuevoRol) {
+        if (!Object.values(RolUsuario).includes(nuevoRol)) {
+            throw new Error('Rol no válido');
+        }
         return await Usuario.findByIdAndUpdate(id, { rol: nuevoRol }, { new: true });
     }
 
     async bloquearUsuario(id) {
-        return await Usuario.findByIdAndUpdate(id, { estadoCuenta: 'BLOQUEADO' }, { new: true });
+        return await Usuario.findByIdAndUpdate(
+            id, 
+            { estadoCuenta: EstadoCuenta.BLOQUEADO }, 
+            { new: true }
+        );
     }
 
     async activarUsuario(id) {
-        return await Usuario.findByIdAndUpdate(id, { estadoCuenta: 'ACTIVO' }, { new: true });
+        return await Usuario.findByIdAndUpdate(
+            id, 
+            { estadoCuenta: EstadoCuenta.ACTIVO }, 
+            { new: true }
+        );
     }
 }
 
