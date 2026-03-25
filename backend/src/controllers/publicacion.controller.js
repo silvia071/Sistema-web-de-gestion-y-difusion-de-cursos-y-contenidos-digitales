@@ -1,21 +1,20 @@
-const Publicacion = require("../models/publicacion.model");
+const PublicacionService = require("../services/publicacion.service");
 
 const getPublicaciones = async (req, res) => {
   try {
     const { categoria, estado } = req.query;
-    const filtro = {};
+
+    const filtros = {};
 
     if (categoria) {
-      filtro.categoria = categoria;
+      filtros.categoria = categoria;
     }
 
     if (estado) {
-      filtro.estado = estado.trim().toUpperCase();
+      filtros.estado = estado.trim().toUpperCase();
     }
 
-    console.log("FILTRO:", filtro);
-
-    const publicaciones = await Publicacion.find(filtro).populate("categoria");
+    const publicaciones = await PublicacionService.listarPublicaciones(filtros);
 
     return res.status(200).json(publicaciones);
   } catch (error) {
@@ -28,8 +27,8 @@ const getPublicaciones = async (req, res) => {
 
 const getPublicacionById = async (req, res) => {
   try {
-    const publicacion = await Publicacion.findById(req.params.id).populate(
-      "categoria",
+    const publicacion = await PublicacionService.buscarPublicacionPorId(
+      req.params.id,
     );
 
     if (!publicacion) {
@@ -47,10 +46,11 @@ const getPublicacionById = async (req, res) => {
 
 const createPublicacion = async (req, res) => {
   try {
-    const nuevaPublicacion = new Publicacion(req.body);
-    const guardada = await nuevaPublicacion.save();
+    const nuevaPublicacion = await PublicacionService.crearPublicacion(
+      req.body,
+    );
 
-    return res.status(201).json(guardada);
+    return res.status(201).json(nuevaPublicacion);
   } catch (error) {
     return res.status(500).json({
       mensaje: "Error al crear publicación",
@@ -61,10 +61,9 @@ const createPublicacion = async (req, res) => {
 
 const updatePublicacion = async (req, res) => {
   try {
-    const actualizada = await Publicacion.findByIdAndUpdate(
+    const actualizada = await PublicacionService.editarPublicacion(
       req.params.id,
       req.body,
-      { new: true, runValidators: true },
     );
 
     if (!actualizada) {
@@ -82,7 +81,9 @@ const updatePublicacion = async (req, res) => {
 
 const deletePublicacion = async (req, res) => {
   try {
-    const eliminada = await Publicacion.findByIdAndDelete(req.params.id);
+    const eliminada = await PublicacionService.eliminarPublicacion(
+      req.params.id,
+    );
 
     if (!eliminada) {
       return res.status(404).json({ mensaje: "Publicación no encontrada" });
@@ -99,10 +100,48 @@ const deletePublicacion = async (req, res) => {
   }
 };
 
+const publicarPublicacion = async (req, res) => {
+  try {
+    const publicada = await PublicacionService.publicarPublicacion(
+      req.params.id,
+    );
+
+    if (!publicada) {
+      return res.status(404).json({ mensaje: "Publicación no encontrada" });
+    }
+
+    return res.status(200).json(publicada);
+  } catch (error) {
+    return res.status(500).json({
+      mensaje: "Error al publicar publicación",
+      error: error.message,
+    });
+  }
+};
+
+const ocultarPublicacion = async (req, res) => {
+  try {
+    const oculta = await PublicacionService.ocultarPublicacion(req.params.id);
+
+    if (!oculta) {
+      return res.status(404).json({ mensaje: "Publicación no encontrada" });
+    }
+
+    return res.status(200).json(oculta);
+  } catch (error) {
+    return res.status(500).json({
+      mensaje: "Error al ocultar publicación",
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   getPublicaciones,
   getPublicacionById,
   createPublicacion,
   updatePublicacion,
   deletePublicacion,
+  publicarPublicacion,
+  ocultarPublicacion,
 };
