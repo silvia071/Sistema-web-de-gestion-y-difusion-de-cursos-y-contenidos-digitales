@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Gestión de Pagos</title>
+</head>
+<body>
+
+<h2>Crear Pago</h2>
+
+<input type="number" id="monto" placeholder="Monto">
+
+<select id="metodoPago">
+    <option value="TARJETA">Tarjeta</option>
+    <option value="TRANSFERENCIA">Transferencia</option>
+</select>
+
+<button onclick="handleCrearPago()">Crear Pago</button>
+
+<hr>
+
+<h2>Lista de Pagos</h2>
+
+<table border="1">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Monto</th>
+            <th>Fecha</th>
+            <th>Estado</th>
+            <th>Método</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody id="tablaPagos"></tbody>
+</table>
+
+<script src="pago.js"></script>
+<script src="pagoController.js"></script>
+
+<script>
+function handleCrearPago() {
+    const monto = document.getElementById("monto").value;
+    const metodo = document.getElementById("metodoPago").value;
+
+    crearPago(parseFloat(monto), metodo);
+}
+
+function renderPagos() {
+    const tabla = document.getElementById("tablaPagos");
+    tabla.innerHTML = "";
+
+    pagos.forEach(p => {
+        tabla.innerHTML += `
+            <tr>
+                <td>${p.idPago}</td>
+                <td>${p.monto}</td>
+                <td>${new Date(p.fecha).toLocaleString()}</td>
+                <td>${p.estado}</td>
+                <td>${p.metodoPago}</td>
+                <td>
+                    <button onclick="aprobarPago(${p.idPago})">Aprobar</button>
+                    <button onclick="eliminarPago(${p.idPago})">Eliminar</button>
+                </td>
+            </tr>
+        `;
+    });
+}
+</script>
+
+</body>
+</html>
