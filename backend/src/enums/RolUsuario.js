@@ -3,5 +3,6 @@ const RolUsuario = Object.freeze({
     ADMINISTRADOR: 'ADMINISTRADOR'
 });
 
-export default RolUsuario;
+module.exports = RolUsuario;
+
 

@@ -1,9 +1,11 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
+const Counter = require('./Counter');
 const EstadoCuenta = require('../enums/EstadoCuenta');
 const RolUsuario = require('../enums/RolUsuario');
 
 const UsuarioSchema = new mongoose.Schema({
+    idUsuario: { type: Number, unique: true }, 
     nombre: { type: String, required: true },
     apellido: { type: String, required: true },
     email: { type: String, required: true, unique: true },
@@ -15,14 +17,30 @@ const UsuarioSchema = new mongoose.Schema({
     estadoCuenta: { 
         type: String, 
         enum: Object.values(EstadoCuenta), 
-        default: EstadoCuenta.ACTIVO 
+        default: 'ACTIVO' 
     },
     rol: { 
         type: String, 
         enum: Object.values(RolUsuario), 
-        default: RolUsuario.CLIENTE 
+        default: 'CLIENTE' 
     },
     datosFacturacion: { type: Object } 
+});
+
+UsuarioSchema.pre('save', async function() { 
+    if (!this.isNew) return; 
+
+    try {
+        const counter = await Counter.findOneAndUpdate(
+            { id: 'usuarioId' },
+            { $inc: { seq: 1 } },
+            { new: true, upsert: true }
+        );
+        this.idUsuario = counter.seq;
+       
+    } catch (error) {
+        throw error; 
+    }
 });
 
 UsuarioSchema.methods.cambiarContrasenia = async function(nuevaContrasenia) {
@@ -52,8 +70,16 @@ UsuarioSchema.methods.actualizarEmail = async function(nuevoEmail) {
 };
 
 UsuarioSchema.methods.esAdministrador = function() {
-    return this.rol === RolUsuario.ADMINISTRADOR;
+    return this.rol === 'ADMINISTRADOR';
 };
+
+UsuarioSchema.set('toJSON', {
+    transform: (doc, ret) => {
+        delete ret._id;
+        delete ret.__v;
+        return ret;
+    }
+});
 
 module.exports = mongoose.model('Usuario', UsuarioSchema);
 

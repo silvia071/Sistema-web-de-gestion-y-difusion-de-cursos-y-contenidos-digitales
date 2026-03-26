@@ -4,4 +4,5 @@ const EstadoCuenta = Object.freeze({
     BLOQUEADO: 'BLOQUEADO'
 });
 
-export default EstadoCuenta;
+module.exports = EstadoCuenta;
+

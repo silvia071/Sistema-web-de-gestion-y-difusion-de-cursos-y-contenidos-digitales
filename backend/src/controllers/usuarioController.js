@@ -1,4 +1,4 @@
-const usuarioService = require('../models/UsuarioService');
+const usuarioService = require('../services/UsuarioService');
 
 const registrarUsuario = async (req, res) => {
     try {
@@ -60,18 +60,29 @@ const buscarUsuarioPorEmail = async (req, res) => {
 
 const editarPerfil = async (req, res) => {
     try {
-        const usuario = await usuarioService.editarPerfil(req.params.id, req.body);
-        res.status(200).json({ mensaje: "Perfil actualizado", usuario });
+        const { id } = req.params; 
+        const datosActualizados = req.body;
+
+        const usuario = await usuarioService.editarPerfil(id, datosActualizados);
+
+        if (!usuario) {
+            return res.status(404).json({ mensaje: "Usuario no encontrado" });
+        }
+
+        res.status(200).json({
+            mensaje: "Perfil actualizado correctamente",
+            usuario
+        });
     } catch (error) {
-        res.status(400).json({ mensaje: "Error al actualizar", error: error.message });
+        res.status(500).json({ mensaje: "Error al editar perfil", error: error.message });
     }
 };
 
 const cambiarContrasenia = async (req, res) => {
     try {
-        const { nuevaContrasenia } = req.body;
-        const usuario = await usuarioService.cambiarContrasenia(req.params.id, nuevaContrasenia);
-        res.status(200).json({ mensaje: "Contraseña actualizada con éxito" });
+        const { id } = req.params;
+        const resultado = await usuarioService.cambiarContrasenia(id, req.body);
+        res.status(200).json({ mensaje: "¡Contraseña actualizada!" });
     } catch (error) {
         res.status(400).json({ mensaje: "Error al cambiar contraseña", detalle: error.message });
     }
@@ -117,10 +128,8 @@ const cambiarRol = async (req, res) => {
 const actualizarEmail = async (req, res) => {
     try {
         const { nuevoEmail } = req.body;
-        const usuario = await usuarioService.buscarUsuarioPorId(req.params.id);
-        if (!usuario) return res.status(404).json({ mensaje: "Usuario no encontrado" });
-        await usuario.actualizarEmail(nuevoEmail);
-        res.status(200).json({ mensaje: "Email actualizado correctamente", email: usuario.email });
+        const usuario = await usuarioService.actualizarEmail(req.params.id, nuevoEmail);
+        res.status(200).json({ mensaje: "Email actualizado correctamente", usuario });
     } catch (error) {
         res.status(400).json({ mensaje: "Error al actualizar email", detalle: error.message });
     }
@@ -129,10 +138,8 @@ const actualizarEmail = async (req, res) => {
 const actualizarDireccion = async (req, res) => {
     try {
         const { nuevaDireccion } = req.body;
-        const usuario = await usuarioService.buscarUsuarioPorId(req.params.id);
-        if (!usuario) return res.status(404).json({ mensaje: "Usuario no encontrado" });
-        await usuario.actualizarDireccion(nuevaDireccion);
-        res.status(200).json({ mensaje: "Dirección actualizada correctamente", direccion: usuario.direccion });
+        const usuario = await usuarioService.actualizarDireccion(req.params.id, nuevaDireccion);
+        res.status(200).json({ mensaje: "Dirección actualizada correctamente", usuario });
     } catch (error) {
         res.status(400).json({ mensaje: "Error al actualizar dirección", detalle: error.message });
     }
@@ -141,10 +148,8 @@ const actualizarDireccion = async (req, res) => {
 const actualizarTelefono = async (req, res) => {
     try {
         const { nuevoTelefono } = req.body;
-        const usuario = await usuarioService.buscarUsuarioPorId(req.params.id);
-        if (!usuario) return res.status(404).json({ mensaje: "Usuario no encontrado" });
-        await usuario.actualizarTelefono(nuevoTelefono);
-        res.status(200).json({ mensaje: "Teléfono actualizado correctamente", telefono: usuario.telefono });
+        const usuario = await usuarioService.actualizarTelefono(req.params.id, nuevoTelefono);
+        res.status(200).json({ mensaje: "Teléfono actualizado correctamente", usuario });
     } catch (error) {
         res.status(400).json({ mensaje: "Error al actualizar teléfono", detalle: error.message });
     }
@@ -167,6 +172,7 @@ module.exports = {
     actualizarDireccion,
     actualizarTelefono
 };
+
 
 
 
