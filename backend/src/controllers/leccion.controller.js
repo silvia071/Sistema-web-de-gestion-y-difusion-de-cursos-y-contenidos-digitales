@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const leccionService = require("../services/leccion.service");
 
 const crearLeccion = async (req, res) => {

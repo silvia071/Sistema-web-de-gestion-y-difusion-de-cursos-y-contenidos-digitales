@@ -13,7 +13,10 @@ class CursoService {
       runValidators: true,
     })
       .populate("categoria")
-      .populate("lecciones");
+      .populate({
+        path: "lecciones",
+        options: { sort: { orden: 1 } },
+      });
   }
 
   async eliminarCurso(id) {
@@ -21,17 +24,30 @@ class CursoService {
   }
 
   async listarCursos() {
-    return await Curso.find().populate("categoria").populate("lecciones");
+    return await Curso.find()
+      .populate("categoria")
+      .populate({
+        path: "lecciones",
+        options: { sort: { orden: 1 } },
+      });
   }
 
   async buscarCursoPorId(id) {
-    return await Curso.findById(id).populate("categoria").populate("lecciones");
+    return await Curso.findById(id)
+      .populate("categoria")
+      .populate({
+        path: "lecciones",
+        options: { sort: { orden: 1 } },
+      });
   }
 
   async filtrarPorCategoria(categoriaId) {
     return await Curso.find({ categoria: categoriaId })
       .populate("categoria")
-      .populate("lecciones");
+      .populate({
+        path: "lecciones",
+        options: { sort: { orden: 1 } },
+      });
   }
 
   async publicarCurso(id) {
@@ -41,7 +57,10 @@ class CursoService {
       { new: true, runValidators: true },
     )
       .populate("categoria")
-      .populate("lecciones");
+      .populate({
+        path: "lecciones",
+        options: { sort: { orden: 1 } },
+      });
   }
 
   async ocultarCurso(id) {
@@ -51,7 +70,10 @@ class CursoService {
       { new: true, runValidators: true },
     )
       .populate("categoria")
-      .populate("lecciones");
+      .populate({
+        path: "lecciones",
+        options: { sort: { orden: 1 } },
+      });
   }
 }
 
