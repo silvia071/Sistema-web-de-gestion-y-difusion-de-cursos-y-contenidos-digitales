@@ -1,16 +1,16 @@
 const express = require("express");
-const cors = require("cors");
-
 const app = express();
 
-// Middlewares
-app.use(cors());
+const cursoRoutes = require("./routes/curso.routes");
+const leccionRoutes = require("./routes/leccion.routes");
+
 app.use(express.json());
 
-// Rutas
-app.use("/api/carrito", require("./routes/carritoRoutes"));
-app.use("/api/compra", require("./routes/compraRoutes"));
+app.use("/cursos", cursoRoutes);
+app.use("/lecciones", leccionRoutes);
 
-
+app.get("/", (req, res) => {
+  res.send("API funcionando");
+});
 
 module.exports = app;
