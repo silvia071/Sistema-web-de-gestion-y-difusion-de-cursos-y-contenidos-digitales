@@ -1,15 +1,16 @@
 const mongoose = require("mongoose");
 
-const MONGO_URI = process.env.MONGO_URI || "mongodb://localhost:27017/tienda_cursos";   
-
 const connectDB = async () => {
   try {
-    await mongoose.connect(MONGO_URI);
-    console.log("Conectado a MongoDB");
-  } catch (err) {
-    console.error("Error al conectar a MongoDB:", err);
-    process.exit(1); 
-  }             
+    mongoose.set("strictQuery", true);
+
+    await mongoose.connect(process.env.MONGO_URI);
+
+    console.log("Mongo conectado");
+  } catch (error) {
+    console.error("Error conectando a Mongo:", error);
+    process.exit(1);
+  }
 };
 
-module.exports = connectDB; 
+module.exports = connectDB;

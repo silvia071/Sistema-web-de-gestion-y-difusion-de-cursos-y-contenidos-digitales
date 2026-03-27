@@ -6,11 +6,11 @@ const {
   obtenerCarrito,
   agregarItem,
   calcularTotal
-} = require("../controllers/carritoController");
+} = require("../controllers/carrito.controller");
 
 router.post("/", crearCarrito);
 router.get("/:id", obtenerCarrito);
-router.post("/agregar", agregarItem);
+router.post("/:id/agregar", agregarItem);
 router.get("/:id/total", calcularTotal);
 
 module.exports = router;

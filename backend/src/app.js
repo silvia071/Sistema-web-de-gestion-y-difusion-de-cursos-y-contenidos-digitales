@@ -8,9 +8,15 @@ app.use(cors());
 app.use(express.json());
 
 // Rutas
-app.use("/api/carrito", require("./routes/carritoRoutes"));
-app.use("/api/compra", require("./routes/compraRoutes"));
+app.use("/api/carrito", require("./routes/carrito.route"));
+app.use("/api/compra", require("./routes/compra.route"));
 
-
+// Manejo de errores global
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({
+    error: "Error interno del servidor"
+  });
+});
 
 module.exports = app;
