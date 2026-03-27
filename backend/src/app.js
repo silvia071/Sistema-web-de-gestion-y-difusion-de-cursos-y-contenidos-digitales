@@ -1,8 +1,8 @@
 const express = require("express");
 const app = express();
 
-const cursoRoutes = require("./routes/curso.routes");
-const leccionRoutes = require("./routes/leccion.routes");
+const cursoRoutes = require("./routes/curso.route");
+const leccionRoutes = require("./routes/leccion.route");
 
 app.use(express.json());
 
