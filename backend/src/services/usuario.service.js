@@ -1,16 +1,17 @@
-const Usuario = require('../models/Usuario');
+const Usuario = require('../models/usuario.model');
 const bcrypt = require('bcryptjs');
 
 const registrarUsuario = async (datos) => {
-    // Encriptamos antes de guardar
-    const { contrasenia } = datos;
+    if (!datos.contrasenia) {
+        throw new Error("La contraseña es obligatoria");
+    }
+
     const salt = await bcrypt.genSalt(10);
-    datos.contrasenia = await bcrypt.hash(contrasenia, salt);
+    datos.contrasenia = await bcrypt.hash(datos.contrasenia, salt);
     
     const nuevoUsuario = new Usuario(datos);
     return await nuevoUsuario.save();
 };
-
 const iniciarSesion = async (email, contrasenia) => {
     const usuario = await Usuario.findOne({ email });
     if (!usuario) throw new Error("Usuario no encontrado");

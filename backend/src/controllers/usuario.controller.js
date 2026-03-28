@@ -1,11 +1,17 @@
-const usuarioService = require('../services/UsuarioService');
+const usuarioService = require('../services/usuario.service');
+
 
 const registrarUsuario = async (req, res) => {
     try {
+        console.log("--> Intentando registrar a:", req.body.email);
         const usuario = await usuarioService.registrarUsuario(req.body);
-        res.status(201).json(usuario);
+        return res.status(201).json(usuario);
     } catch (error) {
-        res.status(400).json({ mensaje: "Error al registrar", detalle: error.message });
+        console.error("--> ERROR REAL:", error.message);
+        return res.status(400).json({ 
+            error: "Error en el registro", 
+            detalle: error.message 
+        });
     }
 };
 

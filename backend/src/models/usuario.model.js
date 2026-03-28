@@ -1,14 +1,14 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
-const Counter = require('./Counter');
-const EstadoCuenta = require('../enums/EstadoCuenta');
-const RolUsuario = require('../enums/RolUsuario');
+const Counter = require('./counter.model'); 
+const EstadoCuenta = require('../enums/estadoCuenta');
+const RolUsuario = require('../enums/rolUsuario');
 
 const UsuarioSchema = new mongoose.Schema({
     idUsuario: { type: Number, unique: true }, 
-    nombre: { type: String, required: true },
-    apellido: { type: String, required: true },
-    email: { type: String, required: true, unique: true },
+    nombre: { type: String, required: true, trim: true },
+    apellido: { type: String, required: true, trim: true },
+    email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     contrasenia: { type: String, required: true },
     direccion: { type: String },
     telefono: { type: String },
@@ -17,15 +17,15 @@ const UsuarioSchema = new mongoose.Schema({
     estadoCuenta: { 
         type: String, 
         enum: Object.values(EstadoCuenta), 
-        default: 'ACTIVO' 
+        default: EstadoCuenta.ACTIVO 
     },
     rol: { 
         type: String, 
         enum: Object.values(RolUsuario), 
-        default: 'CLIENTE' 
+        default: RolUsuario.CLIENTE 
     },
     datosFacturacion: { type: Object } 
-});
+}, { timestamps: true }); 
 
 UsuarioSchema.pre('save', async function() { 
     if (!this.isNew) return; 
@@ -34,24 +34,19 @@ UsuarioSchema.pre('save', async function() {
         const counter = await Counter.findOneAndUpdate(
             { id: 'usuarioId' },
             { $inc: { seq: 1 } },
-            { new: true, upsert: true }
+            { returnDocument: 'after', upsert: true }
         );
         this.idUsuario = counter.seq;
-       
     } catch (error) {
-        throw error; 
+        throw error;
     }
 });
 
 UsuarioSchema.methods.cambiarContrasenia = async function(nuevaContrasenia) {
-    try {
-        const salt = await bcrypt.genSalt(10);
-        this.contrasenia = await bcrypt.hash(nuevaContrasenia, salt);
-        this.markModified('contrasenia'); 
-        return await this.save();
-    } catch (error) {
-        throw new Error("Error al hashear la nueva contraseña: " + error.message);
-    }
+    const salt = await bcrypt.genSalt(10);
+    this.contrasenia = await bcrypt.hash(nuevaContrasenia, salt);
+    this.markModified('contrasenia'); 
+    return await this.save();
 };
 
 UsuarioSchema.methods.actualizarDireccion = async function(nuevaDireccion) {
@@ -70,16 +65,16 @@ UsuarioSchema.methods.actualizarEmail = async function(nuevoEmail) {
 };
 
 UsuarioSchema.methods.esAdministrador = function() {
-    return this.rol === 'ADMINISTRADOR';
+    return this.rol === RolUsuario.ADMINISTRADOR;
 };
 
 UsuarioSchema.set('toJSON', {
     transform: (doc, ret) => {
         delete ret._id;
         delete ret.__v;
+        delete ret.contrasenia;
         return ret;
     }
 });
 
 module.exports = mongoose.model('Usuario', UsuarioSchema);
-

@@ -17,11 +17,12 @@ const {
     actualizarEmail,
     actualizarDireccion,
     actualizarTelefono
-} = require('../controllers/usuarioController');
+} = require('../controllers/usuario.controller');
+const { validarRegistro, validarLogin } = require('../middlewares/usuario.validator');
 
 
-router.post('/registro', registrarUsuario);
-router.post('/login', iniciarSesion);
+router.post('/registro', validarRegistro, registrarUsuario);
+router.post('/login', validarLogin, iniciarSesion);
 router.post('/logout/:id', cerrarSesion);
 
 

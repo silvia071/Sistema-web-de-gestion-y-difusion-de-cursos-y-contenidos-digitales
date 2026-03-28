@@ -11,6 +11,7 @@
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",
     "express": "^4.22.1",
+    "express-validator": "^7.3.1",
     "mongoose": "^9.3.3"
   },
   "devDependencies": {
