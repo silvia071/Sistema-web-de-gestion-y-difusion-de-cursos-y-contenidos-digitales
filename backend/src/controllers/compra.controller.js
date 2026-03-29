@@ -23,6 +23,20 @@ const generarCompra = async (req, res) => {
   }
 };
 
+const eliminarCompra = async (req, res) => {
+  try {
+    const { id } = req.params;  
+
+    const compra = await compraService.eliminarCompra(id);
+    res.json(compra);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+
 module.exports = {
-  generarCompra
+  generarCompra,
+  eliminarCompra
+
 };

@@ -2,19 +2,19 @@ const Carrito = require("../models/carrito.model");
 const ItemCarrito = require("../models/itemCarrito.model");
 
 const crearCarrito = async () => {
-  return await Carrito.create({});
+  return await Carrito.create({}); //  Se crea un carrito vacío con estado "ABIERTO" por defecto
 };
 
 const obtenerCarritoActivo = async (id) => {
-  const carrito = await Carrito.findById(id).populate("items");
+  const carrito = await Carrito.findById(id).populate("items");     
 
   if (!carrito) throw new Error("Carrito no encontrado");
   if (carrito.estado !== "ABIERTO") throw new Error("Carrito no activo");
 
-  return carrito;
+  return carrito; 
 };
 
-const agregarCursoAlCarrito = async (carritoId, cursoId, precio) => {
+const agregarCursoAlCarrito = async (carritoId, cursoId, precio) => {// Se crea un nuevo item de carrito con el curso y precio proporcionados
   const item = await ItemCarrito.create({
     curso: cursoId,
     precioUnitario: precio
@@ -29,7 +29,7 @@ const agregarCursoAlCarrito = async (carritoId, cursoId, precio) => {
   return carrito;
 };
 
-const eliminarItemDelCarrito = async (carritoId, itemId) => {
+const eliminarItemDelCarrito = async (carritoId, itemId) => {// Se elimina un item del carrito especificado por ID, y se borra el item de la base de datos
   const carrito = await Carrito.findById(carritoId);
   if (!carrito) throw new Error("Carrito no encontrado");
 

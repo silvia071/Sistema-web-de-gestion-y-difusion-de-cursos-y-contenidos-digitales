@@ -38,6 +38,66 @@ const generarCompraDesdeCarrito = async (carrito, usuarioId) => {
 return await Compra.findById(compra._id).populate("detalles");
 };
 
+const confirmarCompra = async (compraId) => {
+  const compra = await Compra.findById(compraId);
+  if (!compra) {
+    throw new Error("Compra no encontrada");
+  } 
+
+  compra.estado = "CONFIRMADA";
+  await compra.save();
+
+  return compra;
+};
+
+const cancelarCompra = async (compraId) => {
+  const compra = await Compra.findById(compraId);
+  if (!compra) {
+    throw new Error("Compra no encontrada");
+  }
+
+  compra.estado = "CANCELADA";
+  await compra.save();
+
+  return compra;
+};
+
+const eliminarCompra = async (compraId) => {
+  const compra = await Compra.findByIdAndDelete(compraId);
+  if (!compra) {
+    throw new Error("Compra no encontrada");
+  }
+  return compra;
+};
+
+const listarComprasPorUsuario = async (usuarioId) => {
+  return await Compra.find({ usuario: usuarioId }).populate("detalles");
+};
+
+const buscarCompraPorId = async (compraId) => {
+  const compra = await Compra.findById(compraId).populate("detalles");
+  if (!compra) {
+    throw new Error("Compra no encontrada");
+  }
+  return compra;
+};
+
+const generarFactura = async (compraId) => {
+  const compra = await Compra.findById(compraId).populate("detalles");
+  if (!compra) {
+    throw new Error("Compra no encontrada");
+  }
+  return compra;
+};
+
+
+
 module.exports = {
-  generarCompraDesdeCarrito
+  generarCompraDesdeCarrito,
+  confirmarCompra,
+  cancelarCompra,
+  eliminarCompra,
+  listarComprasPorUsuario,
+  buscarCompraPorId,
+  generarFactura
 };

@@ -21,7 +21,7 @@ const obtenerCarrito = async (req, res) => {
   }
 };
 
-const agregarItem = async (req, res) => {
+const agregarItem = async (req, res) => { // Se agrega un curso al carrito especificado por ID, con el precio proporcionado en el cuerpo de la solicitud
   try {
     const carritoId = req.params.id;
     const { curso, precioUnitario } = req.body;
@@ -40,6 +40,50 @@ const agregarItem = async (req, res) => {
   }
 };
 
+const eliminarItem = async (req, res) => {
+  try {
+    const carritoId = req.params.id;
+    const itemId = req.params.itemId;   
+
+    const carrito = await carritoService.eliminarItemDelCarrito(carritoId, itemId);
+    res.json(carrito);
+  } catch (error) {
+    if (error.message.includes("no encontrado")) {
+      return res.status(404).json({ error: error.message });
+    }
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const actualizarItem = async (req, res) => {
+  try {
+    const carritoId = req.params.id;
+    const itemId = req.params.itemId;   
+    const { curso, precioUnitario } = req.body;
+
+    const carrito = await carritoService.actualizarItemEnCarrito(carritoId, itemId, curso, precioUnitario);
+    res.json(carrito);
+  } catch (error) {
+    if (error.message.includes("no encontrado")) {
+      return res.status(404).json({ error: error.message });
+    }
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const vaciarCarrito = async (req, res) => {
+  try {
+    const carrito = await carritoService.vaciarCarrito(req.params.id);  
+    res.json(carrito);
+  } catch (error) {
+    if (error.message.includes("no encontrado")) {
+      return res.status(404).json({ error: error.message });
+    }
+    res.status(500).json({ error: error.message });
+  }
+};
+
+
 const calcularTotal = async (req, res) => {
   try {
     const total = await carritoService.calcularTotalCarrito(req.params.id);
@@ -56,5 +100,8 @@ module.exports = {
   crearCarrito,
   obtenerCarrito,
   agregarItem,
+  eliminarItem,
+  actualizarItem,
+  vaciarCarrito,
   calcularTotal
 };
