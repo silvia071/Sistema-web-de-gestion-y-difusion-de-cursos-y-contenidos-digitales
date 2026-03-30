@@ -1,25 +1,44 @@
-class Pago {
-    constructor(idPago, monto, metodoPago) {
-        this.idPago = idPago;
-        this.monto = monto;
-        this.fecha = new Date();
-        this.estado = "PENDIENTE";
-        this.metodoPago = metodoPago;
-    }
+const mongoose = require("mongoose");
 
-    aprobarPago() {
-        this.estado = "APROBADO";
-    }
+const pagoSchema = new mongoose.Schema({
+  monto: {
+    type: Number,
+    required: true
+  },
+  estado: {
+    type: String,
+    enum: ["PENDIENTE", "APROBADO", "RECHAZADO"],
+    default: "PENDIENTE"
+  },
+  fecha: {
+    type: Date,
+    default: Date.now
+  },
+  metodoPago: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "MetodoPago",
+    required: true
+  }
+});
 
-    rechazarPago() {
-        this.estado = "RECHAZADO";
-    }
 
-    marcarPendiente() {
-        this.estado = "PENDIENTE";
-    }
+// 🔥 MÉTODOS (equivalente a tu clase)
 
-    estaAprobado() {
-        return this.estado === "APROBADO";
-    }
-}
+pagoSchema.methods.aprobarPago = function () {
+  this.estado = "APROBADO";
+};
+
+pagoSchema.methods.rechazarPago = function () {
+  this.estado = "RECHAZADO";
+};
+
+pagoSchema.methods.marcarPendiente = function () {
+  this.estado = "PENDIENTE";
+};
+
+pagoSchema.methods.estaAprobado = function () {
+  return this.estado === "APROBADO";
+};
+
+
+module.exports = mongoose.model("Pago", pagoSchema);
