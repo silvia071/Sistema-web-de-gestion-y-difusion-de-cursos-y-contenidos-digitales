@@ -1,5 +1,5 @@
 const Usuario = require('../models/usuario.model');
-const bcrypt = require('bcryptjs');
+const bcrypt = require('bcrypt'); 
 
 const registrarUsuario = async (datos) => {
     if (!datos.contrasenia) {

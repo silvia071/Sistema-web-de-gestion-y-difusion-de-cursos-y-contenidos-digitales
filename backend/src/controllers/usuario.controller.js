@@ -94,6 +94,8 @@ const cambiarContrasenia = async (req, res) => {
     }
 };
 
+
+
 const eliminarUsuario = async (req, res) => {
     try {
         await usuarioService.eliminarUsuario(req.params.id);

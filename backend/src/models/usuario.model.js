@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
+const bcrypt = require('bcrypt'); 
 const Counter = require('./counter.model'); 
 const EstadoCuenta = require('../enums/estadoCuenta');
 const RolUsuario = require('../enums/rolUsuario');
