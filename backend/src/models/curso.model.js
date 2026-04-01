@@ -37,7 +37,7 @@ const cursoSchema = new mongoose.Schema(
     categoria: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Categoria",
-      required: false,
+      required: true,
     },
     imagenPortada: {
       type: String,
