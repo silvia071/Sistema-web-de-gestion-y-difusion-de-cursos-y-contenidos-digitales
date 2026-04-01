@@ -7,7 +7,8 @@ const datosFacturacionSchema = new mongoose.Schema({
   },
   cuitCuil: {
     type: String,
-    required: true
+    required: true,
+    match: /^\d{11}$/
   },
   condicionFiscal: {
     type: String,
@@ -19,28 +20,31 @@ const datosFacturacionSchema = new mongoose.Schema({
   },
   usuario: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "Usuario",
-    required: false
+    ref: "Usuario"
   }
-});
+}, { timestamps: true });
 
 
-// 🔥 Métodos (del UML)
+// 🔥 Métodos
 
-datosFacturacionSchema.methods.actualizarRazonSocial = function(nueva) {
+datosFacturacionSchema.methods.actualizarRazonSocial = async function(nueva) {
   this.razonSocial = nueva;
+  return await this.save();
 };
 
-datosFacturacionSchema.methods.actualizarCuitCuil = function(nuevo) {
+datosFacturacionSchema.methods.actualizarCuitCuil = async function(nuevo) {
   this.cuitCuil = nuevo;
+  return await this.save();
 };
 
-datosFacturacionSchema.methods.actualizarDomicilioFiscal = function(nuevo) {
+datosFacturacionSchema.methods.actualizarDomicilioFiscal = async function(nuevo) {
   this.domicilioFiscal = nuevo;
+  return await this.save();
 };
 
-datosFacturacionSchema.methods.actualizarCondicionFiscal = function(nueva) {
+datosFacturacionSchema.methods.actualizarCondicionFiscal = async function(nueva) {
   this.condicionFiscal = nueva;
+  return await this.save();
 };
 
 module.exports = mongoose.model("DatosFacturacion", datosFacturacionSchema);

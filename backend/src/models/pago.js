@@ -3,7 +3,8 @@ const mongoose = require("mongoose");
 const pagoSchema = new mongoose.Schema({
   monto: {
     type: Number,
-    required: true
+    required: true,
+    min: 0
   },
   estado: {
     type: String,
@@ -19,21 +20,24 @@ const pagoSchema = new mongoose.Schema({
     ref: "MetodoPago",
     required: true
   }
-});
+}, { timestamps: true });
 
 
-// 🔥 MÉTODOS (equivalente a tu clase)
+// 🔥 MÉTODOS
 
-pagoSchema.methods.aprobarPago = function () {
+pagoSchema.methods.aprobarPago = async function () {
   this.estado = "APROBADO";
+  return await this.save();
 };
 
-pagoSchema.methods.rechazarPago = function () {
+pagoSchema.methods.rechazarPago = async function () {
   this.estado = "RECHAZADO";
+  return await this.save();
 };
 
-pagoSchema.methods.marcarPendiente = function () {
+pagoSchema.methods.marcarPendiente = async function () {
   this.estado = "PENDIENTE";
+  return await this.save();
 };
 
 pagoSchema.methods.estaAprobado = function () {
