@@ -18,31 +18,35 @@ const {
     actualizarDireccion,
     actualizarTelefono
 } = require('../controllers/usuario.controller');
-const { validarRegistro, validarLogin } = require('../middlewares/usuario.validator');
 
+const { 
+    validarRegistro, 
+    validarLogin, 
+    validarId,
+    validarCambioRol
+} = require('../middlewares/usuario.validator');
 
 router.post('/registro', validarRegistro, registrarUsuario);
 router.post('/login', validarLogin, iniciarSesion);
-router.post('/logout/:id', cerrarSesion);
-
+router.post('/logout/:id', validarId, cerrarSesion);
 
 router.get('/', listarUsuarios);
-router.get('/:id', buscarUsuarioPorId);
+router.get('/:id', validarId, buscarUsuarioPorId);
 router.get('/email/:email', buscarUsuarioPorEmail);
 
+router.put('/perfil/:id', validarId, editarPerfil);
+router.put('/password/:id', validarId, cambiarContrasenia);
+router.put('/bloquear/:id', validarId, bloquearUsuario);
+router.put('/activar/:id', validarId, activarUsuario);
+router.put('/rol/:id', validarId, validarCambioRol, cambiarRol);
 
-router.put('/perfil/:id', editarPerfil);
-router.put('/password/:id', cambiarContrasenia);
-router.put('/rol/:id', cambiarRol);
-router.put('/bloquear/:id', bloquearUsuario);
-router.put('/activar/:id', activarUsuario);
+router.patch('/email/:id', validarId, actualizarEmail);
+router.patch('/direccion/:id', validarId, actualizarDireccion);
+router.patch('/telefono/:id', validarId, actualizarTelefono);
 
-router.patch('/email/:id', actualizarEmail);
-router.patch('/direccion/:id', actualizarDireccion);
-router.patch('/telefono/:id', actualizarTelefono);
-
-
-router.delete('/:id', eliminarUsuario);
+router.delete('/:id', validarId, eliminarUsuario);
 
 module.exports = router;
+
+
 

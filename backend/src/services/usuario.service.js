@@ -1,5 +1,5 @@
 const Usuario = require('../models/usuario.model');
-const bcrypt = require('bcrypt'); 
+const bcrypt = require('bcrypt');
 
 const registrarUsuario = async (datos) => {
     if (!datos.contrasenia) {
@@ -12,8 +12,11 @@ const registrarUsuario = async (datos) => {
     const nuevoUsuario = new Usuario(datos);
     return await nuevoUsuario.save();
 };
+
 const iniciarSesion = async (email, contrasenia) => {
-    const usuario = await Usuario.findOne({ email });
+    const emailLimpio = email.trim().toLowerCase();
+    const usuario = await Usuario.findOne({ email: emailLimpio });
+
     if (!usuario) throw new Error("Usuario no encontrado");
 
     const esValida = await bcrypt.compare(contrasenia, usuario.contrasenia);
@@ -21,16 +24,17 @@ const iniciarSesion = async (email, contrasenia) => {
 
     usuario.fechaUltimoAcceso = new Date();
     await usuario.save();
+    
     return usuario;
 };
 
 const cerrarSesion = async (id) => {
-    const usuario = await Usuario.findOne({ idUsuario: id });
+    const usuario = await Usuario.findById(id);
     if (!usuario) throw new Error("Usuario no encontrado");
 
     return { 
         mensaje: `Sesión cerrada para el usuario ${usuario.nombre}`, 
-        idUsuario: usuario.idUsuario 
+        id: usuario._id 
     };
 };
 
@@ -39,7 +43,7 @@ const listarUsuarios = async () => {
 };
 
 const buscarUsuarioPorId = async (id) => {
-    return await Usuario.findOne({ idUsuario: id });
+    return await Usuario.findById(id);
 };
 
 const buscarUsuarioPorEmail = async (email) => {
@@ -48,64 +52,69 @@ const buscarUsuarioPorEmail = async (email) => {
     return usuario;
 };
 
-
 const editarPerfil = async (id, datosActualizados) => {
-    return await Usuario.findOneAndUpdate(
-        { idUsuario: id },
+    return await Usuario.findByIdAndUpdate(
+        id,
         datosActualizados,
-        { new: true, runValidators: true }
+        { returnDocument: 'after', runValidators: true }
     );
 };
 
 const cambiarContrasenia = async (id, datos) => {
-    const usuario = await Usuario.findOne({ idUsuario: id });
+    const usuario = await Usuario.findById(id);
     if (!usuario) throw new Error("Usuario no encontrado");
 
-    return await usuario.cambiarContrasenia(datos.contrasenia); 
+    const passwordParaHashear = datos.nuevaContrasenia || datos.contrasenia;
+    if (!passwordParaHashear) throw new Error("La nueva contraseña es requerida");
+
+    const salt = await bcrypt.genSalt(10);
+    const hash = await bcrypt.hash(passwordParaHashear, salt);
+    
+    usuario.contrasenia = hash;
+    return await usuario.save();
 };
 
-
 const eliminarUsuario = async (id) => {
-    return await Usuario.findOneAndDelete({ idUsuario: id });
+    return await Usuario.findByIdAndDelete(id);
 };
 
 const bloquearUsuario = async (id) => {
-    return await Usuario.findOneAndUpdate(
-        { idUsuario: id },
+    return await Usuario.findByIdAndUpdate(
+        id,
         { estadoCuenta: 'BLOQUEADO' },
-        { new: true }
+        { returnDocument: 'after' }
     );
 };
 
 const activarUsuario = async (id) => {
-    return await Usuario.findOneAndUpdate(
-        { idUsuario: id },
+    return await Usuario.findByIdAndUpdate(
+        id,
         { estadoCuenta: 'ACTIVO' },
-        { new: true }
+        { returnDocument: 'after' }
     );
 };
 
 const cambiarRol = async (id, nuevoRol) => {
-    return await Usuario.findOneAndUpdate(
-        { idUsuario: id },
+    return await Usuario.findByIdAndUpdate(
+        id,
         { rol: nuevoRol },
-        { new: true }
+        { returnDocument: 'after', runValidators: true } 
     );
 };
 
 const actualizarEmail = async (id, nuevoEmail) => {
-    return await Usuario.findOneAndUpdate(
-        { idUsuario: id },
+    return await Usuario.findByIdAndUpdate(
+        id,
         { email: nuevoEmail },
-        { new: true, runValidators: true }
+        { returnDocument: 'after', runValidators: true }
     );
 };
 
 const actualizarDireccion = async (id, nuevaDireccion) => {
-    const usuario = await Usuario.findOneAndUpdate(
-        { idUsuario: id },
+    const usuario = await Usuario.findByIdAndUpdate(
+        id,
         { direccion: nuevaDireccion },
-        { new: true, runValidators: true }
+        { returnDocument: 'after', runValidators: true }
     );
 
     if (!usuario) {
@@ -116,10 +125,10 @@ const actualizarDireccion = async (id, nuevaDireccion) => {
 };
 
 const actualizarTelefono = async (id, nuevoTelefono) => {
-    const usuario = await Usuario.findOneAndUpdate(
-        { idUsuario: id },
+    const usuario = await Usuario.findByIdAndUpdate(
+        id,
         { telefono: nuevoTelefono },
-        { new: true, runValidators: true }
+        { returnDocument: 'after', runValidators: true }
     );
 
     if (!usuario) {
@@ -146,3 +155,4 @@ module.exports = {
     actualizarDireccion,
     actualizarTelefono
 };
+

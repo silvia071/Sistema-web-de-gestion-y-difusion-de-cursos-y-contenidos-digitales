@@ -1,13 +1,10 @@
 const usuarioService = require('../services/usuario.service');
 
-
 const registrarUsuario = async (req, res) => {
     try {
-        console.log("--> Intentando registrar a:", req.body.email);
         const usuario = await usuarioService.registrarUsuario(req.body);
         return res.status(201).json(usuario);
     } catch (error) {
-        console.error("--> ERROR REAL:", error.message);
         return res.status(400).json({ 
             error: "Error en el registro", 
             detalle: error.message 
@@ -68,13 +65,10 @@ const editarPerfil = async (req, res) => {
     try {
         const { id } = req.params; 
         const datosActualizados = req.body;
-
         const usuario = await usuarioService.editarPerfil(id, datosActualizados);
-
         if (!usuario) {
             return res.status(404).json({ mensaje: "Usuario no encontrado" });
         }
-
         res.status(200).json({
             mensaje: "Perfil actualizado correctamente",
             usuario
@@ -87,14 +81,12 @@ const editarPerfil = async (req, res) => {
 const cambiarContrasenia = async (req, res) => {
     try {
         const { id } = req.params;
-        const resultado = await usuarioService.cambiarContrasenia(id, req.body);
+        await usuarioService.cambiarContrasenia(id, req.body);
         res.status(200).json({ mensaje: "¡Contraseña actualizada!" });
     } catch (error) {
         res.status(400).json({ mensaje: "Error al cambiar contraseña", detalle: error.message });
     }
 };
-
-
 
 const eliminarUsuario = async (req, res) => {
     try {

@@ -1,11 +1,9 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt'); 
-const Counter = require('./counter.model'); 
 const EstadoCuenta = require('../enums/estadoCuenta');
 const RolUsuario = require('../enums/rolUsuario');
 
 const UsuarioSchema = new mongoose.Schema({
-    idUsuario: { type: Number, unique: true }, 
     nombre: { type: String, required: true, trim: true },
     apellido: { type: String, required: true, trim: true },
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
@@ -27,25 +25,8 @@ const UsuarioSchema = new mongoose.Schema({
     datosFacturacion: { type: Object } 
 }, { timestamps: true }); 
 
-UsuarioSchema.pre('save', async function() { 
-    if (!this.isNew) return; 
-
-    try {
-        const counter = await Counter.findOneAndUpdate(
-            { id: 'usuarioId' },
-            { $inc: { seq: 1 } },
-            { returnDocument: 'after', upsert: true }
-        );
-        this.idUsuario = counter.seq;
-    } catch (error) {
-        throw error;
-    }
-});
-
-UsuarioSchema.methods.cambiarContrasenia = async function(nuevaContrasenia) {
-    const salt = await bcrypt.genSalt(10);
-    this.contrasenia = await bcrypt.hash(nuevaContrasenia, salt);
-    this.markModified('contrasenia'); 
+UsuarioSchema.methods.cambiarContrasenia = async function(hashContrasenia) {
+    this.contrasenia = hashContrasenia;
     return await this.save();
 };
 
@@ -70,6 +51,7 @@ UsuarioSchema.methods.esAdministrador = function() {
 
 UsuarioSchema.set('toJSON', {
     transform: (doc, ret) => {
+        ret.id = ret._id;
         delete ret._id;
         delete ret.__v;
         delete ret.contrasenia;
@@ -78,3 +60,4 @@ UsuarioSchema.set('toJSON', {
 });
 
 module.exports = mongoose.model('Usuario', UsuarioSchema);
+
