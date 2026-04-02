@@ -1,11 +1,11 @@
 const mongoose = require("mongoose");
+const EstadoCompra = require("../enums/estadoCompra");
 
 const compraSchema = new mongoose.Schema({
-  idCompra: Number,
-  usuario: {
+  idUsuario: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Usuario",
-    required: true
+    required: false 
   },
   detalles: [
     {
@@ -15,8 +15,8 @@ const compraSchema = new mongoose.Schema({
   ],
   estado: {
     type: String,
-    enum: ["PENDIENTE", "PAGADA", "CANCELADA", "ANULADA"],
-    default: "PENDIENTE"
+    enum: Object.values(EstadoCompra).filter(v => typeof v === "string"),
+    default: EstadoCompra.PENDIENTE
   },
   subtotal: Number,
   total: Number,

@@ -11,7 +11,9 @@ const crearCarrito = async (req, res) => {
 
 const obtenerCarrito = async (req, res) => {
   try {
-    const carrito = await carritoService.obtenerCarritoActivo(req.params.id);
+    const idCarrito = req.params.id;
+
+    const carrito = await carritoService.obtenerCarritoActivo(idCarrito);
     res.json(carrito);
   } catch (error) {
     if (error.message.includes("no encontrado")) {
@@ -21,16 +23,23 @@ const obtenerCarrito = async (req, res) => {
   }
 };
 
-const agregarItem = async (req, res) => { // Se agrega un curso al carrito especificado por ID, con el precio proporcionado en el cuerpo de la solicitud
+const agregarItem = async (req, res) => {
   try {
-    const carritoId = req.params.id;
-    const { curso, precioUnitario } = req.body;
+    const idCarrito = req.params.id;
+    const { idCurso, precioUnitario } = req.body;
 
-    if (!curso || precioUnitario == null) {
-      return res.status(400).json({ error: "curso y precioUnitario son obligatorios" });
+    if (!idCurso || precioUnitario == null) {
+      return res.status(400).json({
+        error: "idCurso y precioUnitario son obligatorios",
+      });
     }
 
-    const carrito = await carritoService.agregarCursoAlCarrito(carritoId, curso, precioUnitario);
+    const carrito = await carritoService.agregarCursoAlCarrito(
+      idCarrito,
+      idCurso,
+      precioUnitario
+    );
+
     res.json(carrito);
   } catch (error) {
     if (error.message.includes("no encontrado")) {
@@ -42,10 +51,14 @@ const agregarItem = async (req, res) => { // Se agrega un curso al carrito espec
 
 const eliminarItem = async (req, res) => {
   try {
-    const carritoId = req.params.id;
-    const itemId = req.params.itemId;   
+    const idCarrito = req.params.id;
+    const itemId = req.params.itemId;
 
-    const carrito = await carritoService.eliminarItemDelCarrito(carritoId, itemId);
+    const carrito = await carritoService.eliminarItemDelCarrito(
+      idCarrito,
+      itemId
+    );
+
     res.json(carrito);
   } catch (error) {
     if (error.message.includes("no encontrado")) {
@@ -57,11 +70,23 @@ const eliminarItem = async (req, res) => {
 
 const actualizarItem = async (req, res) => {
   try {
-    const carritoId = req.params.id;
-    const itemId = req.params.itemId;   
-    const { curso, precioUnitario } = req.body;
+    const idCarrito = req.params.id;
+    const itemId = req.params.itemId;
+    const { idCurso, precioUnitario } = req.body;
 
-    const carrito = await carritoService.actualizarItemEnCarrito(carritoId, itemId, curso, precioUnitario);
+    if (!idCurso || precioUnitario == null) {
+      return res.status(400).json({
+        error: "idCurso y precioUnitario son obligatorios",
+      });
+    }
+
+    const carrito = await carritoService.actualizarItemEnCarrito(
+      idCarrito,
+      itemId,
+      idCurso,
+      precioUnitario
+    );
+
     res.json(carrito);
   } catch (error) {
     if (error.message.includes("no encontrado")) {
@@ -73,7 +98,9 @@ const actualizarItem = async (req, res) => {
 
 const vaciarCarrito = async (req, res) => {
   try {
-    const carrito = await carritoService.vaciarCarrito(req.params.id);  
+    const idCarrito = req.params.id;
+
+    const carrito = await carritoService.vaciarCarrito(idCarrito);
     res.json(carrito);
   } catch (error) {
     if (error.message.includes("no encontrado")) {
@@ -83,10 +110,11 @@ const vaciarCarrito = async (req, res) => {
   }
 };
 
-
 const calcularTotal = async (req, res) => {
   try {
-    const total = await carritoService.calcularTotalCarrito(req.params.id);
+    const idCarrito = req.params.id;
+
+    const total = await carritoService.calcularTotalCarrito(idCarrito);
     res.json({ total });
   } catch (error) {
     if (error.message.includes("no encontrado")) {
@@ -103,5 +131,5 @@ module.exports = {
   eliminarItem,
   actualizarItem,
   vaciarCarrito,
-  calcularTotal
+  calcularTotal,
 };

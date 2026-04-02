@@ -12,7 +12,7 @@ const {
 
 router.post("/", crearCarrito);
 router.get("/:id", obtenerCarrito);
-router.post("/:id/agregar", agregarItem);
+router.post("/:id/item", agregarItem);
 router.delete("/:id/item/:itemId", eliminarItem);
 router.put("/:id/item/:itemId", actualizarItem);
 router.get("/:id/total", calcularTotal);

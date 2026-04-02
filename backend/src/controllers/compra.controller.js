@@ -3,40 +3,48 @@ const compraService = require("../services/compra.service");
 
 const generarCompra = async (req, res) => {
   try {
-    const { id } = req.params;
-    const { usuarioId } = req.body;
+    const idCarrito = req.params.id;
+    const { idUsuario } = req.body; // 👈 CORREGIDO
 
-    if (!id) {
+    if (!idCarrito) {
       return res.status(400).json({ error: "Falta id del carrito" });
     }
 
-    const carrito = await carritoService.obtenerCarritoActivo(id);
+    const carrito = await carritoService.obtenerCarritoActivo(idCarrito);
 
     const compra = await compraService.generarCompraDesdeCarrito(
       carrito,
-      usuarioId
+      idUsuario || null
     );
 
     res.status(201).json(compra);
+
   } catch (error) {
+    if (error.message.includes("no encontrado")) {
+      return res.status(404).json({ error: error.message });
+    }
+
     res.status(500).json({ error: error.message });
   }
 };
 
 const eliminarCompra = async (req, res) => {
   try {
-    const { id } = req.params;  
+    const idCompra = req.params.id;
 
-    const compra = await compraService.eliminarCompra(id);
+    const compra = await compraService.eliminarCompra(idCompra);
     res.json(compra);
+
   } catch (error) {
+    if (error.message.includes("no encontrado")) {
+      return res.status(404).json({ error: error.message });
+    }
+
     res.status(500).json({ error: error.message });
   }
 };
 
-
 module.exports = {
   generarCompra,
-  eliminarCompra
-
+  eliminarCompra,
 };

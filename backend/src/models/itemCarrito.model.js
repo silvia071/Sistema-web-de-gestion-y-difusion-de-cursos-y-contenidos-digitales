@@ -1,7 +1,6 @@
 const mongoose = require("mongoose");
 
 const itemCarritoSchema = new mongoose.Schema({
-  idItemCarrito: Number,
   curso: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Curso",

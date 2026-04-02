@@ -1,14 +1,13 @@
 const mongoose = require("mongoose");
 
 const detalleCompraSchema = new mongoose.Schema({
-  idDetalleCompra: Number,
   curso: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Curso",
-    required: true
+    required: true,
   },
   precioUnitario: Number,
-  subtotal: Number
+  subtotal: Number,
 });
 
 detalleCompraSchema.methods.calcularSubtotal = function () {

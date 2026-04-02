@@ -1,27 +1,36 @@
 const Carrito = require("../models/carrito.model");
 const ItemCarrito = require("../models/itemCarrito.model");
+const EstadoCarrito = require("../enums/estadoCarrito");
+const Curso = require("../models/curso.model");
 
 const crearCarrito = async () => {
-  return await Carrito.create({}); //  Se crea un carrito vacío con estado "ABIERTO" por defecto
+  return await Carrito.create({}); 
 };
 
 const obtenerCarritoActivo = async (id) => {
   const carrito = await Carrito.findById(id).populate("items");     
 
   if (!carrito) throw new Error("Carrito no encontrado");
-  if (carrito.estado !== "ABIERTO") throw new Error("Carrito no activo");
+  if (carrito.estado !== EstadoCarrito.ABIERTO) throw new Error("Carrito no activo");
 
   return carrito; 
 };
 
-const agregarCursoAlCarrito = async (carritoId, cursoId, precio) => {// Se crea un nuevo item de carrito con el curso y precio proporcionados
+const agregarCursoAlCarrito = async (idCarrito, idCurso, precio) => {
+  const curso = await Curso.findById(idCurso);
+  if (!curso) throw new Error("Curso no existe");
+ 
   const item = await ItemCarrito.create({
-    curso: cursoId,
+    curso: idCurso,
     precioUnitario: precio
   });
-
-  const carrito = await Carrito.findById(carritoId);
+ 
+  const carrito = await Carrito.findById(idCarrito);
   if (!carrito) throw new Error("Carrito no encontrado");
+
+  if (carrito.estado !== EstadoCarrito.ABIERTO) {
+    throw new Error("Carrito no activo");
+  }
 
   carrito.agregarItem(item._id);
   await carrito.save();
@@ -29,30 +38,36 @@ const agregarCursoAlCarrito = async (carritoId, cursoId, precio) => {// Se crea 
   return carrito;
 };
 
-const eliminarItemDelCarrito = async (carritoId, itemId) => {// Se elimina un item del carrito especificado por ID, y se borra el item de la base de datos
-  const carrito = await Carrito.findById(carritoId);
+const eliminarItemDelCarrito = async (idCarrito, idItem) => {
+  const carrito = await Carrito.findById(idCarrito);
   if (!carrito) throw new Error("Carrito no encontrado");
 
-  carrito.eliminarItem(itemId);
+   if (carrito.estado !== EstadoCarrito.ABIERTO) {
+    throw new Error("Carrito no activo");
+  }
+  carrito.eliminarItem(idItem);
   await carrito.save();
 
-  await ItemCarrito.findByIdAndDelete(itemId);
+  await ItemCarrito.findByIdAndDelete(idItem);
 
   return carrito;
 };
 
-const vaciarCarrito = async (carritoId) => {
-  const carrito = await Carrito.findById(carritoId);
+const vaciarCarrito = async (idCarrito) => {
+  const carrito = await Carrito.findById(idCarrito);
   if (!carrito) throw new Error("Carrito no encontrado");
 
+    if (carrito.estado !== EstadoCarrito.ABIERTO) {
+    throw new Error("Carrito no activo");
+  }
   carrito.vaciar();
   await carrito.save();
 
   return carrito;
 };
 
-const calcularTotalCarrito = async (carritoId) => {
-  const carrito = await Carrito.findById(carritoId).populate("items");
+const calcularTotalCarrito = async (idCarrito) => {
+  const carrito = await Carrito.findById(idCarrito).populate("items");
   if (!carrito) throw new Error("Carrito no encontrado");
 
   let total = 0;
