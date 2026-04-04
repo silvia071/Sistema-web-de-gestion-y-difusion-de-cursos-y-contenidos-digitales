@@ -1,30 +1,18 @@
-const MetodoPago = require("../models/metodoPago");
+const express = require("express");
+const router = express.Router();
 
-router.post("/", async (req, res) => {
-  try {
-    const { monto, metodoPago } = req.body;
+const {
+  crearPago,
+  listarPagos,
+  buscarPagoPorId,
+  aprobarPago,
+  rechazarPago,
+} = require("../controllers/pago.Controller");
 
-    // 🔎 validar que exista
-    const metodo = await MetodoPago.findById(metodoPago);
+router.get("/", listarPagos);
+router.get("/:id", buscarPagoPorId);
+router.post("/", crearPago);
+router.patch("/:id/aprobar", aprobarPago);
+router.patch("/:id/rechazar", rechazarPago);
 
-    if (!metodo) {
-      return res.status(404).json({ error: "Método de pago no existe" });
-    }
-
-    const pago = new Pago({
-      monto,
-      metodoPago
-    });
-
-    await pago.save();
-    res.json(pago);
-
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-router.get("/", async (req, res) => {
-  const pagos = await Pago.find().populate("metodoPago");
-  res.json(pagos);
-});
+module.exports = router;

@@ -14,15 +14,17 @@ const usuarioRoutes = require("./routes/usuario.route");
 const mensajeRoutes = require("./routes/mensajeContacto.route");
 const metodoPagoRoutes = require("./routes/metodoPago.route");
 const datosFacturacionRoutes = require("./routes/datosFacturacion.route");
+const pagoRoutes = require("./routes/pago.route");
+const mensajeContactoRoutes = require("./routes/mensajeContacto.route");
 
 app.use("/usuarios", usuarioRoutes);
 app.use("/mensajes", mensajeRoutes);
 app.use("/metodos-pago", metodoPagoRoutes);
 app.use("/datos-facturacion", datosFacturacionRoutes);
+app.use("/pagos", pagoRoutes);
+app.use("/mensaje-contacto", mensajeContactoRoutes);
 
-// ruta test
-app.get("/", (req, res) => {
-  res.send("API funcionando 🚀");
-});
 
 module.exports = app;
+
+
