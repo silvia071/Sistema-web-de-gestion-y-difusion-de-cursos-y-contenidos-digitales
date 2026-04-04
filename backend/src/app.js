@@ -1,3 +1,15 @@
+<<<<<<< HEAD
+const express = require('express');
+const cors = require('cors');
+const app = express();
+
+
+app.use(cors());
+app.use(express.json());
+
+
+app.use('/api/usuarios', require('./routes/usuario.route'));
+=======
 const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
@@ -33,5 +45,6 @@ app.use("/datos-facturacion", datosFacturacionRoutes);
 app.get("/", (req, res) => {
   res.send("API funcionando 🚀");
 });
+>>>>>>> 81f13ad2a7414e05679431a328a9eea82748025d
 
 module.exports = app;
