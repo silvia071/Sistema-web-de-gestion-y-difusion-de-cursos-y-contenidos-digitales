@@ -5,7 +5,10 @@ const MONGO_URI =
 
 const connectDB = async () => {
   try {
+    mongoose.set("strictQuery", true);
+
     await mongoose.connect(MONGO_URI);
+
     console.log("MongoDB conectado");
   } catch (error) {
     console.error("Error conectando a MongoDB:", error.message);
