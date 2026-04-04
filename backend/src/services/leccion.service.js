@@ -4,21 +4,58 @@ const EstadoContenido = require("../enums/estadoContenido");
 
 class LeccionService {
   async crearLeccion(datosLeccion) {
+    if (!datosLeccion.curso) {
+      throw new Error("La lección debe pertenecer a un curso");
+    }
+
+    const cursoExistente = await Curso.findById(datosLeccion.curso);
+    if (!cursoExistente) {
+      throw new Error("El curso indicado no existe");
+    }
+
     const leccion = new Leccion(datosLeccion);
     const leccionGuardada = await leccion.save();
 
     await Curso.findByIdAndUpdate(leccionGuardada.curso, {
-      $push: { lecciones: leccionGuardada._id },
+      $addToSet: { lecciones: leccionGuardada._id },
     });
 
     return await Leccion.findById(leccionGuardada._id).populate("curso");
   }
 
   async editarLeccion(id, datosActualizados) {
-    return await Leccion.findByIdAndUpdate(id, datosActualizados, {
+    const leccionOriginal = await Leccion.findById(id);
+
+    if (!leccionOriginal) {
+      return null;
+    }
+
+    const cursoOriginal = leccionOriginal.curso?.toString();
+    const cursoNuevo = datosActualizados.curso;
+
+    if (cursoNuevo) {
+      const cursoExistente = await Curso.findById(cursoNuevo);
+      if (!cursoExistente) {
+        throw new Error("El nuevo curso indicado no existe");
+      }
+    }
+
+    await Leccion.findByIdAndUpdate(id, datosActualizados, {
       new: true,
       runValidators: true,
-    }).populate("curso");
+    });
+
+    if (cursoNuevo && cursoNuevo.toString() !== cursoOriginal) {
+      await Curso.findByIdAndUpdate(cursoOriginal, {
+        $pull: { lecciones: leccionOriginal._id },
+      });
+
+      await Curso.findByIdAndUpdate(cursoNuevo, {
+        $addToSet: { lecciones: leccionOriginal._id },
+      });
+    }
+
+    return await Leccion.findById(id).populate("curso");
   }
 
   async eliminarLeccion(id) {
@@ -59,7 +96,7 @@ class LeccionService {
   async ordenarLecciones(cursoId, leccionesOrdenadas) {
     for (const item of leccionesOrdenadas) {
       await Leccion.findOneAndUpdate(
-        { _id: item.idLeccion, curso: cursoId },
+        { _id: item.id, curso: cursoId },
         { orden: item.orden },
         { new: true, runValidators: true },
       );
