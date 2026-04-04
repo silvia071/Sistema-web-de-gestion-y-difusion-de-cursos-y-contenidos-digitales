@@ -1,26 +1,22 @@
 {
-  "name": "proyecto-cursos",
+  "name": "tpintegradorprog4",
   "version": "1.0.0",
-<<<<<<< HEAD
-=======
   "description": "",
->>>>>>> 81f13ad2a7414e05679431a328a9eea82748025d
   "main": "src/server.js",
   "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node src/server.js",
-    "dev": "npx nodemon src/server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "nodemon src/server.js"
   },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
   "dependencies": {
     "bcrypt": "^6.0.0",
     "cors": "^2.8.6",
-<<<<<<< HEAD
-    "express": "^4.22.1",
-    "express-validator": "^7.3.1",
-=======
     "dotenv": "^17.3.1",
     "express": "^5.2.1",
->>>>>>> 81f13ad2a7414e05679431a328a9eea82748025d
     "mongoose": "^9.3.3"
   },
   "devDependencies": {
