@@ -1,6 +1,10 @@
 {
   "name": "proyecto-cursos",
   "version": "1.0.0",
+<<<<<<< HEAD
+=======
+  "description": "",
+>>>>>>> 81f13ad2a7414e05679431a328a9eea82748025d
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
@@ -10,8 +14,13 @@
   "dependencies": {
     "bcrypt": "^6.0.0",
     "cors": "^2.8.6",
+<<<<<<< HEAD
     "express": "^4.22.1",
     "express-validator": "^7.3.1",
+=======
+    "dotenv": "^17.3.1",
+    "express": "^5.2.1",
+>>>>>>> 81f13ad2a7414e05679431a328a9eea82748025d
     "mongoose": "^9.3.3"
   },
   "devDependencies": {
