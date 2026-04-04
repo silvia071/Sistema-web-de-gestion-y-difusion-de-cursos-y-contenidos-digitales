@@ -1,14 +1,17 @@
 const mongoose = require("mongoose");
 
+const MONGO_URI =
+  process.env.MONGO_URI || "mongodb://127.0.0.1:27017/proyectofinal";
+
 const connectDB = async () => {
   try {
     mongoose.set("strictQuery", true);
 
-    await mongoose.connect(process.env.MONGO_URI);
+    await mongoose.connect(MONGO_URI);
 
-    console.log("Mongo conectado");
+    console.log("MongoDB conectado");
   } catch (error) {
-    console.error("Error conectando a Mongo:", error);
+    console.error("Error conectando a MongoDB:", error.message);
     process.exit(1);
   }
 };
