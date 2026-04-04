@@ -6,26 +6,71 @@ const crearPublicacion = async (datosPublicacion) => {
   if (!datosPublicacion.categoria) {
     throw new Error("La publicación debe tener una categoría");
   }
+
+  const categoriaExistente = await Categoria.findById(
+    datosPublicacion.categoria,
+  );
+
+  if (!categoriaExistente) {
+    throw new Error("La categoría indicada no existe");
+  }
+
   const nuevaPublicacion = new Publicacion(datosPublicacion);
   const guardada = await nuevaPublicacion.save();
 
-  // 2. Agregarla a la categoría
   await Categoria.findByIdAndUpdate(guardada.categoria, {
-    $push: { publicaciones: guardada._id },
+    $addToSet: { publicaciones: guardada._id },
   });
 
-  return guardada;
+  return await Publicacion.findById(guardada._id).populate("categoria");
 };
 
 const editarPublicacion = async (id, datosActualizados) => {
-  return await Publicacion.findByIdAndUpdate(id, datosActualizados, {
+  const publicacionOriginal = await Publicacion.findById(id);
+
+  if (!publicacionOriginal) {
+    return null;
+  }
+
+  const categoriaOriginal = publicacionOriginal.categoria?.toString();
+  const categoriaNueva = datosActualizados.categoria;
+
+  if (categoriaNueva) {
+    const categoriaExistente = await Categoria.findById(categoriaNueva);
+
+    if (!categoriaExistente) {
+      throw new Error("La nueva categoría indicada no existe");
+    }
+  }
+
+  await Publicacion.findByIdAndUpdate(id, datosActualizados, {
     new: true,
     runValidators: true,
-  }).populate("categoria");
+  });
+
+  if (categoriaNueva && categoriaNueva.toString() !== categoriaOriginal) {
+    await Categoria.findByIdAndUpdate(categoriaOriginal, {
+      $pull: { publicaciones: publicacionOriginal._id },
+    });
+
+    await Categoria.findByIdAndUpdate(categoriaNueva, {
+      $addToSet: { publicaciones: publicacionOriginal._id },
+    });
+  }
+
+  return await Publicacion.findById(id).populate("categoria");
 };
 
 const eliminarPublicacion = async (id) => {
-  return await Publicacion.findByIdAndDelete(id);
+  const publicacionEliminada = await Publicacion.findByIdAndDelete(id);
+
+  if (publicacionEliminada) {
+    await Categoria.findByIdAndUpdate(publicacionEliminada.categoria, {
+      $pull: { publicaciones: publicacionEliminada._id },
+    });
+  }
+
+  return publicacionEliminada;
 };
 
 const listarPublicaciones = async (filtros = {}) => {
@@ -36,15 +81,7 @@ const listarPublicaciones = async (filtros = {}) => {
   }
 
   if (filtros.categoria) {
-    const categoria = await Categoria.findOne({
-      nombre: { $regex: new RegExp(`^${filtros.categoria}$`, "i") },
-    });
-
-    if (!categoria) {
-      return [];
-    }
-
-    filtroMongo.categoria = categoria._id;
+    filtroMongo.categoria = filtros.categoria;
   }
 
   return await Publicacion.find(filtroMongo).populate("categoria");
@@ -52,20 +89,6 @@ const listarPublicaciones = async (filtros = {}) => {
 
 const buscarPublicacionPorId = async (id) => {
   return await Publicacion.findById(id).populate("categoria");
-};
-
-const filtrarPorCategoria = async (nombreCategoria) => {
-  const categoria = await Categoria.findOne({
-    nombre: { $regex: new RegExp(`^${nombreCategoria}$`, "i") },
-  });
-
-  if (!categoria) {
-    return [];
-  }
-
-  return await Publicacion.find({ categoria: categoria._id }).populate(
-    "categoria",
-  );
 };
 
 const publicarPublicacion = async (id) => {
@@ -90,7 +113,6 @@ module.exports = {
   eliminarPublicacion,
   listarPublicaciones,
   buscarPublicacionPorId,
-  filtrarPorCategoria,
   publicarPublicacion,
   ocultarPublicacion,
 };

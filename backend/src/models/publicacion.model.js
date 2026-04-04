@@ -3,28 +3,45 @@ const EstadoContenido = require("../enums/estadoContenido");
 
 const publicacionSchema = new mongoose.Schema(
   {
-    idPublicacion: {
-      type: Number,
-      required: true,
-      unique: true,
-    },
     titulo: {
       type: String,
       required: true,
+      trim: true,
+      minlength: 3,
+      maxlength: 120,
+      validate: {
+        validator: function (valor) {
+          return valor && valor.trim().length > 0;
+        },
+        message: "El título no puede estar vacío",
+      },
     },
+
     contenido: {
       type: String,
       required: true,
+      trim: true,
+      minlength: 10,
+      maxlength: 5000,
+      validate: {
+        validator: function (valor) {
+          return valor && valor.trim().length > 0;
+        },
+        message: "El contenido no puede estar vacío",
+      },
     },
+
     fechaPublicacion: {
       type: Date,
       default: Date.now,
     },
+
     estado: {
       type: String,
       enum: Object.values(EstadoContenido),
       default: EstadoContenido.BORRADOR,
     },
+
     categoria: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Categoria",
@@ -58,7 +75,7 @@ publicacionSchema.methods.estaPublicado = function () {
 
 publicacionSchema.methods.mostrarPublicacion = function () {
   return {
-    idPublicacion: this.idPublicacion,
+    id: this._id,
     titulo: this.titulo,
     contenido: this.contenido,
     fechaPublicacion: this.fechaPublicacion,

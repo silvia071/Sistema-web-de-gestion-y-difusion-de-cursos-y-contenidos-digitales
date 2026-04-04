@@ -1,17 +1,32 @@
+const mongoose = require("mongoose");
 const PublicacionService = require("../services/publicacion.service");
+const EstadoContenido = require("../enums/estadoContenido");
 
 const getPublicaciones = async (req, res) => {
   try {
     const { categoria, estado } = req.query;
-
     const filtros = {};
 
     if (categoria) {
+      if (!mongoose.Types.ObjectId.isValid(categoria)) {
+        return res.status(400).json({
+          mensaje: "ID de categoría inválido",
+        });
+      }
+
       filtros.categoria = categoria;
     }
 
     if (estado) {
-      filtros.estado = estado.trim().toUpperCase();
+      const estadoNormalizado = estado.trim().toUpperCase();
+
+      if (!Object.values(EstadoContenido).includes(estadoNormalizado)) {
+        return res.status(400).json({
+          mensaje: "Estado inválido",
+        });
+      }
+
+      filtros.estado = estadoNormalizado;
     }
 
     const publicaciones = await PublicacionService.listarPublicaciones(filtros);
@@ -27,9 +42,13 @@ const getPublicaciones = async (req, res) => {
 
 const getPublicacionById = async (req, res) => {
   try {
-    const publicacion = await PublicacionService.buscarPublicacionPorId(
-      req.params.id,
-    );
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ mensaje: "ID de publicación inválido" });
+    }
+
+    const publicacion = await PublicacionService.buscarPublicacionPorId(id);
 
     if (!publicacion) {
       return res.status(404).json({ mensaje: "Publicación no encontrada" });
@@ -46,12 +65,32 @@ const getPublicacionById = async (req, res) => {
 
 const createPublicacion = async (req, res) => {
   try {
+    const { titulo, contenido, categoria } = req.body;
+
+    if (!titulo?.trim() || !contenido?.trim() || !categoria) {
+      return res.status(400).json({
+        mensaje: "Título, contenido y categoría son obligatorios",
+      });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(categoria)) {
+      return res.status(400).json({
+        mensaje: "ID de categoría inválido",
+      });
+    }
+
     const nuevaPublicacion = await PublicacionService.crearPublicacion(
       req.body,
     );
 
     return res.status(201).json(nuevaPublicacion);
   } catch (error) {
+    if (error.message === "La categoría indicada no existe") {
+      return res.status(400).json({
+        mensaje: error.message,
+      });
+    }
+
     return res.status(500).json({
       mensaje: "Error al crear publicación",
       error: error.message,
@@ -61,8 +100,41 @@ const createPublicacion = async (req, res) => {
 
 const updatePublicacion = async (req, res) => {
   try {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ mensaje: "ID de publicación inválido" });
+    }
+
+    if (Object.keys(req.body).length === 0) {
+      return res.status(400).json({
+        mensaje: "Debe enviar datos para actualizar",
+      });
+    }
+
+    if (
+      req.body.categoria &&
+      !mongoose.Types.ObjectId.isValid(req.body.categoria)
+    ) {
+      return res.status(400).json({
+        mensaje: "ID de categoría inválido",
+      });
+    }
+
+    if (req.body.estado) {
+      const estadoNormalizado = req.body.estado.trim().toUpperCase();
+
+      if (!Object.values(EstadoContenido).includes(estadoNormalizado)) {
+        return res.status(400).json({
+          mensaje: "Estado inválido",
+        });
+      }
+
+      req.body.estado = estadoNormalizado;
+    }
+
     const actualizada = await PublicacionService.editarPublicacion(
-      req.params.id,
+      id,
       req.body,
     );
 
@@ -72,6 +144,12 @@ const updatePublicacion = async (req, res) => {
 
     return res.status(200).json(actualizada);
   } catch (error) {
+    if (error.message === "La nueva categoría indicada no existe") {
+      return res.status(400).json({
+        mensaje: error.message,
+      });
+    }
+
     return res.status(500).json({
       mensaje: "Error al actualizar publicación",
       error: error.message,
@@ -81,9 +159,13 @@ const updatePublicacion = async (req, res) => {
 
 const deletePublicacion = async (req, res) => {
   try {
-    const eliminada = await PublicacionService.eliminarPublicacion(
-      req.params.id,
-    );
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ mensaje: "ID de publicación inválido" });
+    }
+
+    const eliminada = await PublicacionService.eliminarPublicacion(id);
 
     if (!eliminada) {
       return res.status(404).json({ mensaje: "Publicación no encontrada" });
@@ -102,9 +184,13 @@ const deletePublicacion = async (req, res) => {
 
 const publicarPublicacion = async (req, res) => {
   try {
-    const publicada = await PublicacionService.publicarPublicacion(
-      req.params.id,
-    );
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ mensaje: "ID de publicación inválido" });
+    }
+
+    const publicada = await PublicacionService.publicarPublicacion(id);
 
     if (!publicada) {
       return res.status(404).json({ mensaje: "Publicación no encontrada" });
@@ -121,7 +207,13 @@ const publicarPublicacion = async (req, res) => {
 
 const ocultarPublicacion = async (req, res) => {
   try {
-    const oculta = await PublicacionService.ocultarPublicacion(req.params.id);
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ mensaje: "ID de publicación inválido" });
+    }
+
+    const oculta = await PublicacionService.ocultarPublicacion(id);
 
     if (!oculta) {
       return res.status(404).json({ mensaje: "Publicación no encontrada" });

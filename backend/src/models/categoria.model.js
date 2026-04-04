@@ -2,22 +2,35 @@ const mongoose = require("mongoose");
 
 const categoriaSchema = new mongoose.Schema(
   {
-    idCategoria: {
-      type: Number,
-      required: true,
-      unique: true,
-    },
     nombre: {
       type: String,
       required: true,
       trim: true,
       unique: true,
+      minlength: 3,
+      maxlength: 50,
+      validate: {
+        validator: function (valor) {
+          return valor && valor.trim().length > 0;
+        },
+        message: "El nombre no puede estar vacío",
+      },
     },
+
     descripcion: {
       type: String,
       required: true,
       trim: true,
+      minlength: 5,
+      maxlength: 200,
+      validate: {
+        validator: function (valor) {
+          return valor && valor.trim().length > 0;
+        },
+        message: "La descripción no puede estar vacía",
+      },
     },
+
     publicaciones: [
       {
         type: mongoose.Schema.Types.ObjectId,
@@ -40,7 +53,7 @@ categoriaSchema.methods.actualizarDescripcion = function (nuevaDescripcion) {
 
 categoriaSchema.methods.mostrarCategoria = function () {
   return {
-    idCategoria: this.idCategoria,
+    id: this._id,
     nombre: this.nombre,
     descripcion: this.descripcion,
   };
