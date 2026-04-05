@@ -23,14 +23,20 @@ const pagoSchema = new mongoose.Schema(
       required: true,
     },
     usuario: {
-       type: mongoose.Schema.Types.ObjectId,
-       ref: "Usuario"
-    }
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Usuario",
+      required: true,
+    },
+    compra: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Compra",
+      required: true,
+    },
   },
   {
     timestamps: true,
     versionKey: false,
-  }
+  },
 );
-
+pagoSchema.index({ compra: 1 }, { unique: true });
 module.exports = mongoose.model("Pago", pagoSchema);

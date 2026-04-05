@@ -1,12 +1,14 @@
 const Compra = require("../models/compra.model");
 const DetalleCompra = require("../models/detalleCompra.model");
-const Carrito = require("../models/carrito.model");
 const EstadoCompra = require("../enums/estadoCompra");
 
-const generarCompraDesdeCarrito = async (carrito, idUsuario) => {
-
+const generarCompraDesdeCarrito = async (carrito, usuarioId) => {
   if (!carrito || carrito.items.length === 0) {
     throw new Error("El carrito está vacío");
+  }
+
+  if (!usuarioId) {
+    throw new Error("El usuario es obligatorio");
   }
 
   await carrito.populate("items");
@@ -15,11 +17,10 @@ const generarCompraDesdeCarrito = async (carrito, idUsuario) => {
   const detallesIds = [];
 
   for (const item of carrito.items) {
-
     const detalle = await DetalleCompra.create({
       curso: item.curso,
       precioUnitario: item.precioUnitario,
-      subtotal: item.precioUnitario
+      subtotal: item.precioUnitario,
     });
 
     subtotal += item.precioUnitario;
@@ -27,27 +28,30 @@ const generarCompraDesdeCarrito = async (carrito, idUsuario) => {
   }
 
   const compra = await Compra.create({
-    idUsuario: idUsuario || null,
+    usuario: usuarioId,
     detalles: detallesIds,
     subtotal,
     total: subtotal,
-    estado: EstadoCompra.PENDIENTE
+    estado: EstadoCompra.PENDIENTE,
   });
 
-  // 🔥 cerrar carrito
   carrito.finalizar();
   await carrito.save();
 
-  return await Compra.findById(compra._id).populate("detalles");
+  return await Compra.findById(compra._id)
+    .populate("usuario")
+    .populate("detalles");
 };
 
 const eliminarCompra = async (compraId) => {
   const compra = await Compra.findByIdAndDelete(compraId);
-  if (!compra) throw new Error("Compra no encontrada");
+  if (!compra) {
+    throw new Error("Compra no encontrada");
+  }
   return compra;
 };
 
 module.exports = {
   generarCompraDesdeCarrito,
-  eliminarCompra
+  eliminarCompra,
 };

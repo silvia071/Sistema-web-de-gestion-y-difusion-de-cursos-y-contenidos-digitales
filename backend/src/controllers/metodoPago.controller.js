@@ -3,7 +3,6 @@ const metodoPagoService = require("../services/metodoPago.service");
 
 const esObjectIdValido = (id) => mongoose.Types.ObjectId.isValid(id);
 
-// ✅ Crear método de pago
 const crearMetodoPago = async (req, res) => {
   try {
     const { tipo } = req.body;
@@ -24,7 +23,6 @@ const crearMetodoPago = async (req, res) => {
   }
 };
 
-// ✅ Listar todos
 const listarMetodosPago = async (req, res) => {
   try {
     const metodos = await metodoPagoService.listarMetodosPago();
@@ -36,7 +34,6 @@ const listarMetodosPago = async (req, res) => {
   }
 };
 
-// ✅ Buscar por ID
 const buscarMetodoPagoPorId = async (req, res) => {
   try {
     const { id } = req.params;
@@ -59,7 +56,6 @@ const buscarMetodoPagoPorId = async (req, res) => {
   }
 };
 
-// ✅ Eliminar
 const eliminarMetodoPago = async (req, res) => {
   try {
     const { id } = req.params;

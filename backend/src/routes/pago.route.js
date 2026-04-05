@@ -7,7 +7,7 @@ const {
   buscarPagoPorId,
   aprobarPago,
   rechazarPago,
-} = require("../controllers/pago.Controller");
+} = require("../controllers/pago.controller");
 
 router.get("/", listarPagos);
 router.get("/:id", buscarPagoPorId);

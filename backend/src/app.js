@@ -21,7 +21,7 @@ const pagoRoutes = require("./routes/pago.route");
 const carritoRoutes = require("./routes/carrito.route");
 const compraRoutes = require("./routes/compra.route");
 
-// Uso de rutas (TODO con /api)
+
 app.use("/api/usuarios", usuarioRoutes);
 app.use("/api/cursos", cursoRoutes);
 app.use("/api/lecciones", leccionRoutes);
@@ -34,17 +34,17 @@ app.use("/api/pagos", pagoRoutes);
 app.use("/api/carrito", carritoRoutes);
 app.use("/api/compra", compraRoutes);
 
-// Ruta de prueba
+
 app.get("/api/publicaciones/prueba-app", (req, res) => {
   res.json({ mensaje: "PRUEBA DIRECTA EN APP OK" });
 });
 
-// Ruta raíz
+
 app.get("/", (req, res) => {
   res.send("API funcionando 🚀");
 });
 
-// Middleware de errores
+
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({

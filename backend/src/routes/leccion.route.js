@@ -12,8 +12,15 @@ const {
   ordenarLecciones,
 } = require("../controllers/leccion.controller");
 
-router.get("/curso/:cursoId", listarLeccionesPorCurso);
-router.get("/:id", buscarLeccionPorId);
+const {
+  validarAccesoPorCurso,
+  validarAccesoPorLeccion,
+} = require("../middlewares/accesoCurso.validator");
+
+router.get("/curso/:cursoId", validarAccesoPorCurso, listarLeccionesPorCurso);
+
+router.get("/:id", validarAccesoPorLeccion, buscarLeccionPorId);
+
 router.post("/", crearLeccion);
 router.put("/:id", editarLeccion);
 router.delete("/:id", eliminarLeccion);

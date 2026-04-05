@@ -24,7 +24,7 @@ const carritoSchema = new mongoose.Schema({
 });
 
 
-// 🔥 MÉTODOS
+
 
 carritoSchema.methods.agregarItem = function (idItem) {
   if (!EstadoCarrito.esEditable(this.estado)) {
@@ -58,7 +58,7 @@ carritoSchema.methods.estaVacio = function () {
 };
 
 
-// 🔥 MÉTODOS NUEVOS (MUY IMPORTANTES)
+
 
 carritoSchema.methods.finalizar = function () {
   this.estado = EstadoCarrito.FINALIZADO;
