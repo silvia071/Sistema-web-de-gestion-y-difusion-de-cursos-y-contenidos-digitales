@@ -27,25 +27,29 @@ const {
   validarCambioRol,
 } = require("../middlewares/usuario.validator");
 
+const { verificarAdmin } = require("../middlewares/verificarAdmin.validator");
+
 router.post("/registro", validarRegistro, registrarUsuario);
 router.post("/login", validarLogin, iniciarSesion);
 router.post("/logout/:id", validarId, cerrarSesion);
 
 router.get("/", listarUsuarios);
 router.get("/email/:email", buscarUsuarioPorEmail);
-router.get("/:id/mis-cursos", validarId, listarCursosAdquiridos);
 router.get("/:id", validarId, buscarUsuarioPorId);
+router.get("/:id/mis-cursos", validarId, listarCursosAdquiridos);
 
 router.put("/perfil/:id", validarId, editarPerfil);
 router.put("/password/:id", validarId, cambiarContrasenia);
-router.put("/bloquear/:id", validarId, bloquearUsuario);
-router.put("/activar/:id", validarId, activarUsuario);
-router.put("/rol/:id", validarId, validarCambioRol, cambiarRol);
+router.put("/bloquear/:id", verificarAdmin, validarId, bloquearUsuario);
+router.put("/activar/:id", verificarAdmin, validarId, activarUsuario);
+router.put("/rol/:id", verificarAdmin, validarId, validarCambioRol, cambiarRol);
 
 router.patch("/email/:id", validarId, actualizarEmail);
 router.patch("/direccion/:id", validarId, actualizarDireccion);
 router.patch("/telefono/:id", validarId, actualizarTelefono);
 
-router.delete("/:id", validarId, eliminarUsuario);
+router.delete("/:id", verificarAdmin, validarId, eliminarUsuario);
 
 module.exports = router;
+
+

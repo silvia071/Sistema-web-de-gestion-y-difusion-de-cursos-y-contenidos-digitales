@@ -2,6 +2,7 @@ const Usuario = require("../models/usuario.model");
 const bcrypt = require("bcrypt");
 const AccesoCurso = require("../models/accesoCurso.model");
 const EstadoCuenta = require("../enums/estadoCuenta");
+const jwt = require('jsonwebtoken');
 
 const registrarUsuario = async (datos) => {
   if (!datos.contrasenia) {
@@ -21,13 +22,26 @@ const iniciarSesion = async (email, contrasenia) => {
 
   if (!usuario) throw new Error("Usuario no encontrado");
 
+  console.log('Estado de cuenta al intentar login:', usuario.estadoCuenta);
+  console.log('EstadoCuenta.ACTIVO esperado:', EstadoCuenta.ACTIVO);
+
+  if (usuario.estadoCuenta !== EstadoCuenta.ACTIVO) {
+    throw new Error(`La cuenta no está activa. Estado actual: ${usuario.estadoCuenta}`);
+  }
+
   const esValida = await bcrypt.compare(contrasenia, usuario.contrasenia);
   if (!esValida) throw new Error("Contraseña incorrecta");
 
   usuario.fechaUltimoAcceso = new Date();
   await usuario.save();
 
-  return usuario;
+  const token = jwt.sign(
+    { id: usuario._id, rol: usuario.rol }, 
+    process.env.JWT_SECRET, 
+    { expiresIn: '1h' }
+  );
+
+  return { usuario, token };
 };
 
 const cerrarSesion = async (id) => {
@@ -88,11 +102,15 @@ const bloquearUsuario = async (id) => {
 };
 
 const activarUsuario = async (id) => {
-  return await Usuario.findByIdAndUpdate(
+  const usuarioActualizado = await Usuario.findByIdAndUpdate(
     id,
     { estadoCuenta: EstadoCuenta.ACTIVO },
     { returnDocument: "after" },
   );
+
+  console.log('Usuario activado. Nuevo estado:', usuarioActualizado.estadoCuenta);
+
+  return usuarioActualizado;
 };
 
 const cambiarRol = async (id, nuevoRol) => {

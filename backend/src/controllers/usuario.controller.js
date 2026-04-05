@@ -15,8 +15,8 @@ const registrarUsuario = async (req, res) => {
 const iniciarSesion = async (req, res) => {
   try {
     const { email, contrasenia } = req.body;
-    const usuario = await usuarioService.iniciarSesion(email, contrasenia);
-    res.status(200).json({ mensaje: "Login exitoso", usuario });
+    const { usuario, token } = await usuarioService.iniciarSesion(email, contrasenia);
+    res.status(200).json({ mensaje: "Login exitoso", usuario, token });
   } catch (error) {
     res.status(401).json({ mensaje: error.message });
   }
