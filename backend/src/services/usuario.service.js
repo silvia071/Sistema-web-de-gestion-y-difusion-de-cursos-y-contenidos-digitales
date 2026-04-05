@@ -1,6 +1,7 @@
 const Usuario = require("../models/usuario.model");
 const bcrypt = require("bcrypt");
 const AccesoCurso = require("../models/accesoCurso.model");
+const EstadoCuenta = require("../enums/estadoCuenta");
 
 const registrarUsuario = async (datos) => {
   if (!datos.contrasenia) {
@@ -81,7 +82,7 @@ const eliminarUsuario = async (id) => {
 const bloquearUsuario = async (id) => {
   return await Usuario.findByIdAndUpdate(
     id,
-    { estadoCuenta: "BLOQUEADO" },
+    { estadoCuenta: EstadoCuenta.BLOQUEADO },
     { returnDocument: "after" },
   );
 };
@@ -89,7 +90,7 @@ const bloquearUsuario = async (id) => {
 const activarUsuario = async (id) => {
   return await Usuario.findByIdAndUpdate(
     id,
-    { estadoCuenta: "ACTIVO" },
+    { estadoCuenta: EstadoCuenta.ACTIVO },
     { returnDocument: "after" },
   );
 };
