@@ -2,15 +2,23 @@ const Usuario = require("../models/usuario.model");
 const bcrypt = require("bcrypt");
 const AccesoCurso = require("../models/accesoCurso.model");
 const EstadoCuenta = require("../enums/estadoCuenta");
-const jwt = require('jsonwebtoken');
+const jwt = require("jsonwebtoken");
 
 const registrarUsuario = async (datos) => {
   if (!datos.contrasenia) {
     throw new Error("La contraseña es obligatoria");
   }
 
+  const emailNormalizado = datos.email.trim().toLowerCase();
+
+  const existente = await Usuario.findOne({ email: emailNormalizado });
+  if (existente) {
+    throw new Error("Ya existe un usuario con ese email");
+  }
+
   const salt = await bcrypt.genSalt(10);
   datos.contrasenia = await bcrypt.hash(datos.contrasenia, salt);
+  datos.email = emailNormalizado;
 
   const nuevoUsuario = new Usuario(datos);
   return await nuevoUsuario.save();
@@ -22,11 +30,10 @@ const iniciarSesion = async (email, contrasenia) => {
 
   if (!usuario) throw new Error("Usuario no encontrado");
 
-  console.log('Estado de cuenta al intentar login:', usuario.estadoCuenta);
-  console.log('EstadoCuenta.ACTIVO esperado:', EstadoCuenta.ACTIVO);
-
   if (usuario.estadoCuenta !== EstadoCuenta.ACTIVO) {
-    throw new Error(`La cuenta no está activa. Estado actual: ${usuario.estadoCuenta}`);
+    throw new Error(
+      `La cuenta no está activa. Estado actual: ${usuario.estadoCuenta}`,
+    );
   }
 
   const esValida = await bcrypt.compare(contrasenia, usuario.contrasenia);
@@ -36,21 +43,17 @@ const iniciarSesion = async (email, contrasenia) => {
   await usuario.save();
 
   const token = jwt.sign(
-    { id: usuario._id, rol: usuario.rol }, 
-    process.env.JWT_SECRET, 
-    { expiresIn: '1h' }
+    { id: usuario._id, rol: usuario.rol },
+    process.env.JWT_SECRET,
+    { expiresIn: "1h" },
   );
 
   return { usuario, token };
 };
 
-const cerrarSesion = async (id) => {
-  const usuario = await Usuario.findById(id);
-  if (!usuario) throw new Error("Usuario no encontrado");
-
+const cerrarSesion = async () => {
   return {
-    mensaje: `Sesión cerrada para el usuario ${usuario.nombre}`,
-    id: usuario._id,
+    mensaje: "Sesión cerrada correctamente",
   };
 };
 
@@ -63,27 +66,82 @@ const buscarUsuarioPorId = async (id) => {
 };
 
 const buscarUsuarioPorEmail = async (email) => {
-  const usuario = await Usuario.findOne({ email });
-  if (!usuario) throw new Error("No se encontró ningún usuario con ese email");
+  const emailNormalizado = email.trim().toLowerCase();
+  const usuario = await Usuario.findOne({ email: emailNormalizado });
+
+  if (!usuario) {
+    throw new Error("No se encontró ningún usuario con ese email");
+  }
+
   return usuario;
 };
 
 const editarPerfil = async (id, datosActualizados) => {
-  return await Usuario.findByIdAndUpdate(id, datosActualizados, {
-    returnDocument: "after",
-    runValidators: true,
+  const camposPermitidos = {
+    nombre: datosActualizados.nombre,
+    apellido: datosActualizados.apellido,
+    direccion: datosActualizados.direccion,
+    telefono: datosActualizados.telefono,
+  };
+
+  Object.keys(camposPermitidos).forEach((key) => {
+    if (camposPermitidos[key] === undefined) {
+      delete camposPermitidos[key];
+    }
   });
+
+  const usuarioActualizado = await Usuario.findByIdAndUpdate(
+    id,
+    camposPermitidos,
+    {
+      returnDocument: "after",
+      runValidators: true,
+    },
+  );
+
+  if (!usuarioActualizado) {
+    throw new Error("Usuario no encontrado");
+  }
+
+  return usuarioActualizado;
 };
 
 const cambiarContrasenia = async (id, datos) => {
   const usuario = await Usuario.findById(id);
-  if (!usuario) throw new Error("Usuario no encontrado");
 
-  const passwordParaHashear = datos.nuevaContrasenia || datos.contrasenia;
-  if (!passwordParaHashear) throw new Error("La nueva contraseña es requerida");
+  if (!usuario) {
+    throw new Error("Usuario no encontrado");
+  }
+
+  const { contraseniaActual, nuevaContrasenia } = datos;
+
+  if (!contraseniaActual || !nuevaContrasenia) {
+    throw new Error(
+      "La contraseña actual y la nueva contraseña son obligatorias",
+    );
+  }
+
+  const coincide = await bcrypt.compare(contraseniaActual, usuario.contrasenia);
+
+  if (!coincide) {
+    throw new Error("La contraseña actual es incorrecta");
+  }
+
+  if (nuevaContrasenia.length < 6) {
+    throw new Error("La nueva contraseña debe tener al menos 6 caracteres");
+  }
+
+  const mismaContrasenia = await bcrypt.compare(
+    nuevaContrasenia,
+    usuario.contrasenia,
+  );
+
+  if (mismaContrasenia) {
+    throw new Error("La nueva contraseña no puede ser igual a la actual");
+  }
 
   const salt = await bcrypt.genSalt(10);
-  const hash = await bcrypt.hash(passwordParaHashear, salt);
+  const hash = await bcrypt.hash(nuevaContrasenia, salt);
 
   usuario.contrasenia = hash;
   return await usuario.save();
@@ -108,7 +166,9 @@ const activarUsuario = async (id) => {
     { returnDocument: "after" },
   );
 
-  console.log('Usuario activado. Nuevo estado:', usuarioActualizado.estadoCuenta);
+  if (!usuarioActualizado) {
+    throw new Error("Usuario no encontrado");
+  }
 
   return usuarioActualizado;
 };
@@ -122,11 +182,24 @@ const cambiarRol = async (id, nuevoRol) => {
 };
 
 const actualizarEmail = async (id, nuevoEmail) => {
-  return await Usuario.findByIdAndUpdate(
+  const emailNormalizado = nuevoEmail.trim().toLowerCase();
+
+  const existente = await Usuario.findOne({ email: emailNormalizado });
+  if (existente && existente._id.toString() !== id) {
+    throw new Error("Ya existe un usuario con ese email");
+  }
+
+  const usuario = await Usuario.findByIdAndUpdate(
     id,
-    { email: nuevoEmail },
+    { email: emailNormalizado },
     { returnDocument: "after", runValidators: true },
   );
+
+  if (!usuario) {
+    throw new Error("Usuario no encontrado");
+  }
+
+  return usuario;
 };
 
 const actualizarDireccion = async (id, nuevaDireccion) => {
