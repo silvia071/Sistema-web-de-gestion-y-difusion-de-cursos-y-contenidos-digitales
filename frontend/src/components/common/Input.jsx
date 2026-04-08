@@ -1,0 +1,1 @@
+//para crear un input reutilizable
