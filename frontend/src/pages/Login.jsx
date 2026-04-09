@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-//para hacer
-=======
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Login.css";
@@ -93,4 +90,3 @@ function Login() {
 }
 
 export default Login;
->>>>>>> bfaa1e832a1a16c2df45493aec008dc75fc1582c

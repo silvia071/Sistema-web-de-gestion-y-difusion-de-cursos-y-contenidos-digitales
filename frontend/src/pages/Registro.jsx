@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-//para hacer
-=======
 function Registro() {
   return (
     <section className="auth-box">
@@ -40,4 +37,3 @@ function Registro() {
 }
 
 export default Registro;
->>>>>>> bfaa1e832a1a16c2df45493aec008dc75fc1582c

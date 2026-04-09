@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-//para hacer
-=======
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import "./Perfil.css";
@@ -99,4 +96,3 @@ function Perfil() {
 }
 
 export default Perfil;
->>>>>>> bfaa1e832a1a16c2df45493aec008dc75fc1582c

@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-//para hacer
-=======
 import { useNavigate, useParams } from "react-router-dom";
 
 const cursos = {
@@ -161,4 +158,3 @@ function DetalleCurso() {
 }
 
 export default DetalleCurso;
->>>>>>> bfaa1e832a1a16c2df45493aec008dc75fc1582c

@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-//para hacer
-=======
 import { useNavigate } from "react-router-dom";
 import "./Blog.css";
 
@@ -70,4 +67,3 @@ function Blog() {
 }
 
 export default Blog;
->>>>>>> bfaa1e832a1a16c2df45493aec008dc75fc1582c

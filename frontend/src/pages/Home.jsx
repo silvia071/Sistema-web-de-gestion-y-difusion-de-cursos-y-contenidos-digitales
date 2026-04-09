@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-//para hacer
-=======
 function Home() {
   const cursos = [
     {
@@ -190,4 +187,3 @@ function Home() {
 }
 
 export default Home;
->>>>>>> bfaa1e832a1a16c2df45493aec008dc75fc1582c

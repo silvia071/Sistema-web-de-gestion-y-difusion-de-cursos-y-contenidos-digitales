@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-//para hacer
-=======
 import { useNavigate } from "react-router-dom";
 import { useCarrito } from "../context/CarritoContext";
 
@@ -116,4 +113,3 @@ function Cursos() {
 }
 
 export default Cursos;
->>>>>>> bfaa1e832a1a16c2df45493aec008dc75fc1582c

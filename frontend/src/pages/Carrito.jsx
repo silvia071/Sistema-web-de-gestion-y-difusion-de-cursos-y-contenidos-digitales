@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-//para hacer
-=======
 import "./Carrito.css";
 import { useCarrito } from "../context/CarritoContext";
 import { Link } from "react-router-dom";
@@ -121,4 +118,3 @@ function Carrito() {
 }
 
 export default Carrito;
->>>>>>> bfaa1e832a1a16c2df45493aec008dc75fc1582c
