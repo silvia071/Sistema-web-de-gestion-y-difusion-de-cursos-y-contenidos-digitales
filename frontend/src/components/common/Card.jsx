@@ -1,1 +1,1 @@
-//para hacer un boton reutilizable
+import "./Card.css";
