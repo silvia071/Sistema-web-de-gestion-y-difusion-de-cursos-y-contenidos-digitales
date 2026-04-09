@@ -7,9 +7,7 @@ function MainLayout() {
     <>
       <Navbar />
       <main className="main-content">
-        <div className="container">
-          <Outlet />
-        </div>
+        <Outlet />
       </main>
       <Footer />
     </>

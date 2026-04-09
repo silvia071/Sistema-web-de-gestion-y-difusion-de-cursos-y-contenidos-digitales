@@ -1,4 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
+import "./BlogDetalle.css";
 
 function BlogDetalle() {
   const { id } = useParams();
@@ -12,6 +13,7 @@ function BlogDetalle() {
         "JavaScript es un lenguaje fundamental para el desarrollo web. Permite agregar interactividad a las páginas...",
       categoria: "Programación",
       fecha: "08/04/2026",
+      imagen: "https://picsum.photos/800/400?1",
     },
     {
       id: "2",
@@ -20,6 +22,7 @@ function BlogDetalle() {
         "React es una librería de JavaScript que permite construir interfaces de usuario de manera eficiente...",
       categoria: "Frontend",
       fecha: "07/04/2026",
+      imagen: "https://picsum.photos/800/400?2",
     },
     {
       id: "3",
@@ -28,6 +31,7 @@ function BlogDetalle() {
         "Organizar el código, usar buenas convenciones y mantener una estructura clara es clave para proyectos escalables...",
       categoria: "Desarrollo Web",
       fecha: "06/04/2026",
+      imagen: "https://picsum.photos/800/400?3",
     },
   ];
 
@@ -38,37 +42,24 @@ function BlogDetalle() {
   }
 
   return (
-    <div
-      style={{
-        padding: "60px 20px",
-        maxWidth: "900px",
-        margin: "0 auto",
-        lineHeight: "1.6",
-        color: "white",
-      }}
-    >
-      <button
-        onClick={() => navigate("/blog")}
-        style={{
-          marginBottom: "20px",
-          padding: "8px 16px",
-          borderRadius: "8px",
-          border: "none",
-          backgroundColor: "#6c63ff",
-          color: "white",
-          cursor: "pointer",
-        }}
-      >
+    <div className="blog-detalle">
+      <button className="blog-detalle-btn" onClick={() => navigate("/blog")}>
         ← Volver
       </button>
 
-      <h1 style={{ marginBottom: "10px" }}>{publicacion.titulo}</h1>
+      <img
+        src={publicacion.imagen}
+        alt={publicacion.titulo}
+        className="blog-detalle-img"
+      />
 
-      <p style={{ color: "#bbb", marginBottom: "20px" }}>
+      <h1>{publicacion.titulo}</h1>
+
+      <p className="blog-detalle-info">
         <strong>{publicacion.categoria}</strong> - {publicacion.fecha}
       </p>
 
-      <p style={{ fontSize: "1.05rem" }}>{publicacion.contenido}</p>
+      <p className="blog-detalle-contenido">{publicacion.contenido}</p>
     </div>
   );
 }

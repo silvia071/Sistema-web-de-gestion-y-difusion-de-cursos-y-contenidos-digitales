@@ -30,13 +30,16 @@ function Blog() {
       imagen: "https://picsum.photos/400/200?3",
     },
   ];
+
   return (
     <section className="blog-page">
-      <h1 className="blog-title">Blog</h1>
-      <p className="blog-subtitle">
-        Descubrí artículos, novedades y recursos sobre programación y
-        tecnología.
-      </p>
+      <div className="blog-header">
+        <h1 className="blog-title">Blog</h1>
+        <p className="blog-subtitle">
+          Descubrí artículos, novedades y recursos sobre programación y
+          tecnología.
+        </p>
+      </div>
 
       <div className="blog-grid">
         {publicaciones.map((pub) => (
@@ -46,10 +49,16 @@ function Blog() {
             onClick={() => navigate(`/blog/${pub.id}`)}
           >
             <img src={pub.imagen} alt={pub.titulo} className="blog-image" />
-            <span className="blog-category">{pub.categoria}</span>
-            <h2>{pub.titulo}</h2>
-            <p>{pub.resumen}</p>
-            <small>{pub.fecha}</small>
+
+            <div className="blog-content">
+              <span className="blog-category">{pub.categoria}</span>
+
+              <h2 className="blog-card-title">{pub.titulo}</h2>
+
+              <p className="blog-card-text">{pub.resumen}</p>
+
+              <small className="blog-date">{pub.fecha}</small>
+            </div>
           </div>
         ))}
       </div>

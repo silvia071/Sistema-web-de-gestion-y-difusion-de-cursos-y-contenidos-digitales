@@ -1,8 +1,13 @@
 import { NavLink } from "react-router-dom";
+import { useCarrito } from "../../context/CarritoContext";
 import logo from "../../assets/logo.png";
 import "./Navbar.css";
 
 function Navbar() {
+  const { carrito } = useCarrito();
+
+  const totalItems = carrito.reduce((acc, item) => acc + item.cantidad, 0);
+
   return (
     <header className="navbar">
       <div className="container navbar__content">
@@ -35,11 +40,17 @@ function Navbar() {
             Blog
           </NavLink>
 
+          {/* 👇 SOLO ESTA PARTE CAMBIA */}
           <NavLink
             to="/carrito"
-            className={({ isActive }) => (isActive ? "active" : "")}
+            className={({ isActive }) =>
+              `navbar__carrito-link ${isActive ? "active" : ""}`
+            }
           >
             Carrito
+            {totalItems > 0 && (
+              <span className="navbar__carrito-badge">{totalItems}</span>
+            )}
           </NavLink>
 
           <NavLink
