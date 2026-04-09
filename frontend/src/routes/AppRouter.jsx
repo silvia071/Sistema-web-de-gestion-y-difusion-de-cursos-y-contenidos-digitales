@@ -9,6 +9,7 @@ import Registro from "../pages/Registro";
 import Cursos from "../pages/Cursos";
 import DetalleCurso from "../pages/DetalleCurso";
 import Blog from "../pages/Blog";
+import BlogDetalle from "../pages/BlogDetalle";
 import Perfil from "../pages/Perfil";
 import Carrito from "../pages/Carrito";
 
@@ -18,25 +19,24 @@ function AppRouter() {
       <Route element={<MainLayout />}>
         <Route path="/" element={<Home />} />
         <Route path="/cursos" element={<Cursos />} />
-        <Route path="/curso/:id" element={<DetalleCurso />} />
+        <Route path="/cursos/:id" element={<DetalleCurso />} />
         <Route path="/blog" element={<Blog />} />
+        <Route path="/blog/:id" element={<BlogDetalle />} />
         <Route path="/carrito" element={<Carrito />} />
+
+        <Route
+          path="/perfil"
+          element={
+            <ProtectedRoute>
+              <Perfil />
+            </ProtectedRoute>
+          }
+        />
       </Route>
 
       <Route element={<AuthLayout />}>
         <Route path="/login" element={<Login />} />
         <Route path="/registro" element={<Registro />} />
-      </Route>
-
-      <Route
-        path="/perfil"
-        element={
-          <ProtectedRoute>
-            <MainLayout />
-          </ProtectedRoute>
-        }
-      >
-        <Route index element={<Perfil />} />
       </Route>
     </Routes>
   );

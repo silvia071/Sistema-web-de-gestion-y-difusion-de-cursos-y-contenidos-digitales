@@ -1,0 +1,21 @@
+.navbar {
+  padding: 8px 24px; /* menos padding vertical */
+  background: #111827;
+}
+
+.navbar__content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.navbar__logo-img {
+  height: 80px; /* subilo un poco más */
+  width: auto;
+  display: block;
+}
+
+.navbar__logo {
+  display: flex;
+  align-items: center;
+}
