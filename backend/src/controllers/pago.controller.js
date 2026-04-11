@@ -1,7 +1,12 @@
 const mongoose = require("mongoose");
 const pagoService = require("../services/pago.service");
 
+
+const client = require("../config/mercadoPago");
+const { Preference } = require("mercadopago");
+
 const esObjectIdValido = (id) => mongoose.Types.ObjectId.isValid(id);
+
 
 const crearPago = async (req, res) => {
   try {
@@ -92,10 +97,50 @@ const rechazarPago = async (req, res) => {
   }
 };
 
+
+
+const crearPreferencia = async (req, res) => {
+  try {
+    const { titulo, precio } = req.body;
+
+    const preference = new Preference(client);
+
+    const response = await preference.create({
+      body: {
+        items: [
+          {
+            title: titulo,
+            unit_price: Number(precio),
+            quantity: 1,
+          },
+        ],
+        back_urls: {
+          success: "http://localhost:5173/success",
+          failure: "http://localhost:5173/failure",
+          pending: "http://localhost:5173/pending",
+        },
+        auto_return: "approved",
+      },
+    });
+
+    res.json({
+      id: response.id,
+      init_point: response.init_point,
+    });
+
+  } catch (error) {
+    console.error("Error Mercado Pago:", error);
+    res.status(500).json({ error: "Error al crear preferencia de pago" });
+  }
+};
+
+
+
 module.exports = {
   crearPago,
   listarPagos,
   buscarPagoPorId,
   aprobarPago,
   rechazarPago,
+  crearPreferencia,
 };

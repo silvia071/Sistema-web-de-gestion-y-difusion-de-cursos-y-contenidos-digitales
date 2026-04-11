@@ -32,6 +32,8 @@ const pagoSchema = new mongoose.Schema(
       ref: "Compra",
       required: true,
     },
+    
+
   },
   {
     timestamps: true,

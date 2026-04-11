@@ -28,17 +28,21 @@ const {
   validarEditarPerfil,
 } = require("../middlewares/usuario.validator");
 
+// 👇 IMPORTANTE: todos con {}
 const { verificarToken } = require("../middlewares/verificarToken.middleware");
-const { verificarAdmin } = require("../middlewares/verificarAdmin.middleware");
+const { verificarAdmin } = require("../middlewares/verificarAdmin.validator");
 const {
   verificarMismoUsuarioOAdmin,
 } = require("../middlewares/verificarMismoUsuarioOAdmin.middleware");
 
+// 🔓 Públicas
 router.post("/registro", validarRegistro, registrarUsuario);
 router.post("/login", validarLogin, iniciarSesion);
 
+// 🔐 Autenticadas
 router.post("/logout", verificarToken, cerrarSesion);
 
+// 👑 Admin
 router.get("/", verificarAdmin, listarUsuarios);
 router.get("/email/:email", verificarAdmin, buscarUsuarioPorEmail);
 
@@ -48,12 +52,13 @@ router.put("/rol/:id", verificarAdmin, validarId, validarCambioRol, cambiarRol);
 
 router.delete("/:id", verificarAdmin, validarId, eliminarUsuario);
 
+// 👤 Usuario propio o admin
 router.get(
   "/:id",
   verificarToken,
   validarId,
   verificarMismoUsuarioOAdmin,
-  buscarUsuarioPorId,
+  buscarUsuarioPorId
 );
 
 router.get(
@@ -61,7 +66,7 @@ router.get(
   verificarToken,
   validarId,
   verificarMismoUsuarioOAdmin,
-  listarCursosAdquiridos,
+  listarCursosAdquiridos
 );
 
 router.put(
@@ -70,7 +75,7 @@ router.put(
   validarId,
   validarEditarPerfil,
   verificarMismoUsuarioOAdmin,
-  editarPerfil,
+  editarPerfil
 );
 
 router.put(
@@ -78,7 +83,7 @@ router.put(
   verificarToken,
   validarId,
   verificarMismoUsuarioOAdmin,
-  cambiarContrasenia,
+  cambiarContrasenia
 );
 
 router.patch(
@@ -86,7 +91,7 @@ router.patch(
   verificarToken,
   validarId,
   verificarMismoUsuarioOAdmin,
-  actualizarEmail,
+  actualizarEmail
 );
 
 router.patch(
@@ -94,7 +99,7 @@ router.patch(
   verificarToken,
   validarId,
   verificarMismoUsuarioOAdmin,
-  actualizarDireccion,
+  actualizarDireccion
 );
 
 router.patch(
@@ -102,7 +107,7 @@ router.patch(
   verificarToken,
   validarId,
   verificarMismoUsuarioOAdmin,
-  actualizarTelefono,
+  actualizarTelefono
 );
 
 module.exports = router;
