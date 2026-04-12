@@ -93,42 +93,89 @@
   margin-top: 28px;
 }
 
-.perfil-btn {
+.perfil-actions .btn {
   flex: 1;
-  border: none;
+  min-width: 120px;
+}
+
+.perfil-actions .btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.perfil-actions--after-form {
+  margin-top: 16px;
+  width: 100%;
+}
+
+.perfil-actions--after-form .btn {
+  flex: 1 1 100%;
+  width: 100%;
+}
+
+/* Mismo aspecto que Guardar: gradiente global + sombra suave */
+.perfil-card .btn-primary {
+  box-shadow: 0 10px 22px rgba(79, 140, 255, 0.28);
+}
+
+.perfil-card .btn-primary:hover:not(:disabled) {
+  box-shadow: 0 12px 26px rgba(91, 82, 245, 0.34);
+}
+
+.perfil-status {
+  margin: 0 0 20px;
+  padding: 12px 14px;
   border-radius: 12px;
-  padding: 14px 18px;
-  font-size: 1rem;
+  background: #eef2ff;
+  color: #3730a3;
+  font-size: 0.95rem;
   font-weight: 600;
-  cursor: pointer;
-  transition:
-    transform 0.2s ease,
-    background 0.2s ease,
-    opacity 0.2s ease;
 }
 
-.perfil-btn:hover {
-  transform: translateY(-1px);
+.perfil-status--error {
+  background: rgba(239, 68, 68, 0.12);
+  color: #b91c1c;
 }
 
-.perfil-btn-primary {
-  background: #6c63ff;
-  color: white;
+.perfil-edit-form {
+  margin-top: 8px;
 }
 
-.perfil-btn-primary:hover {
-  background: #574fd6;
-  transform: translateY(-2px);
+.perfil-edit-grid {
+  margin-bottom: var(--space-lg, 24px);
 }
 
-.perfil-btn-secondary {
-  background: #111827;
-  color: white;
+.perfil-group--full {
+  grid-column: 1 / -1;
 }
 
-.perfil-btn-secondary:hover {
-  background: #020617;
-  transform: translateY(-2px);
+.perfil-form-error {
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(239, 68, 68, 0.12);
+  color: #b91c1c;
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.perfil-form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 8px;
+}
+
+.perfil-form-actions .btn {
+  flex: 1;
+  min-width: 120px;
+}
+
+.perfil-form-actions .btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none;
 }
 
 /* MIS CURSOS */
