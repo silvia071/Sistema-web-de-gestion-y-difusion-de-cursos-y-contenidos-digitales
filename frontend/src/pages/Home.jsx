@@ -1,4 +1,10 @@
+import { Link, useNavigate } from "react-router-dom";
+
 function Home() {
+  const navigate = useNavigate();
+  const irACategoria = (cat) => {
+    navigate(`/cursos?categoria=${encodeURIComponent(cat)}`);
+  };
   const cursos = [
     {
       id: 1,
@@ -74,13 +80,43 @@ function Home() {
           </div>
 
           <div className="hero-cards">
-            <div className="tech-card">JavaScript</div>
-            <div className="tech-card">Python</div>
-            <div className="tech-card">Java</div>
-            <div className="tech-card">C++</div>
+            <div
+              className="tech-card"
+              onClick={() => irACategoria("JavaScript")}
+            >
+              JavaScript
+            </div>
+
+            <div
+              className="tech-card"
+              onClick={() => irACategoria("Python")}
+            >
+              Python
+            </div>
+
+            <div
+              className="tech-card"
+              onClick={() => irACategoria("Java")}
+            >
+              Java
+            </div>
+
+            <div
+              className="tech-card"
+              onClick={() => irACategoria("C++")}
+            >
+              C++
+            </div>
+
+            <div
+              className="tech-card"
+              onClick={() => irACategoria("HTML y CSS")}
+            >
+              HTML y CSS
+            </div>
           </div>
         </div>
-      </section>
+      </section >
 
       <section className="benefits section">
         <div className="container grid-3">
@@ -141,9 +177,13 @@ function Home() {
 
           <div className="categories-grid">
             {categorias.map((categoria, index) => (
-              <div className="category-card" key={index}>
+              <Link
+                to={`/cursos?categoria=${categoria}`}
+                key={index}
+                className="category-card"
+              >
                 {categoria}
-              </div>
+              </Link>
             ))}
           </div>
         </div>

@@ -1,9 +1,34 @@
 import { useNavigate } from "react-router-dom";
 import { useCarrito } from "../context/CarritoContext";
+import { useLocation } from "react-router-dom";
+import { useState, useEffect } from "react";
+import "../styles/App.css";
+
+
 
 function Cursos() {
   const navigate = useNavigate();
   const { agregarAlCarrito } = useCarrito();
+  const location = useLocation();
+
+const params = new URLSearchParams(location.search);
+const categoriaSeleccionada = decodeURIComponent(params.get("categoria") || "");
+
+const [categoriaActiva, setCategoriaActiva] = useState(categoriaSeleccionada || null);
+const [open, setOpen] = useState(false);
+
+useEffect(() => {
+  setCategoriaActiva(categoriaSeleccionada || null);
+}, [categoriaSeleccionada]);
+
+  const categorias = [
+    "JavaScript",
+    "Python",
+    "Java",
+    "C++",
+    "HTML y CSS"
+  ];
+
 
   const cursos = [
     {
@@ -11,6 +36,7 @@ function Cursos() {
       titulo: "JavaScript desde cero",
       descripcion: "Aprendé lógica, funciones, arrays y DOM.",
       nivel: "Inicial",
+      categoria: "JavaScript",
       precio: 12000,
       imagen: "https://picsum.photos/300/200?1",
     },
@@ -19,6 +45,7 @@ function Cursos() {
       titulo: "Python para principiantes",
       descripcion: "Programación simple y poderosa desde cero.",
       nivel: "Inicial",
+      categoria: "Python",
       precio: 13000,
       imagen: "https://picsum.photos/300/200?2",
     },
@@ -27,6 +54,7 @@ function Cursos() {
       titulo: "Java orientado a objetos",
       descripcion: "Clases, objetos, herencia y buenas prácticas.",
       nivel: "Intermedio",
+      categoria: "Java",
       precio: 15000,
       imagen: "https://picsum.photos/300/200?3",
     },
@@ -35,6 +63,7 @@ function Cursos() {
       titulo: "C++ fundamentos",
       descripcion: "Memoria, punteros y programación eficiente.",
       nivel: "Intermedio",
+      categoria: "C++",
       precio: 14000,
       imagen: "https://picsum.photos/300/200?4",
     },
@@ -43,6 +72,7 @@ function Cursos() {
       titulo: "HTML y CSS",
       descripcion: "Construí páginas web modernas y responsivas.",
       nivel: "Inicial",
+      categoria: "HTML y CSS",
       precio: 11000,
       imagen: "https://picsum.photos/300/200?5",
     },
@@ -51,10 +81,18 @@ function Cursos() {
       titulo: "React básico",
       descripcion: "Componentes, props, estado y hooks.",
       nivel: "Intermedio",
+      categoria: "JavaScript",
       precio: 16000,
       imagen: "https://picsum.photos/300/200?6",
     },
   ];
+
+  const cursosFiltrados = categoriaActiva
+    ? cursos.filter(
+      (curso) =>
+        curso.categoria.toLowerCase() === categoriaActiva.toLowerCase()
+    )
+    : cursos;
 
   return (
     <div className="section">
@@ -67,8 +105,43 @@ function Cursos() {
           </p>
         </div>
 
+        <div className="filtros">
+          <span className="filtros-titulo">Categorías</span>
+          <div className="dropdown">
+            <button
+              className="btn btn-primary"
+              onClick={() => setOpen(prev => !prev)}
+            >
+              {categoriaActiva || "Todas"} ▼
+            </button>
+
+            {open && (
+              <div className="dropdown-menu">
+                <div onClick={() => {
+                  setCategoriaActiva(null);
+                  setOpen(false);
+                }}>
+                  Todas
+                </div>
+
+                {categorias.map((cat, index) => (
+                  <div
+                    key={index}
+                    onClick={() => {
+                      setCategoriaActiva(cat);
+                      setOpen(false);
+                    }}
+                  >
+                    {cat}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
         <div className="cursos-grid">
-          {cursos.map((curso) => (
+          {cursosFiltrados.map(curso => (
             <div
               className="card course-card"
               key={curso.id}

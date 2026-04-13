@@ -196,6 +196,7 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 26px;
+  margin-top: var(--space-xl);
 }
 
 .tag {
@@ -503,4 +504,5 @@
     min-width: 42px;
     height: 42px;
   }
+
 }
