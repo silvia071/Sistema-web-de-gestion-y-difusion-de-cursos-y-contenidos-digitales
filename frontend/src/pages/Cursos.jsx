@@ -5,29 +5,45 @@ import { useState, useEffect } from "react";
 import "../styles/App.css";
 
 
+import jsImg from "../assets/javaScript.png";
+import pyImg from "../assets/Python.png";
+import javaImg from "../assets/java.png";
+import htmlImg from "../assets/html.png";
+import cppImg from "../assets/C++.png";
+import reactImg from "../assets/react.png"; 
+
+const imagenes = {
+  "JavaScript": jsImg,
+  "Python": pyImg,
+  "Java": javaImg,
+  "HTML y CSS": htmlImg,
+  "C++": cppImg,
+  "React": reactImg
+};
 
 function Cursos() {
   const navigate = useNavigate();
   const { agregarAlCarrito } = useCarrito();
   const location = useLocation();
 
-const params = new URLSearchParams(location.search);
-const categoriaSeleccionada = decodeURIComponent(params.get("categoria") || "");
+  const params = new URLSearchParams(location.search);
+  const categoriaSeleccionada = decodeURIComponent(params.get("categoria") || "");
 
-const [categoriaActiva, setCategoriaActiva] = useState(categoriaSeleccionada || null);
-const [open, setOpen] = useState(false);
+  const [categoriaActiva, setCategoriaActiva] = useState(categoriaSeleccionada || null);
+  const [open, setOpen] = useState(false);
 
-useEffect(() => {
-  setCategoriaActiva(categoriaSeleccionada || null);
-}, [categoriaSeleccionada]);
+  useEffect(() => {
+    setCategoriaActiva(categoriaSeleccionada || null);
+  }, [categoriaSeleccionada]);
 
   const categorias = [
     "JavaScript",
     "Python",
     "Java",
     "C++",
-    "HTML y CSS"
-  ];
+    "HTML y CSS",
+    "React"
+ ];
 
 
   const cursos = [
@@ -38,7 +54,6 @@ useEffect(() => {
       nivel: "Inicial",
       categoria: "JavaScript",
       precio: 12000,
-      imagen: "https://picsum.photos/300/200?1",
     },
     {
       id: 2,
@@ -47,7 +62,6 @@ useEffect(() => {
       nivel: "Inicial",
       categoria: "Python",
       precio: 13000,
-      imagen: "https://picsum.photos/300/200?2",
     },
     {
       id: 3,
@@ -56,7 +70,6 @@ useEffect(() => {
       nivel: "Intermedio",
       categoria: "Java",
       precio: 15000,
-      imagen: "https://picsum.photos/300/200?3",
     },
     {
       id: 4,
@@ -65,7 +78,6 @@ useEffect(() => {
       nivel: "Intermedio",
       categoria: "C++",
       precio: 14000,
-      imagen: "https://picsum.photos/300/200?4",
     },
     {
       id: 5,
@@ -74,16 +86,14 @@ useEffect(() => {
       nivel: "Inicial",
       categoria: "HTML y CSS",
       precio: 11000,
-      imagen: "https://picsum.photos/300/200?5",
     },
     {
       id: 6,
       titulo: "React básico",
       descripcion: "Componentes, props, estado y hooks.",
       nivel: "Intermedio",
-      categoria: "JavaScript",
+      categoria: "React",
       precio: 16000,
-      imagen: "https://picsum.photos/300/200?6",
     },
   ];
 
@@ -147,7 +157,12 @@ useEffect(() => {
               key={curso.id}
               onClick={() => navigate(`/cursos/${curso.id}`)}
             >
-              <div className="course-top"></div>
+              <div className="course-top">
+                <img
+                  src={imagenes[curso.categoria]}
+                  alt={curso.titulo}
+                />
+              </div>
 
               <h3>{curso.titulo}</h3>
               <p>{curso.descripcion}</p>

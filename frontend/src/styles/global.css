@@ -341,18 +341,4 @@ p {
   p {
     font-size: 14px;
   }
-
-  .filtros {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    margin-bottom: var(--space-xl);
-  }
-
-  .filtros-titulo {
-    font-size: 14px;
-    color: var(--text-secondary);
-    font-weight: 500;
-  }
-
 }

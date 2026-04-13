@@ -1,11 +1,28 @@
 import { useNavigate, useParams } from "react-router-dom";
 
+import jsImg from "../assets/javaScript.png";
+import pyImg from "../assets/Python.png";
+import javaImg from "../assets/java.png";
+import htmlImg from "../assets/html.png";
+import cppImg from "../assets/C++.png";
+import reactImg from "../assets/react.png";
+
+const imagenes = {
+  "JavaScript": jsImg,
+  "Python": pyImg,
+  "Java": javaImg,
+  "HTML y CSS": htmlImg,
+  "C++": cppImg,
+  "React": reactImg
+};
+
 const cursos = {
   1: {
     titulo: "JavaScript desde cero",
     descripcion:
       "Aprendé lógica, funciones, arrays, objetos y manipulación del DOM para crear aplicaciones web dinámicas.",
     nivel: "Inicial",
+    categoria: "JavaScript",
     lecciones: [
       "Introducción a JavaScript",
       "Variables y tipos de datos",
@@ -22,6 +39,7 @@ const cursos = {
     descripcion:
       "Empezá a programar con uno de los lenguajes más versátiles y amigables para quienes recién comienzan.",
     nivel: "Inicial",
+    categoria: "Python",
     lecciones: [
       "Introducción a Python",
       "Variables y tipos de datos",
@@ -38,6 +56,7 @@ const cursos = {
     descripcion:
       "Desarrollá una base sólida en programación orientada a objetos con clases, objetos, herencia y encapsulamiento.",
     nivel: "Intermedio",
+    categoria: "Java",
     lecciones: [
       "Introducción a Java",
       "Variables, tipos y operadores",
@@ -54,6 +73,7 @@ const cursos = {
     descripcion:
       "Comprendé la lógica del lenguaje, el uso de memoria y las bases para programar de manera eficiente.",
     nivel: "Intermedio",
+    categoria: "C++",
     lecciones: [
       "Introducción a C++",
       "Variables y tipos",
@@ -70,6 +90,7 @@ const cursos = {
     descripcion:
       "Aprendé a construir interfaces web modernas, ordenadas y adaptables a diferentes pantallas.",
     nivel: "Inicial",
+    categoria: "HTML y CSS",
     lecciones: [
       "Estructura básica de HTML",
       "Etiquetas principales",
@@ -86,6 +107,7 @@ const cursos = {
     descripcion:
       "Descubrí cómo construir interfaces modernas mediante componentes reutilizables, props y hooks.",
     nivel: "Intermedio",
+    categoria: "React",
     lecciones: [
       "Introducción a React",
       "JSX y componentes",
@@ -122,6 +144,12 @@ function DetalleCurso() {
     <div className="section">
       <div className="container">
         <div className="detalle-hero card">
+          <img
+            src={imagenes[curso.categoria]}
+            alt={curso.titulo}
+            className="detalle-img"
+          />
+
           <span className="tag">{curso.nivel}</span>
           <h2>{curso.titulo}</h2>
           <p className="detalle-descripcion">{curso.descripcion}</p>

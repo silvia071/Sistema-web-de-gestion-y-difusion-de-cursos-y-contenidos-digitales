@@ -1,5 +1,21 @@
 import { Link, useNavigate } from "react-router-dom";
 
+import jsImg from "../assets/javaScript.png";
+import pyImg from "../assets/Python.png";
+import javaImg from "../assets/java.png";
+import htmlImg from "../assets/html.png";
+import cppImg from "../assets/C++.png";
+import reactImg from "../assets/react.png";
+
+const imagenes = {
+  "JavaScript": jsImg,
+  "Python": pyImg,
+  "Java": javaImg,
+  "HTML y CSS": htmlImg,
+  "C++": cppImg,
+  "React": reactImg
+};
+
 function Home() {
   const navigate = useNavigate();
   const irACategoria = (cat) => {
@@ -74,8 +90,19 @@ function Home() {
             </p>
 
             <div className="hero-buttons">
-              <button className="btn btn-primary">Ver cursos</button>
-              <button className="btn btn-secondary">Ir al blog</button>
+              <button
+                className="btn btn-primary"
+                onClick={() => navigate("/cursos")}
+              >
+                Cursos
+              </button>
+
+              <button
+                className="btn btn-secondary"
+                onClick={() => navigate("/blog")}
+              >
+                Blog
+              </button>
             </div>
           </div>
 
@@ -86,28 +113,24 @@ function Home() {
             >
               JavaScript
             </div>
-
             <div
               className="tech-card"
               onClick={() => irACategoria("Python")}
             >
               Python
             </div>
-
             <div
               className="tech-card"
               onClick={() => irACategoria("Java")}
             >
               Java
             </div>
-
             <div
               className="tech-card"
               onClick={() => irACategoria("C++")}
             >
               C++
             </div>
-
             <div
               className="tech-card"
               onClick={() => irACategoria("HTML y CSS")}
@@ -155,11 +178,19 @@ function Home() {
           <div className="grid-3">
             {cursos.map((curso) => (
               <div className="card course-card" key={curso.id}>
-                <div className="course-top"></div>
+                <div className="course-top">
+                  <img
+                    src={imagenes[curso.titulo.includes("JavaScript") ? "JavaScript" : "Python"]}
+                    alt={curso.titulo}
+                  />
+                </div>
                 <h3>{curso.titulo}</h3>
                 <p>{curso.descripcion}</p>
                 <span className="tag">{curso.nivel}</span>
-                <button className="btn btn-primary full-width">
+                <button
+                  className="btn btn-primary full-width"
+                  onClick={() => navigate(`/cursos/${curso.id}`)}
+                >
                   Ver curso
                 </button>
               </div>
