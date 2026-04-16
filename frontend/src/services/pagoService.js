@@ -1,11 +1,11 @@
-export const crearPago = async (curso) => {
+export const crearPago = async (data) => {
   try {
-    const res = await fetch("http://localhost:3000/api/pagos/crear-preferencia", {
+    const res = await fetch("http://localhost:3000/api/pagos", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(curso),
+      body: JSON.stringify(data),
     });
 
     if (!res.ok) {
@@ -13,9 +13,8 @@ export const crearPago = async (curso) => {
     }
 
     return await res.json();
-
   } catch (error) {
-    console.error("Error en pago:", error);
+    console.error("Error creando pago:", error);
     throw error;
   }
 };

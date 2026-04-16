@@ -47,8 +47,9 @@ function Login() {
       }
 
       localStorage.setItem("token", data.token);
-      localStorage.setItem("userId", data.usuario.id);
+      localStorage.setItem("userId", data.usuario.id || data.usuario._id);
       localStorage.setItem("email", data.usuario.email);
+      localStorage.setItem("nombre", data.usuario.nombre);
 
       navigate("/perfil");
     } catch {

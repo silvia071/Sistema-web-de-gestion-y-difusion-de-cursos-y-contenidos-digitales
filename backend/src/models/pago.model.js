@@ -32,13 +32,29 @@ const pagoSchema = new mongoose.Schema(
       ref: "Compra",
       required: true,
     },
-    
 
+    mpPreferenceId: {
+      type: String,
+    },
+    mpPaymentId: {
+      type: String,
+    },
+    mpStatus: {
+      type: String,
+    },
+    mpStatusDetail: {
+      type: String,
+    },
+    externalReference: {
+      type: String,
+    },
   },
   {
     timestamps: true,
     versionKey: false,
   },
 );
+
 pagoSchema.index({ compra: 1 }, { unique: true });
+
 module.exports = mongoose.model("Pago", pagoSchema);

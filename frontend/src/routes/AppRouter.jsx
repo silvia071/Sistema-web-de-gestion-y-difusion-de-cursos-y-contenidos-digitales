@@ -22,8 +22,14 @@ function AppRouter() {
         <Route path="/cursos/:id" element={<DetalleCurso />} />
         <Route path="/blog" element={<Blog />} />
         <Route path="/blog/:id" element={<BlogDetalle />} />
-        <Route path="/carrito" element={<Carrito />} />
+      </Route>
 
+      <Route element={<AuthLayout />}>
+        <Route path="/login" element={<Login />} />
+        <Route path="/registro" element={<Registro />} />
+      </Route>
+
+      <Route element={<MainLayout />}>
         <Route
           path="/perfil"
           element={
@@ -32,11 +38,14 @@ function AppRouter() {
             </ProtectedRoute>
           }
         />
-      </Route>
-
-      <Route element={<AuthLayout />}>
-        <Route path="/login" element={<Login />} />
-        <Route path="/registro" element={<Registro />} />
+        <Route
+          path="/carrito"
+          element={
+            <ProtectedRoute>
+              <Carrito />
+            </ProtectedRoute>
+          }
+        />
       </Route>
     </Routes>
   );

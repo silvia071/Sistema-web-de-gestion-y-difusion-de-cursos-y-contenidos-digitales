@@ -10,7 +10,15 @@ const generarCompra = async (req, res) => {
       return res.status(400).json({ error: "Falta id del carrito" });
     }
 
+    if (!usuarioId) {
+      return res.status(400).json({ error: "Falta usuarioId" });
+    }
+
     const carrito = await carritoService.obtenerCarritoActivo(id);
+
+    if (!carrito) {
+      return res.status(404).json({ error: "Carrito no encontrado" });
+    }
 
     const compra = await compraService.generarCompraDesdeCarrito(
       carrito,
@@ -19,7 +27,7 @@ const generarCompra = async (req, res) => {
 
     res.status(201).json(compra);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(400).json({ error: error.message });
   }
 };
 
@@ -27,10 +35,14 @@ const eliminarCompra = async (req, res) => {
   try {
     const { id } = req.params;
 
+    if (!id) {
+      return res.status(400).json({ error: "Falta id de la compra" });
+    }
+
     const compra = await compraService.eliminarCompra(id);
     res.json(compra);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(400).json({ error: error.message });
   }
 };
 

@@ -16,9 +16,42 @@ function Carrito() {
     0,
   );
 
+  const irAMercadoPago = async () => {
+    try {
+      const res = await fetch(
+        "http://localhost:3000/api/pagos/crear-preferencia",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            titulo: "Compra de cursos",
+            precio: subtotal,
+          }),
+        },
+      );
+
+      if (!res.ok) {
+        throw new Error("Error al crear la preferencia de pago");
+      }
+
+      const data = await res.json();
+
+      if (data.init_point) {
+        window.location.href = data.init_point;
+      } else {
+        alert("No se pudo obtener el enlace de Mercado Pago");
+      }
+    } catch (error) {
+      console.error("Error al ir a Mercado Pago:", error);
+      alert("Error al ir a Mercado Pago");
+    }
+  };
+
   return (
     <section className="carrito-page">
-      <h1 className="carrito-title">Carrito</h1>
+      <h1 className="carrito-title">Tu Carrito</h1>
 
       {carrito.length === 0 ? (
         <div className="carrito-vacio">
@@ -76,7 +109,7 @@ function Carrito() {
                     className="btn-eliminar"
                     onClick={() => eliminarDelCarrito(item.id)}
                   >
-                    Eliminar
+                    🗑️ Eliminar
                   </button>
                 </div>
               </div>
@@ -90,14 +123,8 @@ function Carrito() {
               <strong>${subtotal.toLocaleString()}</strong>
             </p>
 
-            <button
-              className="btn-finalizar"
-              onClick={() => {
-                finalizarCompra();
-                alert("Compra realizada con éxito");
-              }}
-            >
-              Finalizar compra
+            <button className="btn-finalizar" onClick={irAMercadoPago}>
+              Pagar con Mercado Pago
             </button>
 
             <button

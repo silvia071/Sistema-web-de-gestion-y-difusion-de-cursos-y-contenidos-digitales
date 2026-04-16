@@ -1,16 +1,22 @@
 const mongoose = require("mongoose");
 
-const itemCarritoSchema = new mongoose.Schema({
-  curso: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Curso",
-    required: true
+const itemCarritoSchema = new mongoose.Schema(
+  {
+    curso: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Curso",
+      required: true,
+    },
+    precioUnitario: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
   },
-  precioUnitario: {
-    type: Number,
-    required: true
-  }
-});
+  {
+    versionKey: false,
+  },
+);
 
 itemCarritoSchema.methods.calcularSubtotal = function () {
   return this.precioUnitario;
@@ -19,7 +25,7 @@ itemCarritoSchema.methods.calcularSubtotal = function () {
 itemCarritoSchema.methods.mostrarItem = function () {
   return {
     curso: this.curso,
-    precioUnitario: this.precioUnitario
+    precioUnitario: this.precioUnitario,
   };
 };
 

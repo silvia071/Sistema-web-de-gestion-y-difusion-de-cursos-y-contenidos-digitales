@@ -3,7 +3,7 @@ const DetalleCompra = require("../models/detalleCompra.model");
 const EstadoCompra = require("../enums/estadoCompra");
 
 const generarCompraDesdeCarrito = async (carrito, usuarioId) => {
-  if (!carrito || carrito.items.length === 0) {
+  if (!carrito || !carrito.items || carrito.items.length === 0) {
     throw new Error("El carrito está vacío");
   }
 
@@ -11,19 +11,28 @@ const generarCompraDesdeCarrito = async (carrito, usuarioId) => {
     throw new Error("El usuario es obligatorio");
   }
 
-  await carrito.populate("items");
-
   let subtotal = 0;
   const detallesIds = [];
 
   for (const item of carrito.items) {
+    if (!item.curso) {
+      throw new Error("Uno de los items del carrito no tiene curso");
+    }
+
+    if (item.precioUnitario == null) {
+      throw new Error("Uno de los items del carrito no tiene precioUnitario");
+    }
+
+    const cantidad = item.cantidad || 1;
+    const subtotalDetalle = item.precioUnitario;
+
     const detalle = await DetalleCompra.create({
       curso: item.curso,
       precioUnitario: item.precioUnitario,
-      subtotal: item.precioUnitario,
+      subtotal: subtotalDetalle,
     });
 
-    subtotal += item.precioUnitario;
+    subtotal += subtotalDetalle;
     detallesIds.push(detalle._id);
   }
 
@@ -35,7 +44,12 @@ const generarCompraDesdeCarrito = async (carrito, usuarioId) => {
     estado: EstadoCompra.PENDIENTE,
   });
 
-  carrito.finalizar();
+  if (typeof carrito.finalizar === "function") {
+    carrito.finalizar();
+  } else {
+    carrito.items = [];
+  }
+
   await carrito.save();
 
   return await Compra.findById(compra._id)
@@ -45,9 +59,11 @@ const generarCompraDesdeCarrito = async (carrito, usuarioId) => {
 
 const eliminarCompra = async (compraId) => {
   const compra = await Compra.findByIdAndDelete(compraId);
+
   if (!compra) {
     throw new Error("Compra no encontrada");
   }
+
   return compra;
 };
 

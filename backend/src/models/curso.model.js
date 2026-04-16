@@ -69,6 +69,12 @@ const cursoSchema = new mongoose.Schema(
       required: false,
       trim: true,
     },
+    aprendizajes: [
+      {
+        type: String,
+        trim: true,
+      },
+    ],
 
     fechaCreacion: {
       type: Date,
