@@ -1,14 +1,34 @@
 const AccesoCurso = require("../models/accesoCurso.model");
 const Leccion = require("../models/leccion.model");
 
+const obtenerUsuarioId = (req) => {
+  return (
+    req.body?.usuarioId ||
+    req.params?.usuarioId ||
+    req.query?.usuarioId ||
+    req.user?.id ||
+    null
+  );
+};
+
+const obtenerCursoId = (req) => {
+  return req.params?.cursoId || req.body?.curso || null;
+};
+
 const validarAccesoPorCurso = async (req, res, next) => {
   try {
-    const { usuarioId } = req.body;
-    const { cursoId } = req.params;
+    const usuarioId = obtenerUsuarioId(req);
+    const cursoId = obtenerCursoId(req);
 
     if (!usuarioId) {
       return res.status(400).json({
         mensaje: "El usuarioId es obligatorio",
+      });
+    }
+
+    if (!cursoId) {
+      return res.status(400).json({
+        mensaje: "El cursoId es obligatorio",
       });
     }
 
@@ -35,7 +55,7 @@ const validarAccesoPorCurso = async (req, res, next) => {
 
 const validarAccesoPorLeccion = async (req, res, next) => {
   try {
-    const { usuarioId } = req.body;
+    const usuarioId = obtenerUsuarioId(req);
     const { id } = req.params;
 
     if (!usuarioId) {

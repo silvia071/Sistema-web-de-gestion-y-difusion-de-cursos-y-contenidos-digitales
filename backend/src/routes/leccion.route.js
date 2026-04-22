@@ -17,10 +17,11 @@ const {
   validarAccesoPorLeccion,
 } = require("../middlewares/accesoCurso.validator");
 
+// Estas dos rutas son para VER contenido
 router.get("/curso/:cursoId", validarAccesoPorCurso, listarLeccionesPorCurso);
-
 router.get("/:id", validarAccesoPorLeccion, buscarLeccionPorId);
 
+// Estas rutas son para ADMINISTRAR contenido
 router.post("/", crearLeccion);
 router.put("/:id", editarLeccion);
 router.delete("/:id", eliminarLeccion);
