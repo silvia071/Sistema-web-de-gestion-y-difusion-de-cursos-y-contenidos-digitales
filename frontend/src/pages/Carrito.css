@@ -12,6 +12,7 @@
   margin: 0 auto 40px;
   text-align: left;
 }
+
 /* CONTENEDOR PRINCIPAL */
 .carrito-container {
   display: grid;
@@ -207,7 +208,75 @@
   font-size: 1.15rem;
 }
 
-/* BOTONES */
+/* MÉTODOS DE PAGO */
+.metodos-pago {
+  margin: 20px 0;
+}
+
+.metodos-pago h4 {
+  margin-bottom: 12px;
+  font-size: 1rem;
+  color: #111827;
+  font-weight: 700;
+}
+
+.metodo-opcion {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-align: left;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+
+.metodo-opcion:hover {
+  transform: translateY(-2px);
+  border-color: #a5b4fc;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
+}
+
+.metodo-opcion.activo {
+  background: #eef2ff;
+  border: 2px solid #6366f1;
+  box-shadow: 0 8px 18px rgba(99, 102, 241, 0.14);
+}
+
+.metodo-icono {
+  font-size: 1.4rem;
+  line-height: 1;
+  min-width: 28px;
+  text-align: center;
+}
+
+.metodo-texto {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.metodo-titulo {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.metodo-descripcion {
+  font-size: 0.8rem;
+  color: #6b7280;
+  line-height: 1.35;
+}
+
+/* BOTONES RESUMEN */
 .btn-finalizar,
 .btn-vaciar {
   width: 100%;
@@ -237,6 +306,22 @@
 
 .btn-vaciar:hover {
   transform: translateY(-2px);
+}
+
+/* CARRITO VACÍO */
+.carrito-vacio {
+  max-width: 500px;
+  margin: 0 auto;
+  text-align: center;
+  background: #f9fafb;
+  color: #111827;
+  border-radius: 18px;
+  padding: 32px;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.14);
+}
+
+.carrito-vacio p {
+  margin-bottom: 18px;
 }
 
 /* RESPONSIVE */

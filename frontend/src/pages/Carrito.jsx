@@ -1,6 +1,7 @@
 import "./Carrito.css";
 import { useCarrito } from "../context/CarritoContext";
 import { Link } from "react-router-dom";
+import { useState } from "react";
 
 function Carrito() {
   const {
@@ -10,6 +11,8 @@ function Carrito() {
     vaciarCarrito,
     finalizarCompra,
   } = useCarrito();
+
+  const [metodoPago, setMetodoPago] = useState("mercadopago");
 
   const subtotal = carrito.reduce(
     (acc, item) => acc + item.precio * item.cantidad,
@@ -46,6 +49,16 @@ function Carrito() {
     } catch (error) {
       console.error("Error al ir a Mercado Pago:", error);
       alert("Error al ir a Mercado Pago");
+    }
+  };
+
+  const handleContinuarPago = () => {
+    if (metodoPago === "mercadopago") {
+      irAMercadoPago();
+    } else if (metodoPago === "transferencia") {
+      alert("Te mostraremos los datos bancarios");
+    } else if (metodoPago === "efectivo") {
+      alert("Podés pagar en efectivo al retirar");
     }
   };
 
@@ -118,13 +131,64 @@ function Carrito() {
 
           <div className="carrito-resumen">
             <h3>Resumen de compra</h3>
+
             <p className="carrito-subtotal">
               <span>Subtotal</span>
               <strong>${subtotal.toLocaleString()}</strong>
             </p>
 
-            <button className="btn-finalizar" onClick={irAMercadoPago}>
-              Pagar con Mercado Pago
+            <div className="metodos-pago">
+              <h4>Seleccionar método de pago</h4>
+
+              <button
+                type="button"
+                className={`metodo-opcion ${
+                  metodoPago === "mercadopago" ? "activo" : ""
+                }`}
+                onClick={() => setMetodoPago("mercadopago")}
+              >
+                <span className="metodo-icono">💳</span>
+                <div className="metodo-texto">
+                  <span className="metodo-titulo">Mercado Pago</span>
+                  <span className="metodo-descripcion">
+                    Pagá con tarjeta o saldo
+                  </span>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                className={`metodo-opcion ${
+                  metodoPago === "transferencia" ? "activo" : ""
+                }`}
+                onClick={() => setMetodoPago("transferencia")}
+              >
+                <span className="metodo-icono">🏦</span>
+                <div className="metodo-texto">
+                  <span className="metodo-titulo">Transferencia</span>
+                  <span className="metodo-descripcion">
+                    Recibí los datos bancarios
+                  </span>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                className={`metodo-opcion ${
+                  metodoPago === "efectivo" ? "activo" : ""
+                }`}
+                onClick={() => setMetodoPago("efectivo")}
+              >
+                <span className="metodo-icono">💵</span>
+                <div className="metodo-texto">
+                  <span className="metodo-titulo">Efectivo</span>
+                  <span className="metodo-descripcion">Pagá al retirar</span>
+                </div>
+              </button>
+            </div>
+
+            <button className="btn-finalizar" onClick={handleContinuarPago}>
+              Continuar pago
             </button>
 
             <button
