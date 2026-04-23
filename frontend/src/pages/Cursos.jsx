@@ -33,7 +33,6 @@ function Cursos() {
   const [categoriaActiva, setCategoriaActiva] = useState(
     categoriaSeleccionada || null,
   );
-  const [open, setOpen] = useState(false);
   const [cursos, setCursos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -67,6 +66,7 @@ function Cursos() {
     cargarCursos();
   }, []);
 
+  // 🔹 Categorías únicas
   const categorias = useMemo(() => {
     return [
       ...new Set(
@@ -75,6 +75,7 @@ function Cursos() {
     ];
   }, [cursos]);
 
+  // 🔹 Cursos filtrados
   const cursosFiltrados = useMemo(() => {
     if (!categoriaActiva) return cursos;
 
@@ -85,6 +86,21 @@ function Cursos() {
     );
   }, [cursos, categoriaActiva]);
 
+  // 🔥 Contador por categoría (optimizado)
+  const cantidadPorCategoria = useMemo(() => {
+    const conteo = {};
+
+    cursos.forEach((curso) => {
+      const nombre = curso.categoria?.nombre;
+      if (nombre) {
+        conteo[nombre] = (conteo[nombre] || 0) + 1;
+      }
+    });
+
+    return conteo;
+  }, [cursos]);
+
+  // 🔹 Imagen automática
   const obtenerImagenCurso = (curso) => {
     const nombreCategoria = curso.categoria?.nombre;
 
@@ -119,6 +135,7 @@ function Cursos() {
     navigate(`/cursos/${cursoId}`);
   };
 
+  // 🔹 Estados de carga
   if (loading) {
     return (
       <div className="section">
@@ -144,6 +161,7 @@ function Cursos() {
       {mensajeCarrito && (
         <div className="toast-carrito">✅ {mensajeCarrito}</div>
       )}
+
       <div className="container">
         <div className="section-header">
           <h2>Cursos</h2>
@@ -153,45 +171,35 @@ function Cursos() {
           </p>
         </div>
 
+        {/* 🔥 FILTRO MEJORADO */}
         <div className="filtros">
           <span className="filtros-titulo">Categorías</span>
 
-          <div className="dropdown">
+          <div className="filtros-botones">
             <button
-              className="btn btn-primary"
-              onClick={() => setOpen((prev) => !prev)}
+              className={!categoriaActiva ? "activo" : ""}
+              onClick={() => setCategoriaActiva(null)}
             >
-              {categoriaActiva || "Todas"} ▼
+              Todas
             </button>
 
-            {open && (
-              <div className="dropdown-menu">
-                <div
-                  onClick={() => {
-                    setCategoriaActiva(null);
-                    setOpen(false);
-                  }}
-                >
-                  Todas
-                </div>
-
-                {categorias.map((cat) => (
-                  <div
-                    key={cat}
-                    onClick={() => {
-                      setCategoriaActiva(cat);
-                      setOpen(false);
-                    }}
-                  >
-                    {cat}
-                  </div>
-                ))}
-              </div>
-            )}
+            {categorias.map((cat) => (
+              <button
+                key={cat}
+                className={categoriaActiva === cat ? "activo" : ""}
+                onClick={() => setCategoriaActiva(cat)}
+              >
+                {cat} ({cantidadPorCategoria[cat] || 0})
+              </button>
+            ))}
           </div>
         </div>
 
-        <div className="cursos-grid">
+        {/* 🔹 GRID DE CURSOS */}
+        <div
+          className="cursos-grid animar-grid"
+          key={categoriaActiva || "todas"}
+        >
           {cursosFiltrados.map((curso) => (
             <div
               className="card course-card"

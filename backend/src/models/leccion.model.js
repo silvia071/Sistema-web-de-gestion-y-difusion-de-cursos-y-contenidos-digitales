@@ -69,9 +69,11 @@ const leccionSchema = new mongoose.Schema(
     },
   },
   {
-    timestamps: false,
+    timestamps: true,
     versionKey: false,
   },
 );
+
+leccionSchema.index({ curso: 1, orden: 1 }, { unique: true });
 
 module.exports = mongoose.model("Leccion", leccionSchema);

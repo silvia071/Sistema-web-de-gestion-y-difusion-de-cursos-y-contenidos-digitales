@@ -11,31 +11,52 @@ const esErrorDeNegocioLeccion = (mensaje) => {
   ].includes(mensaje);
 };
 
-const crearLeccion = async (req, res) => {
-  try {
-    const { titulo, descripcion, contenido, duracionMinutos, orden, curso } =
-      req.body;
+const validarLeccion = (data, esEdicion = false) => {
+  const errores = [];
+  const { titulo, descripcion, contenido, duracionMinutos, orden, curso } =
+    data;
 
-    const errores = [];
-
+  if (!esEdicion || titulo !== undefined) {
     if (!titulo || titulo.trim() === "") {
-      errores.push("El título es obligatorio");
+      errores.push(
+        esEdicion
+          ? "El título no puede estar vacío"
+          : "El título es obligatorio",
+      );
     }
+  }
 
+  if (!esEdicion || descripcion !== undefined) {
     if (!descripcion || descripcion.trim() === "") {
-      errores.push("La descripción es obligatoria");
+      errores.push(
+        esEdicion
+          ? "La descripción no puede estar vacía"
+          : "La descripción es obligatoria",
+      );
     }
+  }
 
+  if (!esEdicion || contenido !== undefined) {
     if (!contenido || contenido.trim() === "") {
-      errores.push("El contenido es obligatorio");
+      errores.push(
+        esEdicion
+          ? "El contenido no puede estar vacío"
+          : "El contenido es obligatorio",
+      );
     }
+  }
 
+  if (!esEdicion || duracionMinutos !== undefined) {
     if (
       duracionMinutos === undefined ||
       duracionMinutos === null ||
       duracionMinutos === ""
     ) {
-      errores.push("La duración en minutos es obligatoria");
+      errores.push(
+        esEdicion
+          ? "La duración en minutos no puede estar vacía"
+          : "La duración en minutos es obligatoria",
+      );
     } else if (
       !Number.isInteger(Number(duracionMinutos)) ||
       Number(duracionMinutos) < 1
@@ -44,22 +65,64 @@ const crearLeccion = async (req, res) => {
         "La duración en minutos debe ser un número entero mayor o igual a 1",
       );
     }
+  }
 
+  if (!esEdicion || orden !== undefined) {
     if (orden === undefined || orden === null || orden === "") {
-      errores.push("El orden es obligatorio");
+      errores.push(
+        esEdicion ? "El orden no puede estar vacío" : "El orden es obligatorio",
+      );
     } else if (!Number.isInteger(Number(orden)) || Number(orden) < 1) {
       errores.push("El orden debe ser un número entero mayor o igual a 1");
     }
+  }
 
+  if (!esEdicion || curso !== undefined) {
     if (!curso || !esObjectIdValido(curso)) {
       errores.push("ID de curso inválido");
     }
+  }
+
+  return errores;
+};
+
+const normalizarDatosLeccion = (data) => {
+  const datos = { ...data };
+
+  if (datos.titulo !== undefined) {
+    datos.titulo = datos.titulo.trim();
+  }
+
+  if (datos.descripcion !== undefined) {
+    datos.descripcion = datos.descripcion.trim();
+  }
+
+  if (datos.contenido !== undefined) {
+    datos.contenido = datos.contenido.trim();
+  }
+
+  if (datos.duracionMinutos !== undefined) {
+    datos.duracionMinutos = Number(datos.duracionMinutos);
+  }
+
+  if (datos.orden !== undefined) {
+    datos.orden = Number(datos.orden);
+  }
+
+  return datos;
+};
+
+const crearLeccion = async (req, res) => {
+  try {
+    const errores = validarLeccion(req.body, false);
 
     if (errores.length > 0) {
       return res.status(400).json({ errores });
     }
 
-    const leccion = await leccionService.crearLeccion(req.body);
+    const datos = normalizarDatosLeccion(req.body);
+    const leccion = await leccionService.crearLeccion(datos);
+
     res.status(201).json(leccion);
   } catch (error) {
     if (esErrorDeNegocioLeccion(error.message)) {
@@ -84,53 +147,14 @@ const editarLeccion = async (req, res) => {
       });
     }
 
-    const { titulo, descripcion, contenido, duracionMinutos, orden, curso } =
-      req.body;
-
-    const errores = [];
-
-    if (titulo !== undefined && titulo.trim() === "") {
-      errores.push("El título no puede estar vacío");
-    }
-
-    if (descripcion !== undefined && descripcion.trim() === "") {
-      errores.push("La descripción no puede estar vacía");
-    }
-
-    if (contenido !== undefined && contenido.trim() === "") {
-      errores.push("El contenido no puede estar vacío");
-    }
-
-    if (duracionMinutos !== undefined) {
-      if (duracionMinutos === null || duracionMinutos === "") {
-        errores.push("La duración en minutos no puede estar vacía");
-      } else if (
-        !Number.isInteger(Number(duracionMinutos)) ||
-        Number(duracionMinutos) < 1
-      ) {
-        errores.push(
-          "La duración en minutos debe ser un número entero mayor o igual a 1",
-        );
-      }
-    }
-
-    if (orden !== undefined) {
-      if (orden === null || orden === "") {
-        errores.push("El orden no puede estar vacío");
-      } else if (!Number.isInteger(Number(orden)) || Number(orden) < 1) {
-        errores.push("El orden debe ser un número entero mayor o igual a 1");
-      }
-    }
-
-    if (curso !== undefined && !esObjectIdValido(curso)) {
-      errores.push("ID de curso inválido");
-    }
+    const errores = validarLeccion(req.body, true);
 
     if (errores.length > 0) {
       return res.status(400).json({ errores });
     }
 
-    const leccion = await leccionService.editarLeccion(id, req.body);
+    const datos = normalizarDatosLeccion(req.body);
+    const leccion = await leccionService.editarLeccion(id, datos);
 
     if (!leccion) {
       return res.status(404).json({ mensaje: "Lección no encontrada" });
@@ -286,7 +310,12 @@ const ordenarLecciones = async (req, res) => {
       return res.status(400).json({ errores });
     }
 
-    const lecciones = await leccionService.ordenarLecciones(cursoId, req.body);
+    const datos = req.body.map((item) => ({
+      ...item,
+      orden: Number(item.orden),
+    }));
+
+    const lecciones = await leccionService.ordenarLecciones(cursoId, datos);
     res.json(lecciones);
   } catch (error) {
     res.status(500).json({ mensaje: error.message });

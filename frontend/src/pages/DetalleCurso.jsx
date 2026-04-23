@@ -4,6 +4,22 @@ import { useCarrito } from "../context/CarritoContext";
 import { API_BASE } from "../config/api";
 import "./DetalleCurso.css";
 
+import jsImg from "../assets/javaScript.png";
+import pyImg from "../assets/Python.png";
+import javaImg from "../assets/java.png";
+import htmlImg from "../assets/html.png";
+import cppImg from "../assets/C++.png";
+import reactImg from "../assets/react.png";
+
+const imagenes = {
+  JavaScript: jsImg,
+  Python: pyImg,
+  Java: javaImg,
+  "HTML y CSS": htmlImg,
+  "C++": cppImg,
+  React: reactImg,
+};
+
 function DetalleCurso() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -52,9 +68,34 @@ function DetalleCurso() {
     return `$${curso.precio.toLocaleString("es-AR")}`;
   }, [curso]);
 
+  const obtenerImagenCurso = (cursoActual) => {
+    const nombreCategoria = cursoActual?.categoria?.nombre;
+
+    if (cursoActual?.imagenPortada) return cursoActual.imagenPortada;
+
+    if (nombreCategoria && imagenes[nombreCategoria]) {
+      return imagenes[nombreCategoria];
+    }
+
+    const titulo = cursoActual?.titulo?.toLowerCase() || "";
+
+    if (titulo.includes("javascript")) return jsImg;
+    if (titulo.includes("python")) return pyImg;
+    if (titulo.includes("java")) return javaImg;
+    if (titulo.includes("html")) return htmlImg;
+    if (titulo.includes("css")) return htmlImg;
+    if (titulo.includes("c++")) return cppImg;
+    if (titulo.includes("react")) return reactImg;
+
+    return "/placeholder-curso.png";
+  };
+
   const handleAgregarAlCarrito = () => {
     if (!curso) return;
-    agregarAlCarrito(curso);
+    agregarAlCarrito({
+      ...curso,
+      imagen: obtenerImagenCurso(curso),
+    });
   };
 
   if (loading) {
@@ -96,7 +137,7 @@ function DetalleCurso() {
   return (
     <section className="detalle-curso-page">
       <div className="detalle-curso-top">
-        <button className="btn-volver" onClick={() => navigate("/cursos")}>
+        <button className="btn-volver-cta" onClick={() => navigate("/cursos")}>
           ← Volver a cursos
         </button>
       </div>
@@ -104,7 +145,7 @@ function DetalleCurso() {
       <div className="detalle-curso-card">
         <div className="detalle-curso-imagen">
           <img
-            src={curso.imagenPortada || "/placeholder-curso.png"}
+            src={obtenerImagenCurso(curso)}
             alt={curso.titulo || "Curso"}
             onError={(e) => {
               e.currentTarget.src = "/placeholder-curso.png";
@@ -142,30 +183,50 @@ function DetalleCurso() {
       <div className="detalle-curso-extra">
         <div className="detalle-curso-bloque">
           <h2>Qué vas a aprender</h2>
+
           {Array.isArray(curso.aprendizajes) &&
           curso.aprendizajes.length > 0 ? (
-            <ul className="detalle-curso-lista">
+            <ul className="detalle-curso-lista aprendizajes-lista">
               {curso.aprendizajes.map((item, index) => (
                 <li key={index}>✔ {item}</li>
               ))}
             </ul>
           ) : (
-            <p>No hay aprendizajes cargados para este curso.</p>
+            <p className="detalle-curso-vacio">
+              No hay aprendizajes cargados para este curso.
+            </p>
           )}
         </div>
 
         <div className="detalle-curso-bloque">
           <h2>Lecciones incluidas</h2>
+
           {Array.isArray(curso.lecciones) && curso.lecciones.length > 0 ? (
-            <ul className="detalle-curso-lista">
+            <ul className="detalle-curso-lista lecciones-lista">
               {curso.lecciones.map((leccion, index) => (
-                <li key={leccion?._id || index}>
-                  {index + 1}. {leccion?.titulo || "Lección sin título"}
+                <li
+                  key={leccion?._id || index}
+                  className="leccion-item"
+                  onClick={() => navigate(`/lecciones/${leccion._id}`)}
+                >
+                  <span className="leccion-numero">{index + 1}</span>
+
+                  <div className="leccion-info">
+                    <span className="leccion-titulo">
+                      {leccion?.titulo || "Lección sin título"}
+                    </span>
+
+                    <span className="leccion-duracion">
+                      {leccion?.duracionMinutos || 0} min
+                    </span>
+                  </div>
                 </li>
               ))}
             </ul>
           ) : (
-            <p>No hay lecciones cargadas para este curso.</p>
+            <p className="detalle-curso-vacio">
+              No hay lecciones cargadas para este curso.
+            </p>
           )}
         </div>
       </div>

@@ -13,6 +13,15 @@ class LeccionService {
       throw new Error("El curso indicado no existe");
     }
 
+    const existeOrden = await Leccion.findOne({
+      curso: datosLeccion.curso,
+      orden: datosLeccion.orden,
+    });
+
+    if (existeOrden) {
+      throw new Error("Ya existe una lección con ese orden en el curso");
+    }
+
     const leccion = new Leccion(datosLeccion);
     const leccionGuardada = await leccion.save();
 
@@ -30,22 +39,43 @@ class LeccionService {
       return null;
     }
 
-    const cursoOriginal = leccionOriginal.curso?.toString();
-    const cursoNuevo = datosActualizados.curso;
+    const cursoOriginal = leccionOriginal.curso.toString();
+    const cursoNuevo = datosActualizados.curso
+      ? datosActualizados.curso.toString()
+      : cursoOriginal;
 
-    if (cursoNuevo) {
+    if (datosActualizados.curso) {
       const cursoExistente = await Curso.findById(cursoNuevo);
       if (!cursoExistente) {
         throw new Error("El nuevo curso indicado no existe");
       }
     }
 
-    await Leccion.findByIdAndUpdate(id, datosActualizados, {
-      new: true,
-      runValidators: true,
+    const nuevoOrden =
+      datosActualizados.orden !== undefined
+        ? datosActualizados.orden
+        : leccionOriginal.orden;
+
+    const existeOrden = await Leccion.findOne({
+      _id: { $ne: id },
+      curso: cursoNuevo,
+      orden: nuevoOrden,
     });
 
-    if (cursoNuevo && cursoNuevo.toString() !== cursoOriginal) {
+    if (existeOrden) {
+      throw new Error("Ya existe una lección con ese orden en el curso");
+    }
+
+    const leccionActualizada = await Leccion.findByIdAndUpdate(
+      id,
+      datosActualizados,
+      {
+        new: true,
+        runValidators: true,
+      },
+    );
+
+    if (cursoNuevo !== cursoOriginal) {
       await Curso.findByIdAndUpdate(cursoOriginal, {
         $pull: { lecciones: leccionOriginal._id },
       });
@@ -55,7 +85,7 @@ class LeccionService {
       });
     }
 
-    return await Leccion.findById(id).populate("curso");
+    return await Leccion.findById(leccionActualizada._id).populate("curso");
   }
 
   async eliminarLeccion(id) {
@@ -70,7 +100,9 @@ class LeccionService {
   }
 
   async listarLeccionesPorCurso(cursoId) {
-    return await Leccion.find({ curso: cursoId }).sort({ orden: 1 });
+    return await Leccion.find({ curso: cursoId })
+      .sort({ orden: 1 })
+      .populate("curso");
   }
 
   async buscarLeccionPorId(id) {
@@ -94,15 +126,30 @@ class LeccionService {
   }
 
   async ordenarLecciones(cursoId, leccionesOrdenadas) {
+    const ids = leccionesOrdenadas.map((item) => item.id);
+
+    const leccionesExistentes = await Leccion.find({
+      _id: { $in: ids },
+      curso: cursoId,
+    });
+
+    if (leccionesExistentes.length !== leccionesOrdenadas.length) {
+      throw new Error(
+        "Una o más lecciones no existen o no pertenecen al curso indicado",
+      );
+    }
+
     for (const item of leccionesOrdenadas) {
-      await Leccion.findOneAndUpdate(
-        { _id: item.id, curso: cursoId },
+      await Leccion.findByIdAndUpdate(
+        item.id,
         { orden: item.orden },
         { new: true, runValidators: true },
       );
     }
 
-    return await Leccion.find({ curso: cursoId }).sort({ orden: 1 });
+    return await Leccion.find({ curso: cursoId })
+      .sort({ orden: 1 })
+      .populate("curso");
   }
 }
 
