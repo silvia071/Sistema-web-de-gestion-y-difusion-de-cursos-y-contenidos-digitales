@@ -59,7 +59,11 @@
   padding: 32px 26px;
   border-radius: 24px;
   background:
-    radial-gradient(circle at top right, rgba(55, 196, 255, 0.14), transparent 32%),
+    radial-gradient(
+      circle at top right,
+      rgba(55, 196, 255, 0.14),
+      transparent 32%
+    ),
     linear-gradient(180deg, rgba(9, 24, 92, 0.98), rgba(7, 18, 70, 1));
   border: 1px solid rgba(120, 150, 255, 0.18);
   box-shadow: 0 22px 48px rgba(0, 0, 0, 0.22);
@@ -118,7 +122,11 @@
   padding: 38px 28px;
   border-radius: 24px;
   text-align: center;
-  background: linear-gradient(135deg, rgba(93, 133, 255, 0.22), rgba(123, 92, 255, 0.18));
+  background: linear-gradient(
+    135deg,
+    rgba(93, 133, 255, 0.22),
+    rgba(123, 92, 255, 0.18)
+  );
   border: 1px solid rgba(255, 255, 255, 0.12);
   box-shadow: 0 14px 34px rgba(0, 0, 0, 0.16);
 }
@@ -152,3 +160,4 @@
   .nosotros-cta {
     padding: 28px 20px;
   }
+}
