@@ -67,7 +67,8 @@ const agregarItem = async (req, res) => {
 
     if (
       error.message.includes("no activo") ||
-      error.message.includes("ya está en el carrito")
+      error.message.includes("ya está en el carrito") ||
+      error.message.includes("ya tenés acceso")
     ) {
       return res.status(400).json({ error: error.message });
     }

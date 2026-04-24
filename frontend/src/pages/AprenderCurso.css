@@ -1,0 +1,33 @@
+.player-page {
+  display: flex;
+  height: 100vh;
+  color: white;
+}
+
+.player-sidebar {
+  width: 300px;
+  background: #111827;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.leccion-item {
+  padding: 10px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  border-radius: 6px;
+  background: #1f2937;
+}
+
+.leccion-item:hover {
+  background: #374151;
+}
+
+.leccion-item.activa {
+  background: #2563eb;
+}
+
+.player-content {
+  flex: 1;
+  padding: 40px;
+}

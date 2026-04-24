@@ -1,0 +1,103 @@
+.admin-cursos {
+  padding: 40px;
+  color: white;
+}
+
+.admin-cursos h1 {
+  margin-bottom: 16px;
+}
+
+.admin-editando {
+  margin-bottom: 12px;
+  color: #8bdcff;
+  font-weight: 700;
+}
+
+.admin-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.admin-form input,
+.admin-form select {
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
+  min-width: 140px;
+}
+
+.admin-form button {
+  padding: 10px 20px;
+  border-radius: 8px;
+  background: #4f8cff;
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.admin-form button[type="button"] {
+  background: #6b7280;
+}
+
+.admin-list {
+  display: grid;
+  gap: 10px;
+}
+
+.admin-item {
+  background: rgba(10, 18, 70, 0.8);
+  padding: 15px;
+  border-radius: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.admin-item h3 {
+  margin: 0 0 8px;
+}
+
+.admin-item p {
+  margin: 0 0 8px;
+}
+
+.admin-item button {
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: none;
+  background: #4f8cff;
+  color: white;
+  cursor: pointer;
+  font-weight: 700;
+  margin-left: 6px;
+}
+
+.admin-form button:hover,
+.admin-item button:hover {
+  opacity: 0.9;
+}
+
+@media (max-width: 768px) {
+  .admin-cursos {
+    padding: 24px;
+  }
+
+  .admin-form {
+    flex-direction: column;
+  }
+
+  .admin-form input,
+  .admin-form select,
+  .admin-form button {
+    width: 100%;
+  }
+
+  .admin-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
