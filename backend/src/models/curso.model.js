@@ -100,4 +100,4 @@ const cursoSchema = new mongoose.Schema(
   },
 );
 
-module.exports = mongoose.model("Curso", cursoSchema);
+module.exports = mongoose.model("Curso", cursoSchema, "cursos");

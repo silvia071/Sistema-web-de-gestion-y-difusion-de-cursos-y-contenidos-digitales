@@ -1,12 +1,17 @@
 const mongoose = require("mongoose");
 
-const MONGO_URI =
-  process.env.MONGO_URI || "mongodb://127.0.0.1:27017/proyectofinal";
+const MONGO_URI = process.env.MONGO_URI;
+
+if (!MONGO_URI) {
+  console.error("Falta la variable de entorno MONGO_URI. Revisa backend/.env");
+  process.exit(1);
+}
 
 const connectDB = async () => {
   try {
     mongoose.set("strictQuery", true);
 
+    console.log("Conectando a MongoDB con:", MONGO_URI.startsWith("mongodb+srv://") ? "MongoDB Atlas" : MONGO_URI);
     await mongoose.connect(MONGO_URI);
 
     console.log("MongoDB conectado");

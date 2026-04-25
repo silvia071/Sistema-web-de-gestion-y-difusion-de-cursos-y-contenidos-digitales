@@ -5,6 +5,8 @@ require("dotenv").config({
   path: path.resolve(__dirname, "../.env"),
 });
 
+console.log("JWT_SECRET:", process.env.JWT_SECRET);
+
 const app = require("./app");
 const connectDB = require("./config/database");
 
