@@ -28,39 +28,50 @@ function DetalleCurso() {
   const [curso, setCurso] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [yaComprado, setYaComprado] = useState(false);
 
+  // 🔹 Cargar curso
   useEffect(() => {
-    const controller = new AbortController();
-
     const cargarCurso = async () => {
       try {
-        setLoading(true);
-        setError("");
-        setCurso(null);
-
-        const res = await fetch(`${API_BASE}/api/cursos/${id}`, {
-          signal: controller.signal,
-        });
-
+        const res = await fetch(`${API_BASE}/api/cursos/${id}`);
         const data = await res.json();
 
-        if (!res.ok) {
-          throw new Error(data?.message || "No se pudo cargar el curso");
-        }
+        if (!res.ok) throw new Error(data?.message);
 
         setCurso(data);
       } catch (err) {
-        if (err.name === "AbortError") return;
-        console.error("Error al cargar curso:", err);
-        setError("Error al cargar el detalle del curso.");
+        setError("Error al cargar el curso");
       } finally {
         setLoading(false);
       }
     };
 
     cargarCurso();
+  }, [id]);
 
-    return () => controller.abort();
+  // 🔹 Verificar si ya lo compró
+  useEffect(() => {
+    const verificarCompra = async () => {
+      try {
+        const userId = localStorage.getItem("userId");
+        if (!userId) return;
+
+        const res = await fetch(
+          `${API_BASE}/api/acceso-curso/usuario/${userId}`,
+        );
+
+        const data = await res.json();
+
+        const tieneCurso = data.some((acceso) => acceso?.curso?._id === id);
+
+        setYaComprado(tieneCurso);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    verificarCompra();
   }, [id]);
 
   const precioFormateado = useMemo(() => {
@@ -69,13 +80,9 @@ function DetalleCurso() {
   }, [curso]);
 
   const obtenerImagenCurso = (cursoActual) => {
-    const nombreCategoria = cursoActual?.categoria?.nombre;
+    const categoria = cursoActual?.categoria?.nombre;
 
-    if (cursoActual?.imagenPortada) return cursoActual.imagenPortada;
-
-    if (nombreCategoria && imagenes[nombreCategoria]) {
-      return imagenes[nombreCategoria];
-    }
+    if (categoria && imagenes[categoria]) return imagenes[categoria];
 
     const titulo = cursoActual?.titulo?.toLowerCase() || "";
 
@@ -91,143 +98,111 @@ function DetalleCurso() {
   };
 
   const handleAgregarAlCarrito = () => {
-    if (!curso) return;
     agregarAlCarrito({
       ...curso,
       imagen: obtenerImagenCurso(curso),
     });
   };
 
-  if (loading) {
-    return (
-      <section className="detalle-curso-page">
-        <div className="detalle-curso-estado">
-          <p>Cargando curso...</p>
-        </div>
-      </section>
-    );
-  }
+  const handleEntrarAlCurso = () => {
+    navigate(`/curso/${curso._id}`);
+  };
 
-  if (error) {
-    return (
-      <section className="detalle-curso-page">
-        <div className="detalle-curso-estado">
-          <p>{error}</p>
-          <button className="btn-volver" onClick={() => navigate("/cursos")}>
-            ← Volver a cursos
-          </button>
-        </div>
-      </section>
-    );
-  }
-
-  if (!curso) {
-    return (
-      <section className="detalle-curso-page">
-        <div className="detalle-curso-estado">
-          <p>No se encontró el curso.</p>
-          <button className="btn-volver" onClick={() => navigate("/cursos")}>
-            ← Volver a cursos
-          </button>
-        </div>
-      </section>
-    );
-  }
+  if (loading) return <p>Cargando...</p>;
+  if (error) return <p>{error}</p>;
+  if (!curso) return <p>No encontrado</p>;
 
   return (
     <section className="detalle-curso-page">
+      {/* 🔹 BOTÓN VOLVER */}
       <div className="detalle-curso-top">
         <button className="btn-volver-cta" onClick={() => navigate("/cursos")}>
           ← Volver a cursos
         </button>
       </div>
 
+      {/* 🔹 CARD PRINCIPAL */}
       <div className="detalle-curso-card">
+        {/* IMAGEN */}
         <div className="detalle-curso-imagen">
-          <img
-            src={obtenerImagenCurso(curso)}
-            alt={curso.titulo || "Curso"}
-            onError={(e) => {
-              e.currentTarget.src = "/placeholder-curso.png";
-            }}
-          />
+          <img src={obtenerImagenCurso(curso)} alt={curso.titulo} />
         </div>
 
+        {/* INFO */}
         <div className="detalle-curso-info">
           <span className="detalle-curso-categoria">
-            {curso.categoria?.nombre || "Sin categoría"}
+            {curso.categoria?.nombre}
           </span>
 
-          <h1>{curso.titulo || "Curso sin título"}</h1>
+          <h1>{curso.titulo}</h1>
 
-          <p className="detalle-curso-descripcion">
-            {curso.descripcion || "Este curso no tiene descripción disponible."}
-          </p>
+          <p className="detalle-curso-descripcion">{curso.descripcion}</p>
 
           <div className="detalle-curso-meta">
-            <span>Nivel: {curso.nivel || "No especificado"}</span>
-            <span>Duración: {curso.duracion || "No especificada"}</span>
+            <span>Nivel: {curso.nivel}</span>
+            <span>Duración: {curso.duracion}</span>
           </div>
 
-          <p className="detalle-curso-precio">{precioFormateado}</p>
+          {!yaComprado && (
+            <p className="detalle-curso-precio">{precioFormateado}</p>
+          )}
 
-          <button
-            className="btn btn-primary detalle-curso-btn"
-            onClick={handleAgregarAlCarrito}
-          >
-            Agregar al carrito
-          </button>
+          {yaComprado ? (
+            <button className="detalle-curso-btn" onClick={handleEntrarAlCurso}>
+              Entrar al curso
+            </button>
+          ) : (
+            <button
+              className="detalle-curso-btn"
+              onClick={handleAgregarAlCarrito}
+            >
+              Agregar al carrito
+            </button>
+          )}
         </div>
       </div>
 
+      {/* 🔹 BLOQUES */}
       <div className="detalle-curso-extra">
+        {/* APRENDIZAJES */}
         <div className="detalle-curso-bloque">
           <h2>Qué vas a aprender</h2>
 
-          {Array.isArray(curso.aprendizajes) &&
-          curso.aprendizajes.length > 0 ? (
-            <ul className="detalle-curso-lista aprendizajes-lista">
-              {curso.aprendizajes.map((item, index) => (
-                <li key={index}>✔ {item}</li>
+          {curso.aprendizajes?.length > 0 ? (
+            <ul className="detalle-curso-lista">
+              {curso.aprendizajes.map((item, i) => (
+                <li key={i}>✔ {item}</li>
               ))}
             </ul>
           ) : (
             <p className="detalle-curso-vacio">
-              No hay aprendizajes cargados para este curso.
+              Próximamente vas a tener los objetivos del curso.
             </p>
           )}
         </div>
 
+        {/* LECCIONES */}
         <div className="detalle-curso-bloque">
           <h2>Lecciones incluidas</h2>
 
-          {Array.isArray(curso.lecciones) && curso.lecciones.length > 0 ? (
-            <ul className="detalle-curso-lista lecciones-lista">
-              {curso.lecciones.map((leccion, index) => (
-                <li
-                  key={leccion?._id || index}
-                  className="leccion-item"
-                  onClick={() => navigate(`/lecciones/${leccion._id}`)}
-                >
-                  <span className="leccion-numero">{index + 1}</span>
+          <div className="lecciones-lista">
+            {curso.lecciones?.map((l, i) => (
+              <div
+                key={l._id}
+                className="leccion-item"
+                onClick={() => navigate(`/curso/${curso._id}?leccion=${l._id}`)}
+              >
+                <div className="leccion-numero">{i + 1}</div>
 
-                  <div className="leccion-info">
-                    <span className="leccion-titulo">
-                      {leccion?.titulo || "Lección sin título"}
-                    </span>
-
-                    <span className="leccion-duracion">
-                      {leccion?.duracionMinutos || 0} min
-                    </span>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="detalle-curso-vacio">
-              No hay lecciones cargadas para este curso.
-            </p>
-          )}
+                <div className="leccion-info">
+                  <span className="leccion-titulo">{l.titulo}</span>
+                  <span className="leccion-duracion">
+                    {l.duracionMinutos} min
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </section>

@@ -12,7 +12,8 @@ function Navbar() {
   const [animarBadge, setAnimarBadge] = useState(false);
 
   const token = localStorage.getItem("token");
-  const nombre = localStorage.getItem("nombre");
+  const rol = localStorage.getItem("rol");
+  const esAdmin = rol === "ADMINISTRADOR";
 
   useEffect(() => {
     if (cantidadTotal > 0) {
@@ -31,6 +32,7 @@ function Navbar() {
     localStorage.removeItem("userId");
     localStorage.removeItem("email");
     localStorage.removeItem("nombre");
+    localStorage.removeItem("rol");
     navigate("/login");
   };
 
@@ -145,6 +147,7 @@ function Navbar() {
               >
                 Mi cuenta ▼
               </button>
+
               {openUserMenu && (
                 <div className="navbar__dropdown">
                   <button
@@ -163,11 +166,35 @@ function Navbar() {
                     className="navbar__dropdown-item"
                     onClick={() => {
                       setOpenUserMenu(false);
+                      navigate("/mis-cursos");
+                    }}
+                  >
+                    Mis cursos
+                  </button>
+
+                  <button
+                    type="button"
+                    className="navbar__dropdown-item"
+                    onClick={() => {
+                      setOpenUserMenu(false);
                       navigate("/carrito");
                     }}
                   >
                     Mi carrito
                   </button>
+
+                  {esAdmin && (
+                    <button
+                      type="button"
+                      className="navbar__dropdown-item"
+                      onClick={() => {
+                        setOpenUserMenu(false);
+                        navigate("/admin");
+                      }}
+                    >
+                      Panel administrador
+                    </button>
+                  )}
 
                   <button
                     type="button"

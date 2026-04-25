@@ -1,5 +1,6 @@
 const Compra = require("../models/compra.model");
 const DetalleCompra = require("../models/detalleCompra.model");
+const AccesoCurso = require("../models/accesoCurso.model");
 const EstadoCompra = require("../enums/estadoCompra");
 
 const generarCompraDesdeCarrito = async (carrito, usuarioId) => {
@@ -23,11 +24,22 @@ const generarCompraDesdeCarrito = async (carrito, usuarioId) => {
       throw new Error("Uno de los items del carrito no tiene precioUnitario");
     }
 
-    const cantidad = item.cantidad || 1;
+    const cursoId = item.curso._id || item.curso;
+
+    const accesoExistente = await AccesoCurso.findOne({
+      usuario: usuarioId,
+      curso: cursoId,
+      estado: "ACTIVO",
+    });
+
+    if (accesoExistente) {
+      throw new Error("Ya tenés acceso a uno de los cursos del carrito");
+    }
+
     const subtotalDetalle = item.precioUnitario;
 
     const detalle = await DetalleCompra.create({
-      curso: item.curso,
+      curso: cursoId,
       precioUnitario: item.precioUnitario,
       subtotal: subtotalDetalle,
     });

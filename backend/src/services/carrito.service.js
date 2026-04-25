@@ -2,6 +2,7 @@ const Carrito = require("../models/carrito.model");
 const ItemCarrito = require("../models/itemCarrito.model");
 const EstadoCarrito = require("../enums/estadoCarrito");
 const Curso = require("../models/curso.model");
+const AccesoCurso = require("../models/accesoCurso.model"); // 🔥 IMPORTANTE
 
 const crearCarrito = async (usuarioId) => {
   if (!usuarioId) {
@@ -56,6 +57,18 @@ const agregarCursoAlCarrito = async (idCarrito, idCurso) => {
     throw new Error("Carrito no activo");
   }
 
+  // 🔥 BLOQUEO REAL: verificar si ya compró el curso
+  const accesoExistente = await AccesoCurso.findOne({
+    usuario: carrito.usuario,
+    curso: idCurso,
+    estado: "ACTIVO",
+  });
+
+  if (accesoExistente) {
+    throw new Error("Ya tenés acceso a este curso");
+  }
+
+  // 🔥 evitar duplicado en carrito
   const itemExistente = await ItemCarrito.findOne({
     _id: { $in: carrito.items.map((item) => item._id) },
     curso: idCurso,

@@ -43,7 +43,11 @@ const leccionSchema = new mongoose.Schema(
         message: "El contenido no puede estar vacío",
       },
     },
-
+    videoUrl: {
+      type: String,
+      trim: true,
+      default: "",
+    },
     duracionMinutos: {
       type: Number,
       required: true,

@@ -22,14 +22,18 @@ function Login() {
     if (USE_MOCK_API) {
       const perfil = readMockPerfil(email);
       writeMockPerfil(perfil);
+
       localStorage.setItem("token", "mock_session");
       localStorage.setItem("userId", "local");
       localStorage.setItem("email", email);
-      navigate("/perfil");
+      localStorage.setItem("nombre", perfil?.nombre || "Usuario");
+
+      navigate("/cursos");
       return;
     }
 
     setSubmitting(true);
+
     try {
       const res = await fetch(`${API_BASE}/api/usuarios/login`, {
         method: "POST",
@@ -50,8 +54,9 @@ function Login() {
       localStorage.setItem("userId", data.usuario.id || data.usuario._id);
       localStorage.setItem("email", data.usuario.email);
       localStorage.setItem("nombre", data.usuario.nombre);
+      localStorage.setItem("rol", data.usuario.rol);
 
-      navigate("/perfil");
+      navigate("/cursos");
     } catch {
       setError("Error de red. Intentá de nuevo.");
     } finally {

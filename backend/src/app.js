@@ -20,6 +20,7 @@ const datosFacturacionRoutes = require("./routes/datosFacturacion.route");
 const pagoRoutes = require("./routes/pago.route");
 const carritoRoutes = require("./routes/carrito.route");
 const compraRoutes = require("./routes/compra.route");
+const accesoCursoRoutes = require("./routes/accesoCurso.route");
 
 
 app.use("/api/usuarios", usuarioRoutes);
@@ -33,6 +34,7 @@ app.use("/api/datos-facturacion", datosFacturacionRoutes);
 app.use("/api/pagos", pagoRoutes);
 app.use("/api/carrito", carritoRoutes);
 app.use("/api/compra", compraRoutes);
+app.use("/api/acceso-curso", accesoCursoRoutes);
 
 
 app.get("/api/publicaciones/prueba-app", (req, res) => {

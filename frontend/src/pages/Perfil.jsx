@@ -3,7 +3,28 @@ import { useCallback, useEffect, useState } from "react";
 import { API_BASE, USE_MOCK_API } from "../config/api";
 import { readMockPerfil, writeMockPerfil } from "../services/mockPerfil";
 import "./Perfil.css";
+
 import logo from "../assets/logo.png";
+import jsImg from "../assets/JavaScript.png";
+import pyImg from "../assets/Python.png";
+import javaImg from "../assets/java.png";
+import htmlImg from "../assets/html.png";
+import cppImg from "../assets/C++.png";
+import reactImg from "../assets/react.png";
+
+const obtenerImagenCurso = (curso) => {
+  const titulo = curso?.titulo?.toLowerCase() || "";
+
+  if (titulo.includes("javascript")) return jsImg;
+  if (titulo.includes("python")) return pyImg;
+  if (titulo.includes("java")) return javaImg;
+  if (titulo.includes("html")) return htmlImg;
+  if (titulo.includes("css")) return htmlImg;
+  if (titulo.includes("c++")) return cppImg;
+  if (titulo.includes("react")) return reactImg;
+
+  return "/placeholder-curso.png";
+};
 
 function authHeaders() {
   const token = localStorage.getItem("token");
@@ -40,8 +61,37 @@ function Perfil() {
     localStorage.removeItem("token");
     localStorage.removeItem("email");
     localStorage.removeItem("userId");
+    localStorage.removeItem("nombre");
     navigate("/login", { replace: true });
   }, [navigate]);
+
+  const cargarMisCursos = useCallback(async () => {
+    try {
+      const usuarioId = localStorage.getItem("userId");
+
+      if (!usuarioId || USE_MOCK_API) {
+        setMisCursos([]);
+        return;
+      }
+
+      const res = await fetch(
+        `${API_BASE}/api/acceso-curso/usuario/${usuarioId}`,
+      );
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(
+          data.error || data.mensaje || "No se pudieron cargar los cursos.",
+        );
+      }
+
+      setMisCursos(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error("Error cargando cursos:", error);
+      setMisCursos([]);
+    }
+  }, []);
 
   const cargarPerfil = useCallback(async () => {
     const token = localStorage.getItem("token");
@@ -102,19 +152,12 @@ function Perfil() {
   }, [clearSessionAndRedirect, syncFormFromUsuario]);
 
   useEffect(() => {
-    const cursosGuardados = JSON.parse(localStorage.getItem("misCursos")) || [];
-    setMisCursos(cursosGuardados);
-  }, []);
-
-  useEffect(() => {
     cargarPerfil();
-  }, [cargarPerfil]);
+    cargarMisCursos();
+  }, [cargarPerfil, cargarMisCursos]);
 
   const cerrarSesion = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("email");
-    localStorage.removeItem("userId");
-    navigate("/login");
+    clearSessionAndRedirect();
   };
 
   const abrirEdicion = () => {
@@ -135,6 +178,7 @@ function Perfil() {
 
     const userId = localStorage.getItem("userId");
     const token = localStorage.getItem("token");
+
     if (!userId || !token) {
       clearSessionAndRedirect();
       return;
@@ -149,6 +193,7 @@ function Perfil() {
       setSaveError("El nombre debe tener al menos 2 caracteres.");
       return;
     }
+
     if (!apellidoLimpio) {
       setSaveError("El apellido es obligatorio.");
       return;
@@ -168,6 +213,7 @@ function Perfil() {
         direccion: direccionLimpia,
         telefono: telefonoLimpio,
       };
+
       writeMockPerfil(actualizado);
       setUsuario(actualizado);
       syncFormFromUsuario(actualizado);
@@ -176,6 +222,7 @@ function Perfil() {
     }
 
     setSaving(true);
+
     try {
       const res = await fetch(`${API_BASE}/api/usuarios/perfil/${userId}`, {
         method: "PUT",
@@ -392,6 +439,7 @@ function Perfil() {
               >
                 Cancelar
               </button>
+
               <button
                 type="submit"
                 className="btn btn-primary"
@@ -425,11 +473,35 @@ function Perfil() {
 
         <div className="perfil-cursos-list">
           {misCursos.length > 0 ? (
-            misCursos.map((curso) => (
-              <div key={curso.id} className="perfil-curso-card">
-                <img src={curso.imagen} alt={curso.titulo} />
-                <h3>{curso.titulo}</h3>
-                <p>${curso.precio.toLocaleString()}</p>
+            misCursos.map((acceso) => (
+              <div
+                key={acceso._id}
+                className="perfil-curso-card"
+                onClick={() => navigate(`/curso/${acceso.curso._id}`)}
+                style={{ cursor: "pointer" }}
+              >
+                <img
+                  src={obtenerImagenCurso(acceso.curso)}
+                  alt={acceso.curso?.titulo || "Curso"}
+                  className="perfil-curso-img"
+                  onError={(e) => {
+                    e.currentTarget.src = "/placeholder-curso.png";
+                  }}
+                />
+
+                <h3>{acceso.curso?.titulo || "Curso sin título"}</h3>
+                <p>Progreso: {acceso.progreso || 0}%</p>
+
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`/curso/${acceso.curso._id}`);
+                  }}
+                >
+                  Continuar curso
+                </button>
               </div>
             ))
           ) : (

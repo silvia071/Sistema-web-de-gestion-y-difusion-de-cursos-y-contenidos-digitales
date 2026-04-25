@@ -3,7 +3,7 @@
   padding: 60px 20px;
 }
 
-/* ---------- VOLVER (modo navegación) ---------- */
+/* ---------- VOLVER ---------- */
 
 .detalle-curso-top {
   max-width: 1250px;
@@ -27,22 +27,14 @@
   cursor: pointer;
 
   box-shadow: 0 8px 20px rgba(93, 133, 255, 0.28);
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease,
-    opacity 0.2s ease;
+  transition: all 0.2s ease;
 }
 
 .btn-volver-cta:hover {
-  opacity: 0.96;
   transform: translateY(-2px) scale(1.02);
   box-shadow: 0 12px 28px rgba(93, 133, 255, 0.36);
 }
 
-.btn-volver-cta:active {
-  transform: translateY(0);
-  box-shadow: none;
-}
 /* ---------- CARD PRINCIPAL ---------- */
 
 .detalle-curso-card {
@@ -51,10 +43,17 @@
   display: grid;
   grid-template-columns: 420px 1fr;
   gap: 48px;
+
   background: #f9fafb;
   border-radius: 22px;
   padding: 36px;
+
   box-shadow: 0 18px 40px rgba(0, 0, 0, 0.18);
+  transition: transform 0.2s ease;
+}
+
+.detalle-curso-card:hover {
+  transform: translateY(-3px);
 }
 
 /* ---------- IMAGEN ---------- */
@@ -79,12 +78,15 @@
 .detalle-curso-categoria {
   display: inline-block;
   align-self: flex-start;
+
   background: #e0e7ff;
   color: #4338ca;
+
   font-size: 0.9rem;
   font-weight: 700;
   padding: 8px 14px;
   border-radius: 999px;
+
   margin-bottom: 16px;
 }
 
@@ -101,6 +103,8 @@
   line-height: 1.7;
 }
 
+/* ---------- META ---------- */
+
 .detalle-curso-meta {
   display: flex;
   flex-wrap: wrap;
@@ -111,11 +115,15 @@
 .detalle-curso-meta span {
   background: #eef2ff;
   color: #3730a3;
+
   padding: 8px 12px;
   border-radius: 10px;
+
   font-size: 0.95rem;
   font-weight: 600;
 }
+
+/* ---------- PRECIO ---------- */
 
 .detalle-curso-precio {
   font-size: 2.3rem;
@@ -124,13 +132,34 @@
   margin: 0 0 22px;
 }
 
+/* ---------- BOTÓN ---------- */
+
 .detalle-curso-btn {
-  max-width: 300px;
+  width: 100%;
+  max-width: 320px;
+  padding: 14px 20px;
+
+  font-size: 1rem;
+  font-weight: 600;
+
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: white;
+
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+
+  transition: all 0.2s ease;
 }
 
+.detalle-curso-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(99, 102, 241, 0.4);
+}
+
+/* 🔥 FIX IMPORTANTE (esto te estaba rompiendo el botón) */
 .detalle-curso-btn button {
-  padding: 14px 20px;
-  font-size: 1rem;
+  all: unset;
 }
 
 /* ---------- BLOQUES ABAJO ---------- */
@@ -138,6 +167,7 @@
 .detalle-curso-extra {
   max-width: 1250px;
   margin: 30px auto 0;
+
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 30px;
@@ -147,6 +177,7 @@
   background: #f9fafb;
   border-radius: 18px;
   padding: 28px;
+
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.14);
   color: #111827;
 }
@@ -160,7 +191,7 @@
 
 .detalle-curso-lista {
   margin: 0;
-  padding-left: 0;
+  padding: 0;
   list-style: none;
 }
 
@@ -168,7 +199,6 @@
   padding: 10px 0;
   border-bottom: 1px solid #e5e7eb;
   color: #374151;
-  line-height: 1.5;
 }
 
 .detalle-curso-lista li:last-child {
@@ -187,27 +217,38 @@
   display: flex;
   align-items: center;
   gap: 14px;
+
   padding: 14px 18px;
   border-radius: 12px;
-  background: #f3f4f6;
+
+  background: #1f2937;
+  color: white;
   cursor: pointer;
+
   transition: all 0.2s ease;
 }
 
+.leccion-item.activa {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+}
+
 .leccion-item:hover {
-  background: #eef2ff;
+  background: #374151;
   transform: translateY(-2px);
 }
 
 .leccion-numero {
   width: 34px;
   height: 34px;
+
   border-radius: 50%;
   background: linear-gradient(135deg, #6366f1, #8b5cf6);
   color: white;
+
   display: flex;
   align-items: center;
   justify-content: center;
+
   font-size: 0.9rem;
   font-weight: 700;
 }
