@@ -5,7 +5,11 @@ const CarritoContext = createContext();
 export const useCarrito = () => useContext(CarritoContext);
 
 export function CarritoProvider({ children }) {
+  const haySesion = () => Boolean(localStorage.getItem("token"));
+
   const [carrito, setCarrito] = useState(() => {
+    if (!haySesion()) return [];
+
     try {
       const data = localStorage.getItem("carrito");
       const parsed = data ? JSON.parse(data) : [];
@@ -19,6 +23,8 @@ export function CarritoProvider({ children }) {
   const [mensajeCarrito, setMensajeCarrito] = useState("");
 
   useEffect(() => {
+    if (!haySesion()) return;
+
     try {
       localStorage.setItem("carrito", JSON.stringify(carrito));
     } catch (error) {
@@ -51,11 +57,16 @@ export function CarritoProvider({ children }) {
   };
 
   const agregarAlCarrito = (producto) => {
+    if (!haySesion()) {
+      mostrarMensaje("Para agregar cursos al carrito tenés que iniciar sesión");
+      return false;
+    }
+
     const productoNormalizado = normalizarProducto(producto);
 
     if (!productoNormalizado) {
       console.error("El producto no tiene id ni _id:", producto);
-      return;
+      return false;
     }
 
     setCarrito((prev) => {
@@ -73,6 +84,7 @@ export function CarritoProvider({ children }) {
     });
 
     mostrarMensaje("Curso agregado al carrito");
+    return true;
   };
 
   const eliminarDelCarrito = (id) => {
@@ -93,6 +105,7 @@ export function CarritoProvider({ children }) {
 
   const vaciarCarrito = () => {
     setCarrito([]);
+    localStorage.removeItem("carrito");
   };
 
   const estaEnCarrito = (id) => {
@@ -100,11 +113,17 @@ export function CarritoProvider({ children }) {
   };
 
   const finalizarCompra = () => {
+    if (!haySesion()) {
+      mostrarMensaje("Para finalizar la compra tenés que iniciar sesión");
+      return false;
+    }
+
     try {
       const cursosGuardados = localStorage.getItem("misCursos");
       const misCursosParseados = cursosGuardados
         ? JSON.parse(cursosGuardados)
         : [];
+
       const misCursos = Array.isArray(misCursosParseados)
         ? misCursosParseados
         : [];
@@ -120,17 +139,22 @@ export function CarritoProvider({ children }) {
 
       localStorage.setItem("misCursos", JSON.stringify(cursosActualizados));
       setCarrito([]);
+      localStorage.removeItem("carrito");
       mostrarMensaje("Compra realizada con éxito");
+      return true;
     } catch (error) {
       console.error("Error al finalizar la compra:", error);
+      return false;
     }
   };
 
   const cantidadTotal = useMemo(() => {
+    if (!haySesion()) return 0;
     return carrito.reduce((acc, item) => acc + item.cantidad, 0);
   }, [carrito]);
 
   const subtotal = useMemo(() => {
+    if (!haySesion()) return 0;
     return carrito.reduce((acc, item) => acc + item.precio * item.cantidad, 0);
   }, [carrito]);
 

@@ -36,25 +36,27 @@ function Navbar() {
     navigate("/login");
   };
 
- const handleCarritoClick = (e) => {
-  e.preventDefault();
+  const handleCarritoClick = (e) => {
+    e.preventDefault();
 
-  if (token) {
-    navigate("/carrito");
-  } else {
-    navigate("/login"); 
-}
-};
+    if (token) {
+      navigate("/carrito");
+    } else {
+      navigate("/login");
+    }
+  };
 
   return (
     <header className="navbar">
       <div className="container navbar__content">
+        {/* LOGO */}
         <div className="navbar__logo">
           <NavLink to="/" className="navbar__brand">
             <img src={logo} alt="Mundo Dev" className="navbar__logo-img" />
           </NavLink>
         </div>
 
+        {/* LINKS */}
         <nav className="navbar__links">
           <NavLink
             to="/"
@@ -112,42 +114,45 @@ function Navbar() {
           </NavLink>
         </nav>
 
+        {/* ACCIONES */}
         <div className="navbar__actions">
-              <NavLink
-              to="/carrito"
-                onClick={handleCarritoClick}
-                className={({ isActive }) =>
-                `navbar__cart ${isActive ? "active" : ""}`
-              }
+          {/* CARRITO */}
+          <NavLink
+            to="/carrito"
+            onClick={handleCarritoClick}
+            className={({ isActive }) =>
+              `navbar__cart ${isActive ? "active" : ""}`
+            }
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="22"
+              height="22"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="22"
-                height="22"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
+              <circle cx="8" cy="21" r="1"></circle>
+              <circle cx="19" cy="21" r="1"></circle>
+              <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.72a2 2 0 0 0 2-1.64L23 6H6"></path>
+            </svg>
+
+            {/* SOLO MUESTRA EL NUMERO SI ESTA LOGUEADO */}
+            {token && cantidadTotal > 0 && (
+              <span
+                className={`navbar__cart-badge ${
+                  animarBadge ? "navbar__cart-badge--animado" : ""
+                }`}
               >
-                <circle cx="8" cy="21" r="1"></circle>
-                <circle cx="19" cy="21" r="1"></circle>
-                <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.72a2 2 0 0 0 2-1.64L23 6H6"></path>
-              </svg>
+                {cantidadTotal}
+              </span>
+            )}
+          </NavLink>
 
-              {cantidadTotal > 0 && (
-                <span
-                  className={`navbar__cart-badge ${
-                    animarBadge ? "navbar__cart-badge--animado" : ""
-                  }`}
-                >
-                  {cantidadTotal}
-                </span>
-              )}
-            </NavLink>
-          
-
+          {/* USUARIO */}
           {token ? (
             <div className="navbar__user-menu">
               <button
@@ -161,7 +166,6 @@ function Navbar() {
               {openUserMenu && (
                 <div className="navbar__dropdown">
                   <button
-                    type="button"
                     className="navbar__dropdown-item"
                     onClick={() => {
                       setOpenUserMenu(false);
@@ -172,7 +176,6 @@ function Navbar() {
                   </button>
 
                   <button
-                    type="button"
                     className="navbar__dropdown-item"
                     onClick={() => {
                       setOpenUserMenu(false);
@@ -183,7 +186,6 @@ function Navbar() {
                   </button>
 
                   <button
-                    type="button"
                     className="navbar__dropdown-item"
                     onClick={() => {
                       setOpenUserMenu(false);
@@ -195,7 +197,6 @@ function Navbar() {
 
                   {esAdmin && (
                     <button
-                      type="button"
                       className="navbar__dropdown-item"
                       onClick={() => {
                         setOpenUserMenu(false);
@@ -207,7 +208,6 @@ function Navbar() {
                   )}
 
                   <button
-                    type="button"
                     className="navbar__dropdown-item"
                     onClick={() => {
                       setOpenUserMenu(false);

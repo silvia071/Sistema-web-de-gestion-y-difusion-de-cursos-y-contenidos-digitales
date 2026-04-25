@@ -2,7 +2,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useCarrito } from "../context/CarritoContext";
 import { useState, useEffect, useMemo } from "react";
 import { API_BASE } from "../config/api";
-import "../styles/App.css";
+import "./Curso.css";
 
 import jsImg from "../assets/javaScript.png";
 import pyImg from "../assets/Python.png";
@@ -34,6 +34,8 @@ function Cursos() {
     categoriaSeleccionada || null,
   );
   const [cursos, setCursos] = useState([]);
+  const [misCursosIds, setMisCursosIds] = useState([]);
+  const [cursoAvisoId, setCursoAvisoId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -66,7 +68,42 @@ function Cursos() {
     cargarCursos();
   }, []);
 
-  // 🔹 Categorías únicas
+  useEffect(() => {
+    const obtenerMisCursos = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const usuarioId = localStorage.getItem("userId");
+
+        if (!token || !usuarioId) {
+          setMisCursosIds([]);
+          return;
+        }
+
+        const res = await fetch(
+          `${API_BASE}/api/acceso-curso/usuario/${usuarioId}`,
+        );
+        const data = await res.json();
+
+        const ids = Array.isArray(data)
+          ? data
+              .map(
+                (acceso) =>
+                  acceso?.curso?._id || acceso?.curso?.id || acceso?.curso,
+              )
+              .filter(Boolean)
+              .map((id) => String(id))
+          : [];
+
+        setMisCursosIds(ids);
+      } catch (error) {
+        console.error("Error al obtener cursos comprados:", error);
+        setMisCursosIds([]);
+      }
+    };
+
+    obtenerMisCursos();
+  }, []);
+
   const categorias = useMemo(() => {
     return [
       ...new Set(
@@ -75,7 +112,6 @@ function Cursos() {
     ];
   }, [cursos]);
 
-  // 🔹 Cursos filtrados
   const cursosFiltrados = useMemo(() => {
     if (!categoriaActiva) return cursos;
 
@@ -86,12 +122,12 @@ function Cursos() {
     );
   }, [cursos, categoriaActiva]);
 
-  // 🔥 Contador por categoría (optimizado)
   const cantidadPorCategoria = useMemo(() => {
     const conteo = {};
 
     cursos.forEach((curso) => {
       const nombre = curso.categoria?.nombre;
+
       if (nombre) {
         conteo[nombre] = (conteo[nombre] || 0) + 1;
       }
@@ -100,13 +136,11 @@ function Cursos() {
     return conteo;
   }, [cursos]);
 
-  // 🔹 Imagen automática
   const obtenerImagenCurso = (curso) => {
     const nombreCategoria = curso.categoria?.nombre;
 
-    if (nombreCategoria && imagenes[nombreCategoria]) {
+    if (nombreCategoria && imagenes[nombreCategoria])
       return imagenes[nombreCategoria];
-    }
 
     const titulo = curso.titulo?.toLowerCase() || "";
 
@@ -124,6 +158,27 @@ function Cursos() {
   const handleAgregarAlCarrito = (e, curso) => {
     e.stopPropagation();
 
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      navigate("/login", {
+        state: { from: location.pathname },
+      });
+      return;
+    }
+
+    const cursoId = String(curso?._id || curso?.id);
+
+    if (misCursosIds.includes(cursoId)) {
+      setCursoAvisoId(cursoId);
+
+      setTimeout(() => {
+        setCursoAvisoId(null);
+      }, 2500);
+
+      return;
+    }
+
     agregarAlCarrito({
       ...curso,
       imagen: obtenerImagenCurso(curso),
@@ -135,7 +190,11 @@ function Cursos() {
     navigate(`/cursos/${cursoId}`);
   };
 
-  // 🔹 Estados de carga
+  const handleIrAlCurso = (e, cursoId) => {
+    e.stopPropagation();
+    navigate(`/curso/${cursoId}/aprender`);
+  };
+
   if (loading) {
     return (
       <div className="section">
@@ -171,7 +230,6 @@ function Cursos() {
           </p>
         </div>
 
-        {/* 🔥 FILTRO MEJORADO */}
         <div className="filtros">
           <span className="filtros-titulo">Categorías</span>
 
@@ -195,45 +253,67 @@ function Cursos() {
           </div>
         </div>
 
-        {/* 🔹 GRID DE CURSOS */}
         <div
           className="cursos-grid animar-grid"
           key={categoriaActiva || "todas"}
         >
-          {cursosFiltrados.map((curso) => (
-            <div
-              className="card course-card"
-              key={curso._id}
-              onClick={() => navigate(`/cursos/${curso._id}`)}
-            >
-              <div className="course-top">
-                <img src={obtenerImagenCurso(curso)} alt={curso.titulo} />
+          {cursosFiltrados.map((curso) => {
+            const cursoId = String(curso?._id || curso?.id);
+            const cursoComprado = misCursosIds.includes(cursoId);
+            const mostrarAviso = cursoAvisoId === cursoId;
+
+            return (
+              <div
+                className={`card course-card ${cursoComprado ? "course-card-comprado" : ""}`}
+                key={curso._id}
+                onClick={() => navigate(`/cursos/${curso._id}`)}
+              >
+                <div className="course-top">
+                  <img src={obtenerImagenCurso(curso)} alt={curso.titulo} />
+                </div>
+
+                <h3>{curso.titulo}</h3>
+                <p>{curso.descripcion}</p>
+
+                <span className="tag">{curso.categoria?.nombre}</span>
+
+                <p className="course-price">
+                  ${curso.precio?.toLocaleString()}
+                </p>
+
+                <div className="course-actions">
+                  <button
+                    className="btn btn-secondary full-width"
+                    onClick={(e) => handleVerCurso(e, curso._id)}
+                  >
+                    Ver curso
+                  </button>
+
+                  {cursoComprado ? (
+                    <button
+                      className="btn btn-secondary full-width"
+                      onClick={(e) => handleIrAlCurso(e, curso._id)}
+                    >
+                      Ir al curso
+                    </button>
+                  ) : (
+                    <button
+                      className="btn btn-primary full-width"
+                      onClick={(e) => handleAgregarAlCarrito(e, curso)}
+                    >
+                      Agregar al carrito
+                    </button>
+                  )}
+                </div>
+
+                {mostrarAviso && (
+                  <div className="curso-aviso-comprado">
+                    ✔ Ya lo tenés en tu biblioteca
+                  </div>
+                )}
               </div>
-
-              <h3>{curso.titulo}</h3>
-              <p>{curso.descripcion}</p>
-
-              <span className="tag">{curso.categoria?.nombre}</span>
-
-              <p className="course-price">${curso.precio?.toLocaleString()}</p>
-
-              <div className="course-actions">
-                <button
-                  className="btn btn-secondary full-width"
-                  onClick={(e) => handleVerCurso(e, curso._id)}
-                >
-                  Ver curso
-                </button>
-
-                <button
-                  className="btn btn-primary full-width"
-                  onClick={(e) => handleAgregarAlCarrito(e, curso)}
-                >
-                  Agregar al carrito
-                </button>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>
