@@ -36,6 +36,16 @@ function Navbar() {
     navigate("/login");
   };
 
+ const handleCarritoClick = (e) => {
+  e.preventDefault();
+
+  if (token) {
+    navigate("/carrito");
+  } else {
+    navigate("/login"); 
+}
+};
+
   return (
     <header className="navbar">
       <div className="container navbar__content">
@@ -103,10 +113,10 @@ function Navbar() {
         </nav>
 
         <div className="navbar__actions">
-          {token && (
-            <NavLink
+              <NavLink
               to="/carrito"
-              className={({ isActive }) =>
+                onClick={handleCarritoClick}
+                className={({ isActive }) =>
                 `navbar__cart ${isActive ? "active" : ""}`
               }
             >
@@ -136,7 +146,7 @@ function Navbar() {
                 </span>
               )}
             </NavLink>
-          )}
+          
 
           {token ? (
             <div className="navbar__user-menu">
