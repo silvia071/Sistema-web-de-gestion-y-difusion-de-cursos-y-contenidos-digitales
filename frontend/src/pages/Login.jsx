@@ -2,10 +2,13 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { API_BASE, USE_MOCK_API } from "../config/api";
 import { readMockPerfil, writeMockPerfil } from "../services/mockPerfil";
+import { useCarrito } from "../context/CarritoContext";
 import "./Login.css";
 
 function Login() {
   const navigate = useNavigate();
+  const { recargarCarrito } = useCarrito();
+
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -28,6 +31,7 @@ function Login() {
       localStorage.setItem("email", email);
       localStorage.setItem("nombre", perfil?.nombre || "Usuario");
 
+      recargarCarrito();
       navigate("/cursos");
       return;
     }
@@ -56,6 +60,7 @@ function Login() {
       localStorage.setItem("nombre", data.usuario.nombre);
       localStorage.setItem("rol", data.usuario.rol);
 
+      recargarCarrito();
       navigate("/cursos");
     } catch {
       setError("Error de red. Intentá de nuevo.");

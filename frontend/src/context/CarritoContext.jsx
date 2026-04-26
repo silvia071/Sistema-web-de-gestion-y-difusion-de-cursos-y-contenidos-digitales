@@ -49,6 +49,10 @@ export function CarritoProvider({ children }) {
     }
   }, [carrito]);
 
+  const recargarCarrito = () => {
+    setCarrito(leerCarrito());
+  };
+
   const mostrarMensaje = (texto) => {
     setMensajeCarrito(texto);
 
@@ -168,6 +172,7 @@ export function CarritoProvider({ children }) {
         actualizarCantidad,
         vaciarCarrito,
         limpiarCarritoVisual,
+        recargarCarrito,
         finalizarCompra,
         estaEnCarrito,
       }}
