@@ -7,26 +7,43 @@ export const useCarrito = () => useContext(CarritoContext);
 export function CarritoProvider({ children }) {
   const haySesion = () => Boolean(localStorage.getItem("token"));
 
-  const [carrito, setCarrito] = useState(() => {
+  const obtenerUserId = () => localStorage.getItem("userId");
+
+  const obtenerClaveCarrito = () => {
+    const userId = obtenerUserId();
+    return userId ? `carrito_${userId}` : "carrito_invitado";
+  };
+
+  const leerCarrito = () => {
     if (!haySesion()) return [];
 
     try {
-      const data = localStorage.getItem("carrito");
+      const data = localStorage.getItem(obtenerClaveCarrito());
       const parsed = data ? JSON.parse(data) : [];
       return Array.isArray(parsed) ? parsed : [];
     } catch (error) {
       console.error("Error al leer el carrito desde localStorage:", error);
       return [];
     }
-  });
+  };
 
+  const [carrito, setCarrito] = useState(leerCarrito);
   const [mensajeCarrito, setMensajeCarrito] = useState("");
+
+  useEffect(() => {
+    if (!haySesion()) {
+      setCarrito([]);
+      return;
+    }
+
+    setCarrito(leerCarrito());
+  }, []);
 
   useEffect(() => {
     if (!haySesion()) return;
 
     try {
-      localStorage.setItem("carrito", JSON.stringify(carrito));
+      localStorage.setItem(obtenerClaveCarrito(), JSON.stringify(carrito));
     } catch (error) {
       console.error("Error al guardar el carrito en localStorage:", error);
     }
@@ -105,7 +122,12 @@ export function CarritoProvider({ children }) {
 
   const vaciarCarrito = () => {
     setCarrito([]);
-    localStorage.removeItem("carrito");
+    localStorage.removeItem(obtenerClaveCarrito());
+  };
+
+  const limpiarCarritoVisual = () => {
+    setCarrito([]);
+    setMensajeCarrito("");
   };
 
   const estaEnCarrito = (id) => {
@@ -118,34 +140,10 @@ export function CarritoProvider({ children }) {
       return false;
     }
 
-    try {
-      const cursosGuardados = localStorage.getItem("misCursos");
-      const misCursosParseados = cursosGuardados
-        ? JSON.parse(cursosGuardados)
-        : [];
-
-      const misCursos = Array.isArray(misCursosParseados)
-        ? misCursosParseados
-        : [];
-
-      const nuevosCursos = carrito.filter(
-        (itemCarrito) =>
-          !misCursos.some(
-            (itemCurso) => obtenerId(itemCurso) === itemCarrito.id,
-          ),
-      );
-
-      const cursosActualizados = [...misCursos, ...nuevosCursos];
-
-      localStorage.setItem("misCursos", JSON.stringify(cursosActualizados));
-      setCarrito([]);
-      localStorage.removeItem("carrito");
-      mostrarMensaje("Compra realizada con éxito");
-      return true;
-    } catch (error) {
-      console.error("Error al finalizar la compra:", error);
-      return false;
-    }
+    setCarrito([]);
+    localStorage.removeItem(obtenerClaveCarrito());
+    mostrarMensaje("Compra realizada con éxito");
+    return true;
   };
 
   const cantidadTotal = useMemo(() => {
@@ -169,6 +167,7 @@ export function CarritoProvider({ children }) {
         eliminarDelCarrito,
         actualizarCantidad,
         vaciarCarrito,
+        limpiarCarritoVisual,
         finalizarCompra,
         estaEnCarrito,
       }}

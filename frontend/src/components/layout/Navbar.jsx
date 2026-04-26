@@ -5,7 +5,7 @@ import logo from "../../assets/logo.png";
 import "./Navbar.css";
 
 function Navbar() {
-  const { cantidadTotal } = useCarrito();
+  const { cantidadTotal, limpiarCarritoVisual } = useCarrito();
   const navigate = useNavigate();
 
   const [openUserMenu, setOpenUserMenu] = useState(false);
@@ -28,11 +28,15 @@ function Navbar() {
   }, [cantidadTotal]);
 
   const handleLogout = () => {
+    limpiarCarritoVisual();
+
     localStorage.removeItem("token");
     localStorage.removeItem("userId");
     localStorage.removeItem("email");
     localStorage.removeItem("nombre");
     localStorage.removeItem("rol");
+
+    setOpenUserMenu(false);
     navigate("/login");
   };
 
@@ -49,14 +53,12 @@ function Navbar() {
   return (
     <header className="navbar">
       <div className="container navbar__content">
-        {/* LOGO */}
         <div className="navbar__logo">
           <NavLink to="/" className="navbar__brand">
             <img src={logo} alt="Mundo Dev" className="navbar__logo-img" />
           </NavLink>
         </div>
 
-        {/* LINKS */}
         <nav className="navbar__links">
           <NavLink
             to="/"
@@ -114,9 +116,7 @@ function Navbar() {
           </NavLink>
         </nav>
 
-        {/* ACCIONES */}
         <div className="navbar__actions">
-          {/* CARRITO */}
           <NavLink
             to="/carrito"
             onClick={handleCarritoClick}
@@ -140,7 +140,6 @@ function Navbar() {
               <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.72a2 2 0 0 0 2-1.64L23 6H6"></path>
             </svg>
 
-            {/* SOLO MUESTRA EL NUMERO SI ESTA LOGUEADO */}
             {token && cantidadTotal > 0 && (
               <span
                 className={`navbar__cart-badge ${
@@ -152,7 +151,6 @@ function Navbar() {
             )}
           </NavLink>
 
-          {/* USUARIO */}
           {token ? (
             <div className="navbar__user-menu">
               <button
@@ -209,10 +207,7 @@ function Navbar() {
 
                   <button
                     className="navbar__dropdown-item"
-                    onClick={() => {
-                      setOpenUserMenu(false);
-                      handleLogout();
-                    }}
+                    onClick={handleLogout}
                   >
                     Cerrar sesión
                   </button>

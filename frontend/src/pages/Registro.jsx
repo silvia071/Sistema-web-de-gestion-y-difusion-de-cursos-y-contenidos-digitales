@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { API_BASE, USE_MOCK_API } from "../config/api";
+import "./Registro.css";
 
 function Registro() {
   const navigate = useNavigate();
@@ -49,12 +50,10 @@ function Registro() {
       const data = await res.json().catch(() => ({}));
 
       if (!res.ok) {
-        console.log("Respuesta registro:", data);
         const msg =
           data.detalle ||
           data.mensaje ||
           data.error ||
-          JSON.stringify(data) ||
           "No se pudo registrar el usuario.";
         setError(msg);
         return;
@@ -71,73 +70,79 @@ function Registro() {
   };
 
   return (
-    <section className="auth-box">
-      <h1>Registro</h1>
-
-      <form onSubmit={handleSubmit}>
-        {error && <p>{error}</p>}
-        {success && <p>{success}</p>}
-
-        <div className="form-group">
-          <label className="label" htmlFor="nombre">
-            Nombre
-          </label>
-          <input
-            id="nombre"
-            name="nombre"
-            className="input"
-            type="text"
-            placeholder="Tu nombre"
-            required
-          />
+    <section className="registro-page">
+      <div className="registro-card">
+        <div className="registro-header">
+          <p className="registro-kicker">Crear cuenta</p>
+          <h1 className="registro-title">Registrate en Mundo Dev</h1>
+          <p className="registro-subtitle">
+            Completá tus datos para acceder a cursos, compras y contenido.
+          </p>
         </div>
 
-        <div className="form-group">
-          <label className="label" htmlFor="apellido">
-            Apellido
-          </label>
-          <input
-            id="apellido"
-            name="apellido"
-            className="input"
-            type="text"
-            placeholder="Tu apellido"
-            required
-          />
-        </div>
+        <form className="registro-form" onSubmit={handleSubmit}>
+          {error && (
+            <p className="registro-alert registro-alert-error">{error}</p>
+          )}
+          {success && (
+            <p className="registro-alert registro-alert-success">{success}</p>
+          )}
 
-        <div className="form-group">
-          <label className="label" htmlFor="email">
-            Email
-          </label>
-          <input
-            id="email"
-            name="email"
-            className="input"
-            type="email"
-            placeholder="Tu email"
-            required
-          />
-        </div>
+          <div className="registro-row">
+            <div className="registro-group">
+              <label htmlFor="nombre">Nombre</label>
+              <input
+                id="nombre"
+                name="nombre"
+                type="text"
+                placeholder="Tu nombre"
+                required
+              />
+            </div>
 
-        <div className="form-group">
-          <label className="label" htmlFor="password">
-            Contraseña
-          </label>
-          <input
-            id="password"
-            name="password"
-            className="input"
-            type="password"
-            placeholder="Tu contraseña"
-            required
-          />
-        </div>
+            <div className="registro-group">
+              <label htmlFor="apellido">Apellido</label>
+              <input
+                id="apellido"
+                name="apellido"
+                type="text"
+                placeholder="Tu apellido"
+                required
+              />
+            </div>
+          </div>
 
-        <button className="btn btn-primary" type="submit" disabled={submitting}>
-          {submitting ? "Registrando..." : "Registrarme"}
-        </button>
-      </form>
+          <div className="registro-group">
+            <label htmlFor="email">Correo electrónico</label>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              placeholder="tu@email.com"
+              required
+            />
+          </div>
+
+          <div className="registro-group">
+            <label htmlFor="password">Contraseña</label>
+            <input
+              id="password"
+              name="password"
+              type="password"
+              placeholder="Ingresá una contraseña"
+              required
+            />
+          </div>
+
+          <button className="registro-btn" type="submit" disabled={submitting}>
+            {submitting ? "Registrando..." : "Crear cuenta"}
+          </button>
+        </form>
+
+        <p className="registro-login-text">
+          ¿Ya tenés cuenta? <Link to="/login">Iniciar sesión</Link>
+        </p>
+      </div>
     </section>
   );
 }
