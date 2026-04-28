@@ -8,6 +8,14 @@
   gap: 26px;
   margin-top: var(--space-xl);
 }
+.cursos-grid .card img,
+.cursos-grid .curso-card img {
+  width: 100%;
+  height: 190px;
+  object-fit: cover;
+  border-radius: 12px;
+  display: block;
+}
 
 .animar-grid {
   animation: fadeSlideCursos 0.35s ease;
