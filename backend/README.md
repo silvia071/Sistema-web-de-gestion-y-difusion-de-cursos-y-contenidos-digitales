@@ -1,5 +1,40 @@
 # Backend - Proyecto Final
 
+## Instalación y Configuración
+
+### Paso 1: Clonar el Repositorio
+```bash
+git clone https://github.com/tu-usuario/tu-repositorio.git
+cd proyecto-final/backend
+```
+
+### Paso 2: Instalar Dependencias
+```bash
+npm install
+```
+
+### Paso 3: Configurar Base de Datos
+
+#### MongoDB Atlas (Recomendado)
+1. Crea una cuenta en [MongoDB Atlas](https://www.mongodb.com/cloud/atlas)
+2. Crea un cluster gratuito
+3. Obtén la connection string
+
+### Paso 4: Configurar Mercado Pago
+1. Crea una cuenta en [Mercado Pago Developers](https://www.mercadopago.com.ar/developers)
+2. Crea una aplicación
+3. Obtén el `access_token` y `public_key`
+
+### Paso 5: Configurar Variables de Entorno
+Crea el archivo `.env` como se describe en la sección "Crear archivo .env"
+
+### Paso 6: Iniciar el Servidor
+
+#### Modo Desarrollo (con Nodemon)
+```bash
+npm run dev
+```
+
 ## Descripción del Sistema
 
 Esta es la **API REST** del backend para una plataforma web de gestión y difusión de cursos y contenidos digitales. El sistema permite:
@@ -57,40 +92,7 @@ Esta es la **API REST** del backend para una plataforma web de gestión y difusi
 - **Nodemon** - Reinicio automático del servidor
 - **Dotenv** - Gestión de variables de entorno
 
-## Instalación y Configuración
 
-### Paso 1: Clonar el Repositorio
-```bash
-git clone https://github.com/tu-usuario/tu-repositorio.git
-cd proyecto-final/backend
-```
-
-### Paso 2: Instalar Dependencias
-```bash
-npm install
-```
-
-### Paso 3: Configurar Base de Datos
-
-#### MongoDB Atlas (Recomendado)
-1. Crea una cuenta en [MongoDB Atlas](https://www.mongodb.com/cloud/atlas)
-2. Crea un cluster gratuito
-3. Obtén la connection string
-
-### Paso 4: Configurar Mercado Pago
-1. Crea una cuenta en [Mercado Pago Developers](https://www.mercadopago.com.ar/developers)
-2. Crea una aplicación
-3. Obtén el `access_token` y `public_key`
-
-### Paso 5: Configurar Variables de Entorno
-Crea el archivo `.env` como se describe en la sección "Crear archivo .env"
-
-### Paso 6: Iniciar el Servidor
-
-#### Modo Desarrollo (con Nodemon)
-```bash
-npm run dev
-```
 
 #### Modo Producción
 ```bash
