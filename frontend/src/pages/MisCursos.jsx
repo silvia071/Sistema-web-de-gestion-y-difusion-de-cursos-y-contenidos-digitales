@@ -20,7 +20,7 @@ const imagenes = {
 };
 
 export default function MisCursos() {
-  const [cursos, setCursos] = useState([]);
+  const [accesos, setAccesos] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const navigate = useNavigate();
@@ -31,7 +31,7 @@ export default function MisCursos() {
         const usuarioId = localStorage.getItem("userId");
 
         if (!usuarioId) {
-          setCursos([]);
+          setAccesos([]);
           return;
         }
 
@@ -41,14 +41,15 @@ export default function MisCursos() {
 
         const data = await res.json();
 
-        const cursosComprados = Array.isArray(data)
-          ? data.map((acceso) => acceso.curso).filter(Boolean)
-          : [];
+        // ✔ ordenar por progreso
+        const ordenados = (Array.isArray(data) ? data : []).sort(
+          (a, b) => (b.progreso || 0) - (a.progreso || 0),
+        );
 
-        setCursos(cursosComprados);
+        setAccesos(ordenados);
       } catch (error) {
         console.error("Error al obtener mis cursos:", error);
-        setCursos([]);
+        setAccesos([]);
       } finally {
         setLoading(false);
       }
@@ -81,11 +82,20 @@ export default function MisCursos() {
     return jsImg;
   };
 
+  // 🔥 curso principal (el primero no completado)
+  const cursoPrincipal = accesos.find((a) => (a.progreso || 0) < 100);
+
   if (loading) {
     return (
       <main className="mis-cursos-page">
         <h1>Mis cursos</h1>
-        <p className="mis-cursos-loading">Cargando cursos...</p>
+
+        {/* 🔥 skeleton */}
+        <section className="mis-cursos-grid">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="skeleton-card"></div>
+          ))}
+        </section>
       </main>
     );
   }
@@ -94,10 +104,48 @@ export default function MisCursos() {
     <main className="mis-cursos-page">
       <h1>Mis cursos</h1>
 
-      {cursos.length === 0 ? (
+      {/* 🔥 CONTINUAR APRENDIENDO */}
+      {cursoPrincipal && cursoPrincipal.curso && (
+        <section className="mis-cursos-featured">
+          <h2>Continuar aprendiendo</h2>
+
+          <div className="featured-card">
+            <img
+              src={obtenerImagenCurso(cursoPrincipal.curso)}
+              alt={cursoPrincipal.curso.titulo}
+            />
+
+            <div className="featured-content">
+              <h3>{cursoPrincipal.curso.titulo}</h3>
+
+              <p>
+                Continuar desde lección{" "}
+                {(cursoPrincipal.ultimaLeccion ?? 0) + 1}
+              </p>
+
+              <div className="mis-curso-progress">
+                <div
+                  className="mis-curso-progress-fill animate"
+                  style={{ width: `${cursoPrincipal.progreso || 0}%` }}
+                />
+              </div>
+
+              <button
+                className="btn-continuar-grande"
+                onClick={() => entrarAlCurso(cursoPrincipal.curso._id)}
+              >
+                Continuar →
+              </button>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* 🔥 LISTADO */}
+      {accesos.length === 0 ? (
         <div className="mis-cursos-empty">
           <h3>No tenés cursos todavía</h3>
-          <p>Explorá los cursos y empezá a aprender hoy 🚀</p>
+          <p>Explorá los cursos y empezá a aprender 🚀</p>
 
           <button className="btn-explorar" onClick={() => navigate("/cursos")}>
             Ver cursos
@@ -105,30 +153,52 @@ export default function MisCursos() {
         </div>
       ) : (
         <section className="mis-cursos-grid">
-          {cursos.map((curso) => (
-            <article key={curso._id} className="mis-curso-card">
-              <div className="mis-curso-img">
-                <img src={obtenerImagenCurso(curso)} alt={curso.titulo} />
-              </div>
+          {accesos.map((acceso) => {
+            const curso = acceso.curso;
+            if (!curso) return null;
 
-              <div className="mis-curso-content">
-                <h3>{curso.titulo}</h3>
-                <p>{curso.descripcion}</p>
+            const completado = (acceso.progreso || 0) >= 100;
 
-                <div className="mis-curso-meta">
-                  <span>{curso.duracion || "—"}</span>
-                  <span>{curso.nivel || "—"}</span>
+            return (
+              <article key={acceso._id} className="mis-curso-card">
+                <div className="mis-curso-img">
+                  <img src={obtenerImagenCurso(curso)} alt={curso.titulo} />
                 </div>
 
-                <button
-                  className="btn-entrar"
-                  onClick={() => entrarAlCurso(curso._id)}
-                >
-                  Continuar curso
-                </button>
-              </div>
-            </article>
-          ))}
+                <div className="mis-curso-content">
+                  <h3>{curso.titulo}</h3>
+
+                  {completado && (
+                    <span className="badge-completado">✔ Completado</span>
+                  )}
+
+                  <div className="mis-curso-progress">
+                    <div
+                      className="mis-curso-progress-fill animate"
+                      style={{ width: `${acceso.progreso || 0}%` }}
+                    />
+                  </div>
+
+                  <p className="mis-curso-progreso-texto">
+                    Progreso: {acceso.progreso || 0}%
+                  </p>
+
+                  {!completado && (
+                    <p className="mis-curso-continuar">
+                      Continuar desde lección {(acceso.ultimaLeccion ?? 0) + 1}
+                    </p>
+                  )}
+
+                  <button
+                    className="btn-entrar"
+                    onClick={() => entrarAlCurso(curso._id)}
+                  >
+                    {completado ? "Ver curso" : "Continuar"}
+                  </button>
+                </div>
+              </article>
+            );
+          })}
         </section>
       )}
     </main>

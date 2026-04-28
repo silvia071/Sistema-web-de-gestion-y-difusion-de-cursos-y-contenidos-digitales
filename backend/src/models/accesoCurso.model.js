@@ -32,6 +32,10 @@ const accesoCursoSchema = new mongoose.Schema(
       min: 0,
       max: 100,
     },
+    ultimaLeccion: {
+      type: Number,
+      default: 0,
+    },
   },
   {
     versionKey: false,

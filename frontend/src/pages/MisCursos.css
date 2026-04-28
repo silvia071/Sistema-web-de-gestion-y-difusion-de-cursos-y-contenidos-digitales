@@ -9,6 +9,57 @@
   margin-bottom: 32px;
 }
 
+/* 🔥 FEATURED */
+.mis-cursos-featured {
+  margin-bottom: 40px;
+}
+
+.mis-cursos-featured h2 {
+  margin-bottom: 16px;
+}
+
+.featured-card {
+  display: flex;
+  gap: 20px;
+  background: linear-gradient(145deg, #1e1f6f, #15164f);
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+  transition: 0.3s;
+}
+
+.featured-card:hover {
+  transform: scale(1.01);
+}
+
+.featured-card img {
+  width: 220px;
+  height: 140px;
+  object-fit: cover;
+  border-radius: 12px;
+}
+
+.featured-content {
+  flex: 1;
+}
+
+.btn-continuar-grande {
+  margin-top: 15px;
+  padding: 12px 20px;
+  background: linear-gradient(90deg, #22c55e, #4ade80);
+  border: none;
+  border-radius: 12px;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.btn-continuar-grande:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 12px rgba(34, 197, 94, 0.6);
+}
+
 /* GRID */
 .mis-cursos-grid {
   display: grid;
@@ -21,12 +72,34 @@
   background: linear-gradient(145deg, #1e1f6f, #15164f);
   border-radius: 20px;
   overflow: hidden;
-  transition: 0.3s;
+  transition: 0.35s;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+  position: relative;
 }
 
 .mis-curso-card:hover {
-  transform: translateY(-6px);
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6);
+}
+
+/* glow hover */
+.mis-curso-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 20px;
+  background: linear-gradient(
+    120deg,
+    transparent,
+    rgba(255, 255, 255, 0.08),
+    transparent
+  );
+  opacity: 0;
+  transition: 0.3s;
+}
+
+.mis-curso-card:hover::after {
+  opacity: 1;
 }
 
 /* IMAGEN */
@@ -49,7 +122,18 @@
 .mis-curso-content p {
   font-size: 14px;
   color: #cbd5f5;
-  margin-bottom: 16px;
+  margin-bottom: 8px;
+}
+
+/* BADGE */
+.badge-completado {
+  display: inline-block;
+  background: #22c55e;
+  color: white;
+  padding: 4px 10px;
+  border-radius: 10px;
+  font-size: 12px;
+  margin-bottom: 10px;
 }
 
 /* META */
@@ -57,14 +141,55 @@
   display: flex;
   gap: 12px;
   font-size: 13px;
-  margin-bottom: 18px;
+  margin-bottom: 14px;
   color: #9ca3ff;
+}
+
+/* PROGRESO */
+.mis-curso-progress {
+  width: 100%;
+  height: 6px;
+  background: #1e293b;
+  border-radius: 999px;
+  overflow: hidden;
+  margin-top: 10px;
+}
+
+.mis-curso-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #22c55e, #4ade80);
+  transition: width 0.8s ease;
+}
+
+/* animación */
+.mis-curso-progress-fill.animate {
+  animation: cargarBarra 1s ease forwards;
+}
+
+@keyframes cargarBarra {
+  from {
+    width: 0%;
+  }
+}
+
+/* TEXTO PROGRESO */
+.mis-curso-progreso-texto {
+  font-size: 13px;
+  color: #94a3b8;
+  margin-top: 4px;
+}
+
+.mis-curso-continuar {
+  font-size: 13px;
+  color: #22c55e;
+  margin-top: 4px;
 }
 
 /* BOTÓN */
 .btn-entrar {
   width: 100%;
   padding: 12px;
+  margin-top: 12px;
   border: none;
   border-radius: 12px;
   background: linear-gradient(90deg, #6366f1, #3b82f6);
@@ -76,11 +201,11 @@
 }
 
 .btn-entrar:hover {
-  transform: scale(1.02);
-  opacity: 0.95;
+  transform: scale(1.03);
+  box-shadow: 0 0 10px rgba(99, 102, 241, 0.6);
 }
 
-/* EMPTY STATE */
+/* EMPTY */
 .mis-cursos-empty {
   text-align: center;
   margin-top: 60px;
@@ -106,7 +231,20 @@
   font-weight: 600;
 }
 
-/* LOADING */
-.mis-cursos-loading {
-  opacity: 0.7;
+/* LOADING SKELETON */
+.skeleton-card {
+  height: 260px;
+  border-radius: 20px;
+  background: linear-gradient(90deg, #1e293b, #334155, #1e293b);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
 }
