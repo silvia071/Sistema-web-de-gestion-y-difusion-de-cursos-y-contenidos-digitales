@@ -8,9 +8,16 @@ const {
   eliminarMetodoPago,
 } = require("../controllers/metodoPago.controller");
 
+const { verificarToken } = require("../middlewares/verificarToken.middleware");
+const { verificarAdmin } = require("../middlewares/verificarAdmin.validator");
+
+// Públicas
 router.get("/", listarMetodosPago);
 router.get("/:id", buscarMetodoPagoPorId);
-router.post("/", crearMetodoPago);
-router.delete("/:id", eliminarMetodoPago);
+
+// Admin
+router.post("/", verificarToken, verificarAdmin, crearMetodoPago);
+
+router.delete("/:id", verificarToken, verificarAdmin, eliminarMetodoPago);
 
 module.exports = router;

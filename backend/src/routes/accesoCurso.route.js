@@ -7,13 +7,24 @@ const {
   actualizarProgreso,
 } = require("../controllers/accesoCurso.controller");
 
-// Obtener todos los accesos de un usuario
-router.get("/usuario/:usuarioId", obtenerAccesosUsuario);
+const { verificarToken } = require("../middlewares/verificarToken.middleware");
+const { verificarAdmin } = require("../middlewares/verificarAdmin.validator");
+const {
+  verificarMismoUsuarioOAdmin,
+} = require("../middlewares/verificarMismoUsuarioOAdmin.middleware");
 
-// Crear acceso a un curso (cuando compra o se habilita)
-router.post("/", crearAccesoCurso);
+// Usuario propio o admin
+router.get(
+  "/usuario/:id",
+  verificarToken,
+  verificarMismoUsuarioOAdmin,
+  obtenerAccesosUsuario,
+);
 
-// Actualizar progreso del curso
-router.patch("/:id/progreso", actualizarProgreso);
+// Admin
+router.post("/", verificarToken, verificarAdmin, crearAccesoCurso);
+
+// Usuario autenticado
+router.patch("/:id/progreso", verificarToken, actualizarProgreso);
 
 module.exports = router;

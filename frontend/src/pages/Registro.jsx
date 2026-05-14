@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { API_BASE, USE_MOCK_API } from "../config/api";
+import { USE_MOCK_API } from "../config/api";
+import api from "../services/api";
 import "./Registro.css";
 
 function Registro() {
@@ -40,6 +41,10 @@ function Registro() {
       setError("Completá todos los campos.");
       return;
     }
+    if (contrasenia.length < 6) {
+      setError("La contraseña debe tener al menos 6 caracteres.");
+      return;
+    }
 
     if (USE_MOCK_API) {
       setSuccess("Usuario registrado correctamente.");
@@ -50,36 +55,24 @@ function Registro() {
     setSubmitting(true);
 
     try {
-      const res = await fetch(`${API_BASE}/api/usuarios/registro`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          nombre,
-          apellido,
-          email,
-          contrasenia,
-        }),
+      const { data } = await api.post("/api/usuarios/registro", {
+        nombre,
+        apellido,
+        email,
+        contrasenia,
       });
 
-      const data = await res.json().catch(() => ({}));
-
-      if (!res.ok) {
-        const msg =
-          data.detalle ||
-          data.mensaje ||
-          data.error ||
-          "No se pudo registrar el usuario.";
-        setError(msg);
-        return;
-      }
-
-      setSuccess("Usuario registrado correctamente.");
+      setSuccess(data?.mensaje || "Usuario registrado correctamente.");
       setTimeout(() => navigate("/login"), 1200);
     } catch (err) {
       console.error(err);
-      setError("Error de red. Intentá de nuevo.");
+
+      setError(
+        err.response?.data?.detalle ||
+          err.response?.data?.mensaje ||
+          err.response?.data?.error ||
+          "No se pudo registrar el usuario.",
+      );
     } finally {
       setSubmitting(false);
     }
@@ -100,6 +93,7 @@ function Registro() {
           {error && (
             <p className="registro-alert registro-alert-error">{error}</p>
           )}
+
           {success && (
             <p className="registro-alert registro-alert-success">{success}</p>
           )}

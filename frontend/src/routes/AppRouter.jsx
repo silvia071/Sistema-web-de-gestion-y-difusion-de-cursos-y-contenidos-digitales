@@ -18,8 +18,15 @@ import Nosotros from "../pages/Nosotros";
 import Contactos from "../pages/Contactos";
 import MisCursos from "../pages/MisCursos";
 import AprenderCurso from "../pages/AprenderCurso";
-import CursoPlayer from "../pages/CursoPlayer";
+
 import AdminCursos from "../pages/AdminCursos";
+import AdminLecciones from "../pages/AdminLecciones";
+import AdminPagos from "../pages/AdminPagos";
+import AdminDatosFacturacion from "../pages/AdminDatosFacturacion";
+import PagoExitoso from "../pages/PagoExitoso";
+import PagoPendiente from "../pages/PagoPendiente";
+import PagoFallido from "../pages/PagoFallido";
+import AdminUsuarios from "../pages/AdminUsuarios";
 
 function AppRouter() {
   return (
@@ -31,9 +38,12 @@ function AppRouter() {
         <Route path="/cursos/:id" element={<DetalleCurso />} />
         <Route path="/blog" element={<Blog />} />
         <Route path="/blog/:id" element={<BlogDetalle />} />
-   
+
         <Route path="/nosotros" element={<Nosotros />} />
         <Route path="/contactos" element={<Contactos />} />
+        <Route path="/pago-exitoso" element={<PagoExitoso />} />
+        <Route path="/pago-pendiente" element={<PagoPendiente />} />
+        <Route path="/pago-fallido" element={<PagoFallido />} />
       </Route>
 
       {/* AUTH */}
@@ -86,19 +96,44 @@ function AppRouter() {
             </ProtectedRoute>
           }
         />
-        <Route
-          path="/curso/:id"
-          element={
-            <ProtectedRoute>
-              <CursoPlayer />
-            </ProtectedRoute>
-          }
-        />
+
         <Route
           path="/admin/cursos"
           element={
             <ProtectedRoute adminOnly={true}>
               <AdminCursos />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/lecciones"
+          element={
+            <ProtectedRoute adminOnly={true}>
+              <AdminLecciones />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/pagos"
+          element={
+            <ProtectedRoute adminOnly={true}>
+              <AdminPagos />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/datos-facturacion"
+          element={
+            <ProtectedRoute adminOnly={true}>
+              <AdminDatosFacturacion />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/usuarios"
+          element={
+            <ProtectedRoute adminOnly={true}>
+              <AdminUsuarios />
             </ProtectedRoute>
           }
         />

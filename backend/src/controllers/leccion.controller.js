@@ -117,19 +117,30 @@ const crearLeccion = async (req, res) => {
     const errores = validarLeccion(req.body, false);
 
     if (errores.length > 0) {
-      return res.status(400).json({ errores });
+      return res.status(400).json({
+        mensaje: "Error de validación",
+        errores,
+      });
     }
 
     const datos = normalizarDatosLeccion(req.body);
     const leccion = await leccionService.crearLeccion(datos);
 
-    res.status(201).json(leccion);
+    return res.status(201).json({
+      mensaje: "Lección creada correctamente",
+      datos: leccion,
+    });
   } catch (error) {
     if (esErrorDeNegocioLeccion(error.message)) {
-      return res.status(400).json({ mensaje: error.message });
+      return res.status(400).json({
+        mensaje: error.message,
+      });
     }
 
-    res.status(500).json({ mensaje: error.message });
+    return res.status(500).json({
+      mensaje: "Error interno del servidor",
+      error: error.message,
+    });
   }
 };
 
@@ -138,7 +149,9 @@ const editarLeccion = async (req, res) => {
     const { id } = req.params;
 
     if (!esObjectIdValido(id)) {
-      return res.status(400).json({ mensaje: "ID inválido" });
+      return res.status(400).json({
+        mensaje: "ID inválido",
+      });
     }
 
     if (Object.keys(req.body).length === 0) {
@@ -150,23 +163,36 @@ const editarLeccion = async (req, res) => {
     const errores = validarLeccion(req.body, true);
 
     if (errores.length > 0) {
-      return res.status(400).json({ errores });
+      return res.status(400).json({
+        mensaje: "Error de validación",
+        errores,
+      });
     }
 
     const datos = normalizarDatosLeccion(req.body);
     const leccion = await leccionService.editarLeccion(id, datos);
 
     if (!leccion) {
-      return res.status(404).json({ mensaje: "Lección no encontrada" });
+      return res.status(404).json({
+        mensaje: "Lección no encontrada",
+      });
     }
 
-    res.json(leccion);
+    return res.status(200).json({
+      mensaje: "Lección actualizada correctamente",
+      datos: leccion,
+    });
   } catch (error) {
     if (esErrorDeNegocioLeccion(error.message)) {
-      return res.status(400).json({ mensaje: error.message });
+      return res.status(400).json({
+        mensaje: error.message,
+      });
     }
 
-    res.status(500).json({ mensaje: error.message });
+    return res.status(500).json({
+      mensaje: "Error interno del servidor",
+      error: error.message,
+    });
   }
 };
 
@@ -175,18 +201,27 @@ const eliminarLeccion = async (req, res) => {
     const { id } = req.params;
 
     if (!esObjectIdValido(id)) {
-      return res.status(400).json({ mensaje: "ID inválido" });
+      return res.status(400).json({
+        mensaje: "ID inválido",
+      });
     }
 
     const leccion = await leccionService.eliminarLeccion(id);
 
     if (!leccion) {
-      return res.status(404).json({ mensaje: "Lección no encontrada" });
+      return res.status(404).json({
+        mensaje: "Lección no encontrada",
+      });
     }
 
-    res.json({ mensaje: "Lección eliminada correctamente" });
+    return res.status(200).json({
+      mensaje: "Lección eliminada correctamente",
+    });
   } catch (error) {
-    res.status(500).json({ mensaje: error.message });
+    return res.status(500).json({
+      mensaje: "Error interno del servidor",
+      error: error.message,
+    });
   }
 };
 
@@ -195,13 +230,26 @@ const listarLeccionesPorCurso = async (req, res) => {
     const { cursoId } = req.params;
 
     if (!esObjectIdValido(cursoId)) {
-      return res.status(400).json({ mensaje: "ID de curso inválido" });
+      return res.status(400).json({
+        mensaje: "ID de curso inválido",
+      });
     }
 
-    const lecciones = await leccionService.listarLeccionesPorCurso(cursoId);
-    res.json(lecciones);
+    const esAdmin = req.usuario?.rol === "ADMINISTRADOR";
+
+    const lecciones = esAdmin
+      ? await leccionService.listarLeccionesPorCurso(cursoId)
+      : await leccionService.listarLeccionesPublicadasPorCurso(cursoId);
+
+    return res.status(200).json({
+      mensaje: "Lecciones obtenidas correctamente",
+      datos: lecciones,
+    });
   } catch (error) {
-    res.status(500).json({ mensaje: error.message });
+    return res.status(500).json({
+      mensaje: "Error interno del servidor",
+      error: error.message,
+    });
   }
 };
 
@@ -210,18 +258,28 @@ const buscarLeccionPorId = async (req, res) => {
     const { id } = req.params;
 
     if (!esObjectIdValido(id)) {
-      return res.status(400).json({ mensaje: "ID inválido" });
+      return res.status(400).json({
+        mensaje: "ID inválido",
+      });
     }
 
     const leccion = await leccionService.buscarLeccionPorId(id);
 
     if (!leccion) {
-      return res.status(404).json({ mensaje: "Lección no encontrada" });
+      return res.status(404).json({
+        mensaje: "Lección no encontrada",
+      });
     }
 
-    res.json(leccion);
+    return res.status(200).json({
+      mensaje: "Lección obtenida correctamente",
+      datos: leccion,
+    });
   } catch (error) {
-    res.status(500).json({ mensaje: error.message });
+    return res.status(500).json({
+      mensaje: "Error interno del servidor",
+      error: error.message,
+    });
   }
 };
 
@@ -230,18 +288,28 @@ const publicarLeccion = async (req, res) => {
     const { id } = req.params;
 
     if (!esObjectIdValido(id)) {
-      return res.status(400).json({ mensaje: "ID inválido" });
+      return res.status(400).json({
+        mensaje: "ID inválido",
+      });
     }
 
     const leccion = await leccionService.publicarLeccion(id);
 
     if (!leccion) {
-      return res.status(404).json({ mensaje: "Lección no encontrada" });
+      return res.status(404).json({
+        mensaje: "Lección no encontrada",
+      });
     }
 
-    res.json(leccion);
+    return res.status(200).json({
+      mensaje: "Lección publicada correctamente",
+      datos: leccion,
+    });
   } catch (error) {
-    res.status(500).json({ mensaje: error.message });
+    return res.status(500).json({
+      mensaje: "Error interno del servidor",
+      error: error.message,
+    });
   }
 };
 
@@ -250,18 +318,28 @@ const ocultarLeccion = async (req, res) => {
     const { id } = req.params;
 
     if (!esObjectIdValido(id)) {
-      return res.status(400).json({ mensaje: "ID inválido" });
+      return res.status(400).json({
+        mensaje: "ID inválido",
+      });
     }
 
     const leccion = await leccionService.ocultarLeccion(id);
 
     if (!leccion) {
-      return res.status(404).json({ mensaje: "Lección no encontrada" });
+      return res.status(404).json({
+        mensaje: "Lección no encontrada",
+      });
     }
 
-    res.json(leccion);
+    return res.status(200).json({
+      mensaje: "Lección ocultada correctamente",
+      datos: leccion,
+    });
   } catch (error) {
-    res.status(500).json({ mensaje: error.message });
+    return res.status(500).json({
+      mensaje: "Error interno del servidor",
+      error: error.message,
+    });
   }
 };
 
@@ -270,7 +348,9 @@ const ordenarLecciones = async (req, res) => {
     const { cursoId } = req.params;
 
     if (!esObjectIdValido(cursoId)) {
-      return res.status(400).json({ mensaje: "ID de curso inválido" });
+      return res.status(400).json({
+        mensaje: "ID de curso inválido",
+      });
     }
 
     if (!Array.isArray(req.body) || req.body.length === 0) {
@@ -307,7 +387,10 @@ const ordenarLecciones = async (req, res) => {
     }
 
     if (errores.length > 0) {
-      return res.status(400).json({ errores });
+      return res.status(400).json({
+        mensaje: "Error de validación",
+        errores,
+      });
     }
 
     const datos = req.body.map((item) => ({
@@ -316,9 +399,16 @@ const ordenarLecciones = async (req, res) => {
     }));
 
     const lecciones = await leccionService.ordenarLecciones(cursoId, datos);
-    res.json(lecciones);
+
+    return res.status(200).json({
+      mensaje: "Lecciones ordenadas correctamente",
+      datos: lecciones,
+    });
   } catch (error) {
-    res.status(500).json({ mensaje: error.message });
+    return res.status(500).json({
+      mensaje: "Error interno del servidor",
+      error: error.message,
+    });
   }
 };
 

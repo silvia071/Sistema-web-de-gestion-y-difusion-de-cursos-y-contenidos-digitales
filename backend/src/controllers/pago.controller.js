@@ -7,12 +7,25 @@ const { Preference } = require("mercadopago");
 
 const esObjectIdValido = (id) => mongoose.Types.ObjectId.isValid(id);
 
+const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
+const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:3000";
+
+const esAdmin = (req) => req.usuario?.rol === "ADMINISTRADOR";
+
+const usuarioEsPropietarioPago = (pago, usuarioId) => {
+  return pago.usuario?._id?.toString() === usuarioId?.toString();
+};
+
 const crearPago = async (req, res) => {
   try {
-    const { monto, metodoPago } = req.body;
+    const { monto, metodoPago, compra } = req.body;
 
     if (!monto) {
       return res.status(400).json({ mensaje: "El monto es obligatorio" });
+    }
+
+    if (Number(monto) <= 0) {
+      return res.status(400).json({ mensaje: "El monto debe ser mayor a 0" });
     }
 
     if (!metodoPago) {
@@ -21,20 +34,43 @@ const crearPago = async (req, res) => {
         .json({ mensaje: "El método de pago es obligatorio" });
     }
 
-    const pago = await pagoService.crearPago(req.body);
+    if (!compra) {
+      return res.status(400).json({ mensaje: "La compra es obligatoria" });
+    }
 
-    res.status(201).json(pago);
+    const datosPago = {
+      ...req.body,
+      usuario: req.usuario._id,
+    };
+
+    const pago = await pagoService.crearPago(datosPago);
+
+    return res.status(201).json({
+      mensaje: "Pago creado correctamente",
+      datos: pago,
+    });
   } catch (error) {
-    res.status(400).json({ mensaje: error.message });
+    if (error.message.includes("permiso")) {
+      return res.status(403).json({ mensaje: error.message });
+    }
+
+    return res.status(400).json({ mensaje: error.message });
   }
 };
 
 const listarPagos = async (req, res) => {
   try {
     const pagos = await pagoService.listarPagos();
-    res.json(pagos);
+
+    return res.status(200).json({
+      mensaje: "Pagos obtenidos correctamente",
+      datos: pagos,
+    });
   } catch (error) {
-    res.status(500).json({ mensaje: "Error al listar pagos" });
+    return res.status(500).json({
+      mensaje: "Error al listar pagos",
+      error: error.message,
+    });
   }
 };
 
@@ -52,9 +88,15 @@ const buscarPagoPorId = async (req, res) => {
       return res.status(404).json({ mensaje: "Pago no encontrado" });
     }
 
-    res.json(pago);
+    return res.status(200).json({
+      mensaje: "Pago obtenido correctamente",
+      datos: pago,
+    });
   } catch (error) {
-    res.status(500).json({ mensaje: "Error al buscar pago" });
+    return res.status(500).json({
+      mensaje: "Error al buscar pago",
+      error: error.message,
+    });
   }
 };
 
@@ -72,9 +114,14 @@ const aprobarPago = async (req, res) => {
       return res.status(404).json({ mensaje: "Pago no encontrado" });
     }
 
-    res.json(pago);
+    return res.status(200).json({
+      mensaje: "Pago aprobado correctamente",
+      datos: pago,
+    });
   } catch (error) {
-    res.status(400).json({ mensaje: "Error al aprobar pago" });
+    return res.status(400).json({
+      mensaje: error.message || "Error al aprobar pago",
+    });
   }
 };
 
@@ -92,9 +139,14 @@ const rechazarPago = async (req, res) => {
       return res.status(404).json({ mensaje: "Pago no encontrado" });
     }
 
-    res.json(pago);
+    return res.status(200).json({
+      mensaje: "Pago rechazado correctamente",
+      datos: pago,
+    });
   } catch (error) {
-    res.status(400).json({ mensaje: "Error al rechazar pago" });
+    return res.status(400).json({
+      mensaje: error.message || "Error al rechazar pago",
+    });
   }
 };
 
@@ -120,6 +172,12 @@ const crearPreferencia = async (req, res) => {
       return res.status(404).json({ mensaje: "Pago no encontrado" });
     }
 
+    if (!esAdmin(req) && !usuarioEsPropietarioPago(pago, req.usuario._id)) {
+      return res.status(403).json({
+        mensaje: "No tenés permiso para procesar este pago",
+      });
+    }
+
     const preference = new Preference(client);
 
     const response = await preference.create({
@@ -129,13 +187,15 @@ const crearPreferencia = async (req, res) => {
             title: titulo,
             unit_price: Number(precio),
             quantity: 1,
+            currency_id: "ARS",
           },
         ],
         external_reference: pago._id.toString(),
+        notification_url: `${BACKEND_URL}/api/pagos/webhook`,
         back_urls: {
-          success: "http://localhost:5173/pago-exitoso",
-          failure: "http://localhost:5173/pago-fallido",
-          pending: "http://localhost:5173/pago-pendiente",
+          success: `${FRONTEND_URL}/pago-exitoso`,
+          failure: `${FRONTEND_URL}/pago-fallido`,
+          pending: `${FRONTEND_URL}/pago-pendiente`,
         },
         auto_return: "approved",
       },
@@ -145,13 +205,20 @@ const crearPreferencia = async (req, res) => {
     pago.externalReference = pago._id.toString();
     await pago.save();
 
-    res.json({
-      id: response.id,
-      init_point: response.init_point,
+    return res.status(200).json({
+      mensaje: "Preferencia creada correctamente",
+      datos: {
+        id: response.id,
+        init_point: response.init_point,
+      },
     });
   } catch (error) {
-    console.error("Error Mercado Pago:", error);
-    res.status(500).json({ error: "Error al crear preferencia de pago" });
+    console.error("Error Mercado Pago:", error.message);
+
+    return res.status(500).json({
+      mensaje: "Error al crear preferencia de pago",
+      error: error.message,
+    });
   }
 };
 
@@ -176,13 +243,13 @@ const procesarPago = async (req, res) => {
       return res.status(404).json({ mensaje: "Pago no encontrado" });
     }
 
-    const tipoMetodo = pago.metodoPago?.tipo;
+    if (!esAdmin(req) && !usuarioEsPropietarioPago(pago, req.usuario._id)) {
+      return res.status(403).json({
+        mensaje: "No tenés permiso para procesar este pago",
+      });
+    }
 
-    console.log("Pago:", pago._id);
-    console.log("Método:", pago.metodoPago);
-    console.log("Tipo método:", tipoMetodo);
-    console.log("Monto:", pago.monto);
-    console.log("Token MP:", process.env.MP_ACCESS_TOKEN);
+    const tipoMetodo = pago.metodoPago?.tipo;
 
     if (tipoMetodo === "TARJETA") {
       const preference = new Preference(client);
@@ -198,10 +265,11 @@ const procesarPago = async (req, res) => {
             },
           ],
           external_reference: pago._id.toString(),
+          notification_url: `${BACKEND_URL}/api/pagos/webhook`,
           back_urls: {
-            success: "http://localhost:5173/pago-exitoso",
-            failure: "http://localhost:5173/pago-fallido",
-            pending: "http://localhost:5173/pago-pendiente",
+            success: `${FRONTEND_URL}/pago-exitoso`,
+            failure: `${FRONTEND_URL}/pago-fallido`,
+            pending: `${FRONTEND_URL}/pago-pendiente`,
           },
           auto_return: "approved",
         },
@@ -211,17 +279,20 @@ const procesarPago = async (req, res) => {
       pago.externalReference = pago._id.toString();
       await pago.save();
 
-      return res.json({
-        tipo: "mercadopago",
-        init_point: response.init_point,
+      return res.status(200).json({
+        mensaje: "Pago procesado correctamente",
+        datos: {
+          tipo: "mercadopago",
+          init_point: response.init_point,
+        },
       });
     }
 
     if (tipoMetodo === "TRANSFERENCIA") {
-      return res.json({
-        tipo: "transferencia",
-        mensaje: "Pago pendiente. Mostrar datos al usuario.",
+      return res.status(200).json({
+        mensaje: "Pago pendiente por transferencia",
         datos: {
+          tipo: "transferencia",
           banco: "Banco Ejemplo",
           alias: "mi.alias",
           cbu: "0000000000000000000000",
@@ -233,15 +304,15 @@ const procesarPago = async (req, res) => {
       mensaje: "Método de pago no soportado",
     });
   } catch (error) {
-    console.error("Error al procesar pago:", error);
+    console.error("Error al procesar pago:", error.message);
 
     return res.status(500).json({
       mensaje: "Error al procesar el pago",
       error: error.message,
-      detalle: error.cause || null,
     });
   }
 };
+
 module.exports = {
   crearPago,
   listarPagos,

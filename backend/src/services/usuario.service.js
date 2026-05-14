@@ -17,10 +17,18 @@ const registrarUsuario = async (datos) => {
   }
 
   const salt = await bcrypt.genSalt(10);
-  datos.contrasenia = await bcrypt.hash(datos.contrasenia, salt);
-  datos.email = emailNormalizado;
+  const contraseniaHasheada = await bcrypt.hash(datos.contrasenia, salt);
 
-  const nuevoUsuario = new Usuario(datos);
+  const nuevoUsuario = new Usuario({
+    nombre: datos.nombre,
+    apellido: datos.apellido,
+    email: emailNormalizado,
+    contrasenia: contraseniaHasheada,
+    direccion: datos.direccion,
+    telefono: datos.telefono,
+    rol: "CLIENTE",
+  });
+
   return await nuevoUsuario.save();
 };
 
@@ -28,7 +36,9 @@ const iniciarSesion = async (email, contrasenia) => {
   const emailLimpio = email.trim().toLowerCase();
   const usuario = await Usuario.findOne({ email: emailLimpio });
 
-  if (!usuario) throw new Error("Usuario no encontrado");
+  if (!usuario) {
+    throw new Error("Credenciales inválidas");
+  }
 
   if (usuario.estadoCuenta !== EstadoCuenta.ACTIVO) {
     throw new Error(
@@ -37,7 +47,10 @@ const iniciarSesion = async (email, contrasenia) => {
   }
 
   const esValida = await bcrypt.compare(contrasenia, usuario.contrasenia);
-  if (!esValida) throw new Error("Contraseña incorrecta");
+
+  if (!esValida) {
+    throw new Error("Credenciales inválidas");
+  }
 
   usuario.fechaUltimoAcceso = new Date();
   await usuario.save();
@@ -45,7 +58,7 @@ const iniciarSesion = async (email, contrasenia) => {
   const token = jwt.sign(
     { id: usuario._id, rol: usuario.rol },
     process.env.JWT_SECRET,
-    { expiresIn: "1h" },
+    { expiresIn: "8h" },
   );
 
   return { usuario, token };

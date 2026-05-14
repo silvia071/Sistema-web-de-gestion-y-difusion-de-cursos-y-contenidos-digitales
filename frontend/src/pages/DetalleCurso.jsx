@@ -1,24 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useCarrito } from "../context/CarritoContext";
-import { API_BASE } from "../config/api";
+import api from "../services/api";
+import { getImageUrl } from "../utils/getImageUrl";
 import "./DetalleCurso.css";
-
-import jsImg from "../assets/javaScript.png";
-import pyImg from "../assets/Python.png";
-import javaImg from "../assets/java.png";
-import htmlImg from "../assets/html.png";
-import cppImg from "../assets/C++.png";
-import reactImg from "../assets/react.png";
-
-const imagenes = {
-  JavaScript: jsImg,
-  Python: pyImg,
-  Java: javaImg,
-  "HTML y CSS": htmlImg,
-  "C++": cppImg,
-  React: reactImg,
-};
 
 function DetalleCurso() {
   const { id } = useParams();
@@ -30,17 +15,23 @@ function DetalleCurso() {
   const [error, setError] = useState("");
   const [yaComprado, setYaComprado] = useState(false);
 
-  // 🔹 Cargar curso
+  const rol = localStorage.getItem("rol");
+  const esAdmin = rol === "ADMINISTRADOR";
+
   useEffect(() => {
     const cargarCurso = async () => {
       try {
-        const res = await fetch(`${API_BASE}/api/cursos/${id}`);
-        const data = await res.json();
+        setLoading(true);
+        setError("");
 
-        if (!res.ok) throw new Error(data?.message);
+        const endpoint = esAdmin
+          ? `/api/cursos/admin/${id}`
+          : `/api/cursos/${id}`;
 
-        setCurso(data);
+        const response = await api.get(endpoint);
+        setCurso(response.data.datos);
       } catch (err) {
+        console.error(err);
         setError("Error al cargar el curso");
       } finally {
         setLoading(false);
@@ -48,22 +39,24 @@ function DetalleCurso() {
     };
 
     cargarCurso();
-  }, [id]);
+  }, [id, esAdmin]);
 
-  // 🔹 Verificar si ya lo compró
   useEffect(() => {
     const verificarCompra = async () => {
       try {
         const userId = localStorage.getItem("userId");
+
         if (!userId) return;
 
-        const res = await fetch(
-          `${API_BASE}/api/acceso-curso/usuario/${userId}`,
-        );
+        const response = await api.get(`/api/accesos/usuario/${userId}`);
+        const accesos = response.data.datos || [];
 
-        const data = await res.json();
+        const tieneCurso = accesos.some((acceso) => {
+          const cursoAccesoId =
+            acceso?.curso?._id || acceso?.curso?.id || acceso?.curso;
 
-        const tieneCurso = data.some((acceso) => acceso?.curso?._id === id);
+          return String(cursoAccesoId) === String(id);
+        });
 
         setYaComprado(tieneCurso);
       } catch (err) {
@@ -80,58 +73,52 @@ function DetalleCurso() {
   }, [curso]);
 
   const obtenerImagenCurso = (cursoActual) => {
-    const categoria = cursoActual?.categoria?.nombre;
+    return (
+      getImageUrl(cursoActual?.imagenPortada) ||
+      getImageUrl(cursoActual?.imagen) ||
+      "/placeholder-curso.png"
+    );
+  };
 
-    if (categoria && imagenes[categoria]) return imagenes[categoria];
-
-    const titulo = cursoActual?.titulo?.toLowerCase() || "";
-
-    if (titulo.includes("javascript")) return jsImg;
-    if (titulo.includes("python")) return pyImg;
-    if (titulo.includes("java")) return javaImg;
-    if (titulo.includes("html")) return htmlImg;
-    if (titulo.includes("css")) return htmlImg;
-    if (titulo.includes("c++")) return cppImg;
-    if (titulo.includes("react")) return reactImg;
-
-    return "/placeholder-curso.png";
+  const handleEntrarAlCurso = () => {
+    navigate(`/curso/${curso._id}/aprender`);
   };
 
   const handleAgregarAlCarrito = () => {
+    if (esAdmin) {
+      handleEntrarAlCurso();
+      return;
+    }
+
     agregarAlCarrito({
       ...curso,
       imagen: obtenerImagenCurso(curso),
     });
   };
 
-  const handleEntrarAlCurso = () => {
-    navigate(`/curso/${curso._id}`);
-  };
+  if (loading) return <p className="detalle-curso-estado">Cargando...</p>;
+  if (error) return <p className="detalle-curso-estado">{error}</p>;
+  if (!curso) return <p className="detalle-curso-estado">No encontrado</p>;
 
-  if (loading) return <p>Cargando...</p>;
-  if (error) return <p>{error}</p>;
-  if (!curso) return <p>No encontrado</p>;
+  const puedeEntrarAlCurso = yaComprado || esAdmin;
+  const cantidadLecciones = curso.lecciones?.length || 0;
 
   return (
     <section className="detalle-curso-page">
-      {/* 🔹 BOTÓN VOLVER */}
       <div className="detalle-curso-top">
         <button className="btn-volver-cta" onClick={() => navigate("/cursos")}>
           ← Volver a cursos
         </button>
       </div>
 
-      {/* 🔹 CARD PRINCIPAL */}
-      <div className="detalle-curso-card">
-        {/* IMAGEN */}
+      <div className="detalle-curso-hero">
         <div className="detalle-curso-imagen">
           <img src={obtenerImagenCurso(curso)} alt={curso.titulo} />
         </div>
 
-        {/* INFO */}
         <div className="detalle-curso-info">
           <span className="detalle-curso-categoria">
-            {curso.categoria?.nombre}
+            {curso.categoria?.nombre || "Curso"}
           </span>
 
           <h1>{curso.titulo}</h1>
@@ -139,39 +126,77 @@ function DetalleCurso() {
           <p className="detalle-curso-descripcion">{curso.descripcion}</p>
 
           <div className="detalle-curso-meta">
-            <span>Nivel: {curso.nivel}</span>
-            <span>Duración: {curso.duracion}</span>
+            <span>📘 Nivel: {curso.nivel}</span>
+            <span>⏱ Duración: {curso.duracion}</span>
           </div>
 
-          {!yaComprado && (
+          {!puedeEntrarAlCurso && (
             <p className="detalle-curso-precio">{precioFormateado}</p>
           )}
 
-          {yaComprado ? (
+          {puedeEntrarAlCurso ? (
             <button className="detalle-curso-btn" onClick={handleEntrarAlCurso}>
-              Entrar al curso
+              ▶ Comenzar curso
             </button>
           ) : (
             <button
               className="detalle-curso-btn"
               onClick={handleAgregarAlCarrito}
             >
-              Agregar al carrito
+              🛒 Agregar al carrito
             </button>
           )}
         </div>
+
+        <div className="detalle-curso-beneficios">
+          <div className="beneficio-item">
+            <span className="beneficio-icono">♾</span>
+            <div>
+              <h3>Acceso de por vida</h3>
+              <p>Aprendé a tu ritmo, cuando quieras</p>
+            </div>
+          </div>
+
+          <div className="beneficio-item">
+            <span className="beneficio-icono">🏅</span>
+            <div>
+              <h3>Certificado incluido</h3>
+              <p>Al completar el curso</p>
+            </div>
+          </div>
+
+          <div className="beneficio-item">
+            <span className="beneficio-icono">💬</span>
+            <div>
+              <h3>Soporte del instructor</h3>
+              <p>Respondemos tus dudas</p>
+            </div>
+          </div>
+
+          <div className="beneficio-item">
+            <span className="beneficio-icono">📦</span>
+            <div>
+              <h3>Recursos descargables</h3>
+              <p>Material complementario</p>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* 🔹 BLOQUES */}
       <div className="detalle-curso-extra">
-        {/* APRENDIZAJES */}
         <div className="detalle-curso-bloque">
-          <h2>Qué vas a aprender</h2>
+          <div className="bloque-header">
+            <span className="bloque-icono">🎯</span>
+            <h2>Qué vas a aprender</h2>
+          </div>
 
           {curso.aprendizajes?.length > 0 ? (
             <ul className="detalle-curso-lista">
               {curso.aprendizajes.map((item, i) => (
-                <li key={i}>✔ {item}</li>
+                <li key={i}>
+                  <span>✓</span>
+                  {item}
+                </li>
               ))}
             </ul>
           ) : (
@@ -181,27 +206,75 @@ function DetalleCurso() {
           )}
         </div>
 
-        {/* LECCIONES */}
         <div className="detalle-curso-bloque">
-          <h2>Lecciones incluidas</h2>
+          <div className="bloque-header lecciones-header">
+            <div>
+              <span className="bloque-icono">▶</span>
+              <h2>Lecciones incluidas</h2>
+            </div>
+
+            <span className="lecciones-total">
+              {cantidadLecciones} lecciones
+            </span>
+          </div>
 
           <div className="lecciones-lista">
             {curso.lecciones?.map((l, i) => (
               <div
                 key={l._id}
-                className="leccion-item"
-                onClick={() => navigate(`/curso/${curso._id}?leccion=${l._id}`)}
+                className={`leccion-item ${
+                  !puedeEntrarAlCurso ? "leccion-bloqueada" : ""
+                }`}
+                onClick={() => {
+                  if (puedeEntrarAlCurso) {
+                    navigate(`/curso/${curso._id}/aprender?leccion=${l._id}`);
+                  }
+                }}
               >
                 <div className="leccion-numero">{i + 1}</div>
 
                 <div className="leccion-info">
                   <span className="leccion-titulo">{l.titulo}</span>
                   <span className="leccion-duracion">
-                    {l.duracionMinutos} min
+                    ⏱ {l.duracionMinutos} min
                   </span>
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="detalle-curso-stats">
+        <div className="stat-item">
+          <span className="stat-icono">👥</span>
+          <div>
+            <strong>+3.200</strong>
+            <p>Estudiantes</p>
+          </div>
+        </div>
+
+        <div className="stat-item">
+          <span className="stat-icono">⭐</span>
+          <div>
+            <strong>4.8</strong>
+            <p>Calificación promedio</p>
+          </div>
+        </div>
+
+        <div className="stat-item">
+          <span className="stat-icono">📊</span>
+          <div>
+            <strong>+12</strong>
+            <p>Horas de contenido</p>
+          </div>
+        </div>
+
+        <div className="stat-item">
+          <span className="stat-icono">{"</>"}</span>
+          <div>
+            <strong>Proyectos prácticos</strong>
+            <p>Incluidos</p>
           </div>
         </div>
       </div>

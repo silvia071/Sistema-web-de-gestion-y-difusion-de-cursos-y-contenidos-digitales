@@ -3,6 +3,7 @@ const cursoService = require("../services/curso.service");
 const NivelCurso = require("../enums/nivelCurso");
 
 const esObjectIdValido = (id) => mongoose.Types.ObjectId.isValid(id);
+const EstadoContenido = require("../enums/estadoContenido");
 
 const esErrorDeNegocioCurso = (mensaje) => {
   return [
@@ -47,18 +48,28 @@ const crearCurso = async (req, res) => {
     }
 
     if (errores.length > 0) {
-      return res.status(400).json({ errores });
+      return res.status(400).json({
+        mensaje: "Error de validación",
+        errores,
+      });
     }
 
     const curso = await cursoService.crearCurso(req.body);
-    res.status(201).json(curso);
+
+    return res.status(201).json({
+      mensaje: "Curso creado correctamente",
+      datos: curso,
+    });
   } catch (error) {
     if (esErrorDeNegocioCurso(error.message)) {
-      return res.status(400).json({ mensaje: error.message });
+      return res.status(400).json({
+        mensaje: error.message,
+      });
     }
 
-    res.status(500).json({
-      mensaje: error.message,
+    return res.status(500).json({
+      mensaje: "Error interno del servidor",
+      error: error.message,
     });
   }
 };
@@ -68,7 +79,9 @@ const editarCurso = async (req, res) => {
     const { id } = req.params;
 
     if (!esObjectIdValido(id)) {
-      return res.status(400).json({ mensaje: "ID inválido" });
+      return res.status(400).json({
+        mensaje: "ID inválido",
+      });
     }
 
     if (Object.keys(req.body).length === 0) {
@@ -113,22 +126,35 @@ const editarCurso = async (req, res) => {
     }
 
     if (errores.length > 0) {
-      return res.status(400).json({ errores });
+      return res.status(400).json({
+        mensaje: "Error de validación",
+        errores,
+      });
     }
 
     const curso = await cursoService.editarCurso(id, req.body);
 
     if (!curso) {
-      return res.status(404).json({ mensaje: "Curso no encontrado" });
+      return res.status(404).json({
+        mensaje: "Curso no encontrado",
+      });
     }
 
-    res.json(curso);
+    return res.status(200).json({
+      mensaje: "Curso actualizado correctamente",
+      datos: curso,
+    });
   } catch (error) {
     if (esErrorDeNegocioCurso(error.message)) {
-      return res.status(400).json({ mensaje: error.message });
+      return res.status(400).json({
+        mensaje: error.message,
+      });
     }
 
-    res.status(500).json({ mensaje: error.message });
+    return res.status(500).json({
+      mensaje: "Error interno del servidor",
+      error: error.message,
+    });
   }
 };
 
@@ -137,26 +163,67 @@ const eliminarCurso = async (req, res) => {
     const { id } = req.params;
 
     if (!esObjectIdValido(id)) {
-      return res.status(400).json({ mensaje: "ID inválido" });
+      return res.status(400).json({
+        mensaje: "ID inválido",
+      });
     }
 
     const curso = await cursoService.eliminarCurso(id);
 
     if (!curso) {
-      return res.status(404).json({ mensaje: "Curso no encontrado" });
+      return res.status(404).json({
+        mensaje: "Curso no encontrado",
+      });
     }
 
-    res.json({ mensaje: "Curso eliminado correctamente" });
+    return res.status(200).json({
+      mensaje: "Curso eliminado correctamente",
+    });
   } catch (error) {
-    res.status(500).json({ mensaje: error.message });
+    return res.status(500).json({
+      mensaje: "Error interno del servidor",
+      error: error.message,
+    });
   }
 };
 
 const listarCursos = async (req, res) => {
   try {
+    const { categoria } = req.query;
+
+    const filtros = {
+      estado: "PUBLICADO",
+    };
+
+    if (categoria) {
+      if (!esObjectIdValido(categoria)) {
+        return res.status(400).json({
+          mensaje: "ID de categoría inválido",
+        });
+      }
+
+      filtros.categoria = categoria;
+    }
+
+    const cursos = await cursoService.listarCursos(filtros);
+
+    return res.status(200).json({
+      mensaje: "Cursos obtenidos correctamente",
+      datos: cursos,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      mensaje: "Error interno del servidor",
+      error: error.message,
+    });
+  }
+};
+
+const listarCursosAdmin = async (req, res) => {
+  try {
     const { categoria, estado } = req.query;
 
-    let filtros = {};
+    const filtros = {};
 
     if (categoria) {
       if (!esObjectIdValido(categoria)) {
@@ -169,14 +236,28 @@ const listarCursos = async (req, res) => {
     }
 
     if (estado) {
-      filtros.estado = estado.toUpperCase();
+      const estadoNormalizado = estado.toUpperCase();
+
+      if (!Object.values(EstadoContenido).includes(estadoNormalizado)) {
+        return res.status(400).json({
+          mensaje: "Estado inválido",
+        });
+      }
+
+      filtros.estado = estadoNormalizado;
     }
 
     const cursos = await cursoService.listarCursos(filtros);
 
-    res.json(cursos);
+    return res.status(200).json({
+      mensaje: "Cursos obtenidos correctamente",
+      datos: cursos,
+    });
   } catch (error) {
-    res.status(500).json({ mensaje: error.message });
+    return res.status(500).json({
+      mensaje: "Error interno del servidor",
+      error: error.message,
+    });
   }
 };
 
@@ -185,18 +266,36 @@ const buscarCursoPorId = async (req, res) => {
     const { id } = req.params;
 
     if (!esObjectIdValido(id)) {
-      return res.status(400).json({ mensaje: "ID inválido" });
+      return res.status(400).json({
+        mensaje: "ID inválido",
+      });
     }
 
     const curso = await cursoService.buscarCursoPorId(id);
 
     if (!curso) {
-      return res.status(404).json({ mensaje: "Curso no encontrado" });
+      return res.status(404).json({
+        mensaje: "Curso no encontrado",
+      });
     }
 
-    res.json(curso);
+    const esAdmin = req.usuario?.rol === "ADMINISTRADOR";
+
+    if (!esAdmin && curso.estado !== "PUBLICADO") {
+      return res.status(404).json({
+        mensaje: "Curso no encontrado",
+      });
+    }
+
+    return res.status(200).json({
+      mensaje: "Curso obtenido correctamente",
+      datos: curso,
+    });
   } catch (error) {
-    res.status(500).json({ mensaje: error.message });
+    return res.status(500).json({
+      mensaje: "Error interno del servidor",
+      error: error.message,
+    });
   }
 };
 
@@ -205,18 +304,28 @@ const publicarCurso = async (req, res) => {
     const { id } = req.params;
 
     if (!esObjectIdValido(id)) {
-      return res.status(400).json({ mensaje: "ID inválido" });
+      return res.status(400).json({
+        mensaje: "ID inválido",
+      });
     }
 
     const curso = await cursoService.publicarCurso(id);
 
     if (!curso) {
-      return res.status(404).json({ mensaje: "Curso no encontrado" });
+      return res.status(404).json({
+        mensaje: "Curso no encontrado",
+      });
     }
 
-    res.json(curso);
+    return res.status(200).json({
+      mensaje: "Curso publicado correctamente",
+      datos: curso,
+    });
   } catch (error) {
-    res.status(500).json({ mensaje: error.message });
+    return res.status(500).json({
+      mensaje: "Error interno del servidor",
+      error: error.message,
+    });
   }
 };
 
@@ -225,18 +334,28 @@ const ocultarCurso = async (req, res) => {
     const { id } = req.params;
 
     if (!esObjectIdValido(id)) {
-      return res.status(400).json({ mensaje: "ID inválido" });
+      return res.status(400).json({
+        mensaje: "ID inválido",
+      });
     }
 
     const curso = await cursoService.ocultarCurso(id);
 
     if (!curso) {
-      return res.status(404).json({ mensaje: "Curso no encontrado" });
+      return res.status(404).json({
+        mensaje: "Curso no encontrado",
+      });
     }
 
-    res.json(curso);
+    return res.status(200).json({
+      mensaje: "Curso ocultado correctamente",
+      datos: curso,
+    });
   } catch (error) {
-    res.status(500).json({ mensaje: error.message });
+    return res.status(500).json({
+      mensaje: "Error interno del servidor",
+      error: error.message,
+    });
   }
 };
 
@@ -248,4 +367,5 @@ module.exports = {
   buscarCursoPorId,
   publicarCurso,
   ocultarCurso,
+  listarCursosAdmin,
 };

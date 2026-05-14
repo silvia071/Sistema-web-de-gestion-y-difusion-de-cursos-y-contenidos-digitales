@@ -3,12 +3,18 @@ require("../models/tarjeta.model");
 require("../models/transferencia.model");
 
 const crearMetodoPago = async (data) => {
+  const existe = await MetodoPago.findOne({ tipo: data.tipo });
+
+  if (existe) {
+    throw new Error("El método de pago ya existe");
+  }
+
   const metodo = new MetodoPago(data);
   return await metodo.save();
 };
 
 const listarMetodosPago = async () => {
-  return await MetodoPago.find();
+  return await MetodoPago.find().sort({ tipo: 1 });
 };
 
 const buscarMetodoPagoPorId = async (id) => {

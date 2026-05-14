@@ -1,12 +1,17 @@
 import "./Nosotros.css";
 import { Link } from "react-router-dom";
+
 function Nosotros() {
   return (
     <section className="nosotros-page">
       <div className="nosotros-container">
         <div className="nosotros-hero">
           <span className="nosotros-badge">Conocé más sobre Mundo Dev</span>
-          <h1 className="nosotros-title">Sobre nosotros</h1>
+
+          <h1 className="nosotros-title">
+            Sobre <span>nosotros</span>
+          </h1>
+
           <p className="nosotros-subtitle">
             Somos una plataforma enfocada en la formación en desarrollo y
             tecnología, creada para que aprender sea una experiencia clara,
@@ -43,6 +48,32 @@ function Nosotros() {
               compromiso con el crecimiento de cada estudiante.
             </p>
           </article>
+        </div>
+
+        <div className="nosotros-stats">
+          <div className="nosotros-stat">
+            <span>👥</span>
+            <strong>+15K</strong>
+            <p>Estudiantes</p>
+          </div>
+
+          <div className="nosotros-stat">
+            <span>🎓</span>
+            <strong>+120</strong>
+            <p>Cursos</p>
+          </div>
+
+          <div className="nosotros-stat">
+            <span>⭐</span>
+            <strong>4.8/5</strong>
+            <p>Valoración promedio</p>
+          </div>
+
+          <div className="nosotros-stat">
+            <span>🌎</span>
+            <strong>20+</strong>
+            <p>Países alcanzados</p>
+          </div>
         </div>
 
         <div className="nosotros-cta">

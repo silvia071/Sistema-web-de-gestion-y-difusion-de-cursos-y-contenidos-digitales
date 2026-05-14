@@ -6,10 +6,11 @@ const {
   eliminarCompra,
 } = require("../controllers/compra.controller");
 
-// 🔹 Generar compra desde carrito
-router.post("/desde-carrito/:id", generarCompra);
+const { verificarToken } = require("../middlewares/verificarToken.middleware");
+const { verificarAdmin } = require("../middlewares/verificarAdmin.validator");
 
-// 🔹 Eliminar compra
-router.delete("/:id", eliminarCompra);
+router.post("/desde-carrito/:id", verificarToken, generarCompra);
+
+router.delete("/:id", verificarToken, verificarAdmin, eliminarCompra);
 
 module.exports = router;

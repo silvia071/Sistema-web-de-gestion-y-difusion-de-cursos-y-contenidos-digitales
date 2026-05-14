@@ -10,11 +10,19 @@ const {
   calcularTotal,
 } = require("../controllers/carrito.controller");
 
-router.post("/", crearCarrito);
-router.get("/:id", obtenerCarrito);
-router.post("/:id/item", agregarItem);
-router.delete("/:id/item/:itemId", eliminarItem);
-router.delete("/:id/vaciar", vaciarCarrito);
-router.get("/:id/total", calcularTotal);
+const { verificarToken } = require("../middlewares/verificarToken.middleware");
+
+// Todas requieren usuario autenticado
+router.post("/", verificarToken, crearCarrito);
+
+router.get("/:id", verificarToken, obtenerCarrito);
+
+router.post("/:id/item", verificarToken, agregarItem);
+
+router.delete("/:id/item/:itemId", verificarToken, eliminarItem);
+
+router.delete("/:id/vaciar", verificarToken, vaciarCarrito);
+
+router.get("/:id/total", verificarToken, calcularTotal);
 
 module.exports = router;

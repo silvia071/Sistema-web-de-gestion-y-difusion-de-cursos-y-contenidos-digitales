@@ -1,0 +1,314 @@
+.admin-pagos {
+  min-height: calc(100vh - 90px);
+  padding: 60px 8%;
+  color: white;
+}
+
+.admin-pagos-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+  margin-bottom: 28px;
+}
+
+.admin-pagos-header h1 {
+  font-size: 42px;
+  margin-bottom: 8px;
+}
+
+.admin-pagos-header p {
+  color: #dbeafe;
+  margin: 0;
+}
+
+.btn-recargar {
+  border: none;
+  border-radius: 12px;
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #6366f1, #2563eb);
+  color: white;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.admin-alert {
+  padding: 14px 18px;
+  border-radius: 14px;
+  margin-bottom: 18px;
+  font-weight: 700;
+}
+
+.admin-alert.success {
+  background: rgba(34, 197, 94, 0.16);
+  border: 1px solid rgba(74, 222, 128, 0.35);
+  color: #86efac;
+}
+
+.admin-alert.error {
+  background: rgba(239, 68, 68, 0.16);
+  border: 1px solid rgba(248, 113, 113, 0.35);
+  color: #fca5a5;
+}
+
+.admin-empty {
+  background: #10145a;
+  border: 1px solid rgba(129, 140, 248, 0.25);
+  border-radius: 18px;
+  padding: 26px;
+  color: #dbeafe;
+}
+
+.pagos-list {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.pago-card {
+  background: #10145a;
+  border: 1px solid rgba(129, 140, 248, 0.25);
+  border-radius: 20px;
+  padding: 22px;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.25);
+}
+
+.pago-main {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+.pago-main h3 {
+  margin: 0 0 6px;
+  font-size: 22px;
+}
+
+.pago-email {
+  margin: 0 0 12px;
+  color: #c7d2fe;
+}
+
+.pago-info,
+.pago-fecha {
+  margin: 5px 0;
+  color: #dbeafe;
+  font-size: 14px;
+}
+
+.pago-resumen {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+  min-width: 160px;
+}
+
+.pago-resumen strong {
+  font-size: 24px;
+}
+
+.estado-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 7px 12px;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.4px;
+}
+
+.estado-aprobado {
+  background: rgba(34, 197, 94, 0.18);
+  color: #86efac;
+  border: 1px solid rgba(74, 222, 128, 0.4);
+}
+
+.estado-pendiente {
+  background: rgba(250, 204, 21, 0.18);
+  color: #fde68a;
+  border: 1px solid rgba(250, 204, 21, 0.4);
+}
+
+.estado-rechazado {
+  background: rgba(239, 68, 68, 0.18);
+  color: #fca5a5;
+  border: 1px solid rgba(248, 113, 113, 0.4);
+}
+
+.estado-neutral {
+  background: rgba(148, 163, 184, 0.18);
+  color: #cbd5e1;
+  border: 1px solid rgba(203, 213, 225, 0.3);
+}
+
+.pago-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(129, 140, 248, 0.18);
+}
+
+.btn-aprobar,
+.btn-rechazar {
+  border: none;
+  border-radius: 12px;
+  padding: 11px 18px;
+  color: white;
+  font-weight: 800;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    opacity 0.2s ease;
+}
+
+.btn-aprobar {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+}
+
+.btn-rechazar {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+.btn-aprobar:hover,
+.btn-rechazar:hover,
+.btn-recargar:hover {
+  transform: translateY(-2px);
+}
+
+.btn-aprobar:disabled,
+.btn-rechazar:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(2, 6, 23, 0.76);
+  backdrop-filter: blur(6px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  padding: 20px;
+}
+
+.modal-confirmacion {
+  background: linear-gradient(145deg, #111827, #1e1b4b);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 22px;
+  padding: 30px;
+  width: 430px;
+  max-width: 100%;
+  box-shadow: 0 26px 70px rgba(0, 0, 0, 0.55);
+  text-align: center;
+}
+
+.modal-confirmacion h3 {
+  margin-bottom: 14px;
+  color: #ffffff;
+  font-size: 24px;
+}
+
+.modal-confirmacion p {
+  color: #cbd5e1;
+  line-height: 1.6;
+  margin-bottom: 26px;
+}
+
+.modal-botones {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+}
+
+.btn-cancelar,
+.btn-confirmar {
+  border: none;
+  padding: 12px 24px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 700;
+  transition:
+    transform 0.2s ease,
+    opacity 0.2s ease;
+}
+
+.btn-cancelar {
+  background: rgba(255, 255, 255, 0.1);
+  color: #e5e7eb;
+}
+
+.btn-confirmar {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: white;
+}
+
+.btn-confirmar-rechazo {
+  background: linear-gradient(135deg, #ef4444, #b91c1c);
+}
+
+.btn-cancelar:hover,
+.btn-confirmar:hover {
+  transform: translateY(-1px);
+  opacity: 0.92;
+}
+
+.btn-confirmar:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 750px) {
+  .admin-pagos {
+    padding: 40px 20px;
+  }
+
+  .admin-pagos-header {
+    flex-direction: column;
+  }
+
+  .admin-pagos-header h1 {
+    font-size: 32px;
+  }
+
+  .pago-main {
+    flex-direction: column;
+  }
+
+  .pago-resumen {
+    align-items: flex-start;
+  }
+
+  .pago-actions {
+    flex-direction: column;
+  }
+
+  .btn-aprobar,
+  .btn-rechazar {
+    width: 100%;
+  }
+  .pago-cursos {
+    margin: 8px 0;
+    color: #dbeafe;
+    font-size: 14px;
+  }
+
+  .pago-cursos strong {
+    color: #ffffff;
+  }
+
+  .pago-cursos ul {
+    margin: 6px 0 0;
+    padding-left: 18px;
+  }
+
+  .pago-cursos li {
+    margin-bottom: 4px;
+  }
+}

@@ -4,7 +4,6 @@ const router = express.Router();
 const {
   registrarUsuario,
   iniciarSesion,
-  cerrarSesion,
   listarUsuarios,
   buscarUsuarioPorId,
   buscarUsuarioPorEmail,
@@ -22,43 +21,84 @@ const {
 
 const {
   validarRegistro,
-  validarLogin,
   validarId,
   validarCambioRol,
   validarEditarPerfil,
 } = require("../middlewares/usuario.validator");
 
-// 👇 IMPORTANTE: todos con {}
 const { verificarToken } = require("../middlewares/verificarToken.middleware");
 const { verificarAdmin } = require("../middlewares/verificarAdmin.validator");
 const {
   verificarMismoUsuarioOAdmin,
 } = require("../middlewares/verificarMismoUsuarioOAdmin.middleware");
 
-// 🔓 Públicas
+// Públicas
 router.post("/registro", validarRegistro, registrarUsuario);
-router.post("/login", validarLogin, iniciarSesion);
+router.post("/login", iniciarSesion);
+// Usuario autenticado
+router.get("/me", verificarToken, (req, res) => {
+  return res.status(200).json({
+    datos: {
+      _id: req.usuario._id,
+      nombre: req.usuario.nombre,
+      apellido: req.usuario.apellido,
+      email: req.usuario.email,
+      rol: req.usuario.rol,
+      estadoCuenta: req.usuario.estadoCuenta,
+    },
+  });
+});
 
-// 🔐 Autenticadas
-router.post("/logout", verificarToken, cerrarSesion);
+// Admin
+router.get("/", verificarToken, verificarAdmin, listarUsuarios);
 
-// 👑 Admin
-router.get("/", verificarAdmin, listarUsuarios);
-router.get("/email/:email", verificarAdmin, buscarUsuarioPorEmail);
+router.get(
+  "/email/:email",
+  verificarToken,
+  verificarAdmin,
+  buscarUsuarioPorEmail,
+);
 
-router.put("/bloquear/:id", verificarAdmin, validarId, bloquearUsuario);
-router.put("/activar/:id", verificarAdmin, validarId, activarUsuario);
-router.put("/rol/:id", verificarAdmin, validarId, validarCambioRol, cambiarRol);
+router.put(
+  "/bloquear/:id",
+  verificarToken,
+  verificarAdmin,
+  validarId,
+  bloquearUsuario,
+);
 
-router.delete("/:id", verificarAdmin, validarId, eliminarUsuario);
+router.put(
+  "/activar/:id",
+  verificarToken,
+  verificarAdmin,
+  validarId,
+  activarUsuario,
+);
 
-// 👤 Usuario propio o admin
+router.put(
+  "/rol/:id",
+  verificarToken,
+  verificarAdmin,
+  validarId,
+  validarCambioRol,
+  cambiarRol,
+);
+
+router.delete(
+  "/:id",
+  verificarToken,
+  verificarAdmin,
+  validarId,
+  eliminarUsuario,
+);
+
+// Usuario propio o admin
 router.get(
   "/:id",
   verificarToken,
   validarId,
   verificarMismoUsuarioOAdmin,
-  buscarUsuarioPorId
+  buscarUsuarioPorId,
 );
 
 router.get(
@@ -66,16 +106,16 @@ router.get(
   verificarToken,
   validarId,
   verificarMismoUsuarioOAdmin,
-  listarCursosAdquiridos
+  listarCursosAdquiridos,
 );
 
 router.put(
   "/perfil/:id",
   verificarToken,
   validarId,
-  validarEditarPerfil,
   verificarMismoUsuarioOAdmin,
-  editarPerfil
+  validarEditarPerfil,
+  editarPerfil,
 );
 
 router.put(
@@ -83,7 +123,7 @@ router.put(
   verificarToken,
   validarId,
   verificarMismoUsuarioOAdmin,
-  cambiarContrasenia
+  cambiarContrasenia,
 );
 
 router.patch(
@@ -91,7 +131,7 @@ router.patch(
   verificarToken,
   validarId,
   verificarMismoUsuarioOAdmin,
-  actualizarEmail
+  actualizarEmail,
 );
 
 router.patch(
@@ -99,7 +139,7 @@ router.patch(
   verificarToken,
   validarId,
   verificarMismoUsuarioOAdmin,
-  actualizarDireccion
+  actualizarDireccion,
 );
 
 router.patch(
@@ -107,7 +147,7 @@ router.patch(
   verificarToken,
   validarId,
   verificarMismoUsuarioOAdmin,
-  actualizarTelefono
+  actualizarTelefono,
 );
 
 module.exports = router;

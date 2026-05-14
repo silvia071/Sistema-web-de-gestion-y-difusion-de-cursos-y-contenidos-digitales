@@ -3,10 +3,14 @@
 ========================= */
 
 .nosotros-page {
-  min-height: calc(100vh - 140px);
-  padding: 76px 20px 90px;
-  background: linear-gradient(180deg, #1c227a 0%, #161d66 100%);
+  min-height: calc(100vh - 78px);
+  padding: 22px 20px 38px;
   color: #ffffff;
+  background:
+    radial-gradient(circle at 8% 18%, rgba(123, 92, 255, 0.2), transparent 15%),
+    radial-gradient(circle at 90% 22%, rgba(55, 196, 255, 0.1), transparent 20%),
+    linear-gradient(180deg, #060a28 0%, #081143 48%, #05091f 100%);
+  overflow: hidden;
 }
 
 .nosotros-container {
@@ -16,148 +20,196 @@
 
 .nosotros-hero {
   text-align: center;
-  margin-bottom: 48px;
+  margin-bottom: 26px;
 }
 
 .nosotros-badge {
-  display: inline-block;
-  padding: 8px 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 7px 20px;
   border-radius: 999px;
-  background: rgba(123, 92, 255, 0.18);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  color: #dfe3ff;
-  font-size: 0.88rem;
-  font-weight: 600;
-  margin-bottom: 16px;
+  background: rgba(123, 92, 255, 0.16);
+  border: 1px solid rgba(123, 92, 255, 0.45);
+  color: #eef0ff;
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  margin-bottom: 14px;
+  box-shadow: 0 0 22px rgba(123, 92, 255, 0.16);
 }
 
 .nosotros-title {
-  margin: 0 0 12px;
-  font-size: clamp(2.2rem, 4vw, 3.4rem);
-  line-height: 1.08;
+  margin: 0 0 10px;
+  font-size: clamp(2.2rem, 4.2vw, 3.45rem);
+  line-height: 0.95;
+  font-weight: 900;
+  letter-spacing: -1.5px;
   color: #ffffff;
+}
+
+.nosotros-title span {
+  background: linear-gradient(90deg, #77c8ff, #9f5cff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .nosotros-subtitle {
   max-width: 760px;
   margin: 0 auto;
-  color: rgba(255, 255, 255, 0.82);
-  line-height: 1.7;
-  font-size: 1.03rem;
+  color: rgba(255, 255, 255, 0.84);
+  line-height: 1.5;
+  font-size: 0.98rem;
 }
 
 .nosotros-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 22px;
-  margin-bottom: 42px;
+  margin-bottom: 24px;
 }
 
 .nosotros-card {
   position: relative;
   overflow: hidden;
-  padding: 32px 26px;
+  min-height: 195px;
+  padding: 20px 20px;
   border-radius: 24px;
   background:
-    radial-gradient(
-      circle at top right,
-      rgba(55, 196, 255, 0.14),
-      transparent 32%
-    ),
-    linear-gradient(180deg, rgba(9, 24, 92, 0.98), rgba(7, 18, 70, 1));
-  border: 1px solid rgba(120, 150, 255, 0.18);
-  box-shadow: 0 22px 48px rgba(0, 0, 0, 0.22);
+    radial-gradient(circle at top right, rgba(123, 92, 255, 0.26), transparent 34%),
+    linear-gradient(180deg, rgba(15, 25, 82, 0.96), rgba(6, 13, 48, 0.98));
+  border: 1px solid rgba(120, 150, 255, 0.22);
+  box-shadow: 0 18px 46px rgba(0, 0, 0, 0.3);
+  transition: 0.3s ease;
 }
 
-.nosotros-card::after {
-  content: "";
-  position: absolute;
-  inset: auto 24px 0;
-  height: 3px;
-  border-radius: 999px;
-  background: linear-gradient(90deg, #7b5cff, #37c4ff);
-  opacity: 0.85;
-}
-
-.nosotros-card__icon {
-  width: 62px;
-  height: 62px;
-  border-radius: 18px;
-  font-size: 1.55rem;
-  box-shadow: 0 12px 28px rgba(93, 133, 255, 0.26);
-}
 .nosotros-card:hover {
-  transform: translateY(-6px);
-  border-color: rgba(123, 92, 255, 0.45);
-  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.28);
+  transform: translateY(-5px);
+  border-color: rgba(123, 92, 255, 0.55);
+  box-shadow: 0 24px 58px rgba(0, 0, 0, 0.38);
 }
 
 .nosotros-card__icon {
   width: 56px;
   height: 56px;
-  border-radius: 16px;
+  border-radius: 17px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 18px;
+  margin-bottom: 16px;
   background: linear-gradient(135deg, #7b5cff 0%, #4f8cff 100%);
-  color: #ffffff;
-  font-size: 1.25rem;
-  font-weight: 800;
+  font-size: 1.5rem;
+  box-shadow: 0 14px 28px rgba(93, 133, 255, 0.28);
 }
 
 .nosotros-card h3 {
-  margin: 0 0 10px;
-  font-size: 1.3rem;
+  margin: 0 0 9px;
+  font-size: 1.32rem;
   color: #ffffff;
 }
 
 .nosotros-card p {
   margin: 0;
+  max-width: 95%;
   color: rgba(255, 255, 255, 0.78);
-  line-height: 1.65;
+  line-height: 1.48;
+  font-size: 0.9rem;
+}
+
+.nosotros-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin: 30px 0 18px;
+  padding: 18px;
+  border-radius: 24px;
+  background: rgba(10, 18, 65, 0.72);
+  border: 1px solid rgba(120, 150, 255, 0.22);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.24);
+}
+
+.nosotros-stat {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 12px;
+  align-items: center;
+  padding: 8px 12px;
+}
+
+.nosotros-stat span {
+  grid-row: span 2;
+  font-size: 2.1rem;
+}
+
+.nosotros-stat strong {
+  font-size: 1.45rem;
+  line-height: 1;
+}
+
+.nosotros-stat p {
+  margin: 4px 0 0;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.86rem;
 }
 
 .nosotros-cta {
-  padding: 38px 28px;
+  padding: 26px 24px;
   border-radius: 24px;
   text-align: center;
-  background: linear-gradient(
-    135deg,
-    rgba(93, 133, 255, 0.22),
-    rgba(123, 92, 255, 0.18)
-  );
+  background: linear-gradient(135deg, rgba(93, 133, 255, 0.18), rgba(123, 92, 255, 0.14));
   border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.16);
 }
 
 .nosotros-cta h2 {
-  margin: 0 0 12px;
-  font-size: clamp(1.6rem, 3vw, 2.2rem);
-  color: #ffffff;
+  margin: 0 0 10px;
+  font-size: clamp(1.35rem, 2.4vw, 1.8rem);
 }
 
 .nosotros-cta p {
-  max-width: 760px;
-  margin: 0 auto;
+  max-width: 740px;
+  margin: 0 auto 18px;
   color: rgba(255, 255, 255, 0.82);
-  line-height: 1.7;
+  line-height: 1.55;
+  font-size: 0.95rem;
+}
+
+.nosotros-cta__btn {
+  display: inline-flex;
+  padding: 10px 20px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #7b5cff, #4f8cff);
+  color: white;
+  font-weight: 800;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 900px) {
+  .nosotros-grid,
+  .nosotros-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .nosotros-card {
+    min-height: auto;
+  }
 }
 
 @media (max-width: 576px) {
   .nosotros-page {
-    padding: 58px 16px 72px;
+    padding: 34px 16px 60px;
   }
 
-  .nosotros-hero {
-    margin-bottom: 34px;
+  .nosotros-title {
+    font-size: 2.45rem;
+    letter-spacing: -1px;
   }
 
   .nosotros-card {
-    padding: 24px 20px;
+    padding: 22px 20px;
   }
 
-  .nosotros-cta {
-    padding: 28px 20px;
+  .nosotros-stat {
+    padding: 8px 4px;
   }
 }

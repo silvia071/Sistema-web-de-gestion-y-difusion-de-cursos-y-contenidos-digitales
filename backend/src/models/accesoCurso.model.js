@@ -7,38 +7,56 @@ const accesoCursoSchema = new mongoose.Schema(
       ref: "Usuario",
       required: true,
     },
+
     curso: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Curso",
       required: true,
     },
+
     compra: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Compra",
-      required: true,
+      default: null,
     },
+
     fechaAcceso: {
       type: Date,
       default: Date.now,
     },
+
     estado: {
       type: String,
       enum: ["ACTIVO", "REVOCADO"],
       default: "ACTIVO",
     },
+
     progreso: {
       type: Number,
       default: 0,
       min: 0,
       max: 100,
     },
+
     ultimaLeccion: {
-      type: Number,
-      default: 0,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Leccion",
+      default: null,
+    },
+
+    leccionesCompletadas: {
+      type: [
+        {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Leccion",
+        },
+      ],
+      default: [],
     },
   },
   {
     versionKey: false,
+    timestamps: true,
   },
 );
 

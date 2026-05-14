@@ -16,15 +16,23 @@ const crearPago = async (data) => {
     throw new Error("La compra no existe");
   }
 
+  if (compraExistente.usuario.toString() !== usuario.toString()) {
+    throw new Error("No tenés permiso para pagar esta compra");
+  }
+
   if (compraExistente.pago) {
     throw new Error("La compra ya tiene un pago asociado");
   }
 
-  if (monto !== compraExistente.total) {
+  if (Number(monto) !== Number(compraExistente.total)) {
     throw new Error("El monto del pago no coincide con el total de la compra");
   }
 
-  const pago = new Pago(data);
+  const pago = new Pago({
+    ...data,
+    monto: Number(monto),
+  });
+
   const pagoGuardado = await pago.save();
 
   compraExistente.pago = pagoGuardado._id;
@@ -48,7 +56,6 @@ const aprobarPago = async (id) => {
   if (!pago) {
     throw new Error("Pago no encontrado");
   }
-
   if (pago.estado === EstadoPago.APROBADO) {
     return await Pago.findById(id)
       .populate("metodoPago")
@@ -72,16 +79,30 @@ const aprobarPago = async (id) => {
   await compra.save();
 
   for (const detalle of compra.detalles) {
-    const yaExiste = await AccesoCurso.findOne({
+    const accesoExistente = await AccesoCurso.findOne({
       usuario: pago.usuario,
       curso: detalle.curso,
     });
 
-    if (!yaExiste) {
+    if (accesoExistente) {
+      accesoExistente.estado = "ACTIVO";
+      accesoExistente.compra = compra._id;
+
+      if (
+        accesoExistente.progreso === undefined ||
+        accesoExistente.progreso === null
+      ) {
+        accesoExistente.progreso = 0;
+      }
+
+      await accesoExistente.save();
+    } else {
       await AccesoCurso.create({
         usuario: pago.usuario,
         curso: detalle.curso,
         compra: compra._id,
+        progreso: 0,
+        estado: "ACTIVO",
       });
     }
   }
@@ -122,9 +143,19 @@ const rechazarPago = async (id) => {
 
 const listarPagos = async () => {
   return await Pago.find()
-    .populate("usuario")
+    .sort({ createdAt: -1 })
+    .populate("usuario", "nombre apellido email")
     .populate("metodoPago")
-    .populate("compra");
+    .populate({
+      path: "compra",
+      populate: {
+        path: "detalles",
+        populate: {
+          path: "curso",
+          select: "titulo precio",
+        },
+      },
+    });
 };
 
 module.exports = {

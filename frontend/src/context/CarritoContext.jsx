@@ -1,56 +1,86 @@
+/* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import api from "../services/api";
+import { getImageUrl } from "../utils/getImageUrl";
 
 const CarritoContext = createContext();
 
 export const useCarrito = () => useContext(CarritoContext);
 
 export function CarritoProvider({ children }) {
+  const [carritoBackend, setCarritoBackend] = useState(null);
+  const [carrito, setCarrito] = useState([]);
+  const [mensajeCarrito, setMensajeCarrito] = useState("");
+  const [cargandoCarrito, setCargandoCarrito] = useState(false);
+
   const haySesion = () => Boolean(localStorage.getItem("token"));
 
-  const obtenerUserId = () => localStorage.getItem("userId");
+  const normalizarItem = (item) => {
+    const curso = item.curso || item;
 
-  const obtenerClaveCarrito = () => {
-    const userId = obtenerUserId();
-    return userId ? `carrito_${userId}` : "carrito_invitado";
+    if (!curso) return null;
+
+    const imagenRaw = curso.imagenPortada || curso.imagen || "";
+
+    const imagen = getImageUrl(imagenRaw);
+
+    return {
+      id: curso._id || curso.id,
+      itemId: item._id,
+      titulo: curso.titulo || "Curso sin título",
+      precio: Number(item.precioUnitario || curso.precio || 0),
+      imagen,
+      curso,
+    };
   };
 
-  const leerCarrito = () => {
-    if (!haySesion()) return [];
-
-    try {
-      const data = localStorage.getItem(obtenerClaveCarrito());
-      const parsed = data ? JSON.parse(data) : [];
-      return Array.isArray(parsed) ? parsed : [];
-    } catch (error) {
-      console.error("Error al leer el carrito desde localStorage:", error);
-      return [];
-    }
-  };
-
-  const [carrito, setCarrito] = useState(leerCarrito);
-  const [mensajeCarrito, setMensajeCarrito] = useState("");
-
-  useEffect(() => {
+  const cargarCarritoBackend = async () => {
     if (!haySesion()) {
+      setCarritoBackend(null);
       setCarrito([]);
-      return;
+      return null;
     }
-
-    setCarrito(leerCarrito());
-  }, []);
-
-  useEffect(() => {
-    if (!haySesion()) return;
 
     try {
-      localStorage.setItem(obtenerClaveCarrito(), JSON.stringify(carrito));
-    } catch (error) {
-      console.error("Error al guardar el carrito en localStorage:", error);
-    }
-  }, [carrito]);
+      setCargandoCarrito(true);
 
+      const { data } = await api.post("/api/carrito");
+
+      setCarritoBackend(data);
+
+      const itemsNormalizados = Array.isArray(data.items)
+        ? data.items.map((item) => normalizarItem(item)).filter(Boolean)
+        : [];
+
+      setCarrito(itemsNormalizados);
+
+      return data;
+    } catch (error) {
+      console.error("Error al cargar carrito:", error);
+      setCarritoBackend(null);
+      setCarrito([]);
+      return null;
+    } finally {
+      setCargandoCarrito(false);
+    }
+  };
+
+ useEffect(() => {
+   cargarCarritoBackend();
+
+   const syncSesion = () => {
+     cargarCarritoBackend();
+   };
+
+   window.addEventListener("storage", syncSesion);
+
+   return () => {
+     window.removeEventListener("storage", syncSesion);
+   };
+ }, []);
+  
   const recargarCarrito = () => {
-    setCarrito(leerCarrito());
+    cargarCarritoBackend();
   };
 
   const mostrarMensaje = (texto) => {
@@ -58,122 +88,169 @@ export function CarritoProvider({ children }) {
 
     setTimeout(() => {
       setMensajeCarrito("");
-    }, 2000);
+    }, 2200);
   };
 
-  const obtenerId = (producto) => producto?.id || producto?._id || null;
-
-  const normalizarProducto = (producto) => {
-    const id = obtenerId(producto);
-
-    if (!id) return null;
-
-    return {
-      id,
-      titulo: producto?.titulo || "Curso sin título",
-      precio: Number(producto?.precio) || 0,
-      imagen: producto?.imagen || producto?.img || producto?.image || "",
-      cantidad: Number(producto?.cantidad) > 0 ? Number(producto.cantidad) : 1,
-    };
-  };
-
-  const agregarAlCarrito = (producto) => {
+  const agregarAlCarrito = async (producto) => {
     if (!haySesion()) {
       mostrarMensaje("Para agregar cursos al carrito tenés que iniciar sesión");
       return false;
     }
 
-    const productoNormalizado = normalizarProducto(producto);
+    const idCurso = producto?._id || producto?.id;
 
-    if (!productoNormalizado) {
+    if (!idCurso) {
       console.error("El producto no tiene id ni _id:", producto);
       return false;
     }
 
-    setCarrito((prev) => {
-      const existe = prev.find((item) => item.id === productoNormalizado.id);
-
-      if (existe) {
-        return prev.map((item) =>
-          item.id === productoNormalizado.id
-            ? { ...item, cantidad: item.cantidad + 1 }
-            : item,
-        );
-      }
-
-      return [...prev, productoNormalizado];
-    });
-
-    mostrarMensaje("Curso agregado al carrito");
-    return true;
-  };
-
-  const eliminarDelCarrito = (id) => {
-    setCarrito((prev) => prev.filter((item) => item.id !== id));
-  };
-
-  const actualizarCantidad = (id, cantidad) => {
-    const nuevaCantidad = Number(cantidad);
-
-    if (nuevaCantidad < 1 || Number.isNaN(nuevaCantidad)) return;
-
-    setCarrito((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, cantidad: nuevaCantidad } : item,
-      ),
-    );
-  };
-
-  const vaciarCarrito = () => {
-    setCarrito([]);
-    localStorage.removeItem(obtenerClaveCarrito());
-  };
-
-  const limpiarCarritoVisual = () => {
-    setCarrito([]);
-    setMensajeCarrito("");
-  };
-
-  const estaEnCarrito = (id) => {
-    return carrito.some((item) => item.id === id);
-  };
-
-  const finalizarCompra = () => {
-    if (!haySesion()) {
-      mostrarMensaje("Para finalizar la compra tenés que iniciar sesión");
+    if (estaEnCarrito(idCurso)) {
+      mostrarMensaje("Este curso ya está en el carrito");
       return false;
     }
 
-    setCarrito([]);
-    localStorage.removeItem(obtenerClaveCarrito());
-    mostrarMensaje("Compra realizada con éxito");
-    return true;
+    try {
+      let carritoActual = carritoBackend;
+
+      if (!carritoActual?._id) {
+        carritoActual = await cargarCarritoBackend();
+      }
+
+      if (!carritoActual?._id) {
+        mostrarMensaje("No se pudo obtener el carrito");
+        return false;
+      }
+
+      const { data } = await api.post(
+        `/api/carrito/${carritoActual._id}/item`,
+        {
+          idCurso,
+        },
+      );
+
+      setCarritoBackend(data);
+
+      const itemsNormalizados = Array.isArray(data.items)
+        ? data.items.map((item) => normalizarItem(item)).filter(Boolean)
+        : [];
+
+      setCarrito(itemsNormalizados);
+
+      mostrarMensaje("Curso agregado al carrito");
+      return true;
+    } catch (error) {
+      console.error("Error al agregar al carrito:", error);
+
+      mostrarMensaje(
+        error.response?.data?.error ||
+          error.response?.data?.mensaje ||
+          "No se pudo agregar el curso al carrito",
+      );
+
+      return false;
+    }
   };
 
-  const cantidadTotal = useMemo(() => {
-    if (!haySesion()) return 0;
-    return carrito.reduce((acc, item) => acc + item.cantidad, 0);
-  }, [carrito]);
+  const eliminarDelCarrito = async (id) => {
+    if (!carritoBackend?._id) return;
+
+    const item = carrito.find(
+      (producto) =>
+        producto.id === String(id) || producto.itemId === String(id),
+    );
+
+    const itemId = item?.itemId || id;
+
+    try {
+      const { data } = await api.delete(
+        `/api/carrito/${carritoBackend._id}/item/${itemId}`,
+      );
+
+      setCarritoBackend(data);
+
+      const itemsNormalizados = Array.isArray(data.items)
+        ? data.items.map((item) => normalizarItem(item)).filter(Boolean)
+        : [];
+
+      setCarrito(itemsNormalizados);
+    } catch (error) {
+      console.error("Error al eliminar item del carrito:", error);
+      mostrarMensaje("No se pudo eliminar el curso");
+    }
+  };
+
+  const vaciarCarrito = async () => {
+    if (!carritoBackend?._id) {
+      setCarrito([]);
+      return;
+    }
+
+    try {
+      await api.delete(`/api/carrito/${carritoBackend._id}/vaciar`);
+
+      setCarritoBackend((prev) =>
+        prev
+          ? {
+              ...prev,
+              items: [],
+            }
+          : null,
+      );
+
+      setCarrito([]);
+    } catch (error) {
+      console.error("Error al vaciar carrito:", error);
+
+      mostrarMensaje(
+        error.response?.data?.error ||
+          error.response?.data?.mensaje ||
+          "No se pudo vaciar el carrito",
+      );
+    }
+  };
+
+const limpiarCarritoVisual = () => {
+  setCarrito([]);
+
+  setCarritoBackend((prev) =>
+    prev
+      ? {
+          ...prev,
+          items: [],
+        }
+      : null,
+  );
+
+  setMensajeCarrito("");
+};
+
+  const estaEnCarrito = (id) => {
+    return carrito.some((item) => item.id === String(id));
+  };
+
+  
+
+  const cantidadTotal = useMemo(() => carrito.length, [carrito]);
 
   const subtotal = useMemo(() => {
-    if (!haySesion()) return 0;
-    return carrito.reduce((acc, item) => acc + item.precio * item.cantidad, 0);
+    return carrito.reduce((acc, item) => acc + Number(item.precio || 0), 0);
   }, [carrito]);
 
   return (
     <CarritoContext.Provider
       value={{
         carrito,
+        carritoBackend,
         mensajeCarrito,
         cantidadTotal,
         subtotal,
+        cargandoCarrito,
         agregarAlCarrito,
         eliminarDelCarrito,
-        actualizarCantidad,
         vaciarCarrito,
         limpiarCarritoVisual,
         recargarCarrito,
-        finalizarCompra,
+     
         estaEnCarrito,
       }}
     >

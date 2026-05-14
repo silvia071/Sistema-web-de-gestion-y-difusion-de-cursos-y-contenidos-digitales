@@ -1,20 +1,17 @@
+import api from "./api";
+
 export const crearPago = async (data) => {
   try {
-    const res = await fetch("http://localhost:3000/api/pagos", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    });
+    const response = await api.post("/api/pagos", data);
 
-    if (!res.ok) {
-      throw new Error("Error al crear el pago");
-    }
-
-    return await res.json();
+    return response.data;
   } catch (error) {
     console.error("Error creando pago:", error);
-    throw error;
+
+    throw new Error(
+      error.response?.data?.detalle ||
+        error.response?.data?.mensaje ||
+        "Error al crear el pago",
+    );
   }
 };

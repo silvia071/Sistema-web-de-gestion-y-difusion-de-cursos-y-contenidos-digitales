@@ -1,17 +1,13 @@
 const path = require("path");
 
-
 require("dotenv").config({
   path: path.resolve(__dirname, "../.env"),
 });
-
-console.log("JWT_SECRET:", process.env.JWT_SECRET);
 
 const app = require("./app");
 const connectDB = require("./config/database");
 
 const PORT = process.env.PORT || 3000;
-
 
 const startServer = async () => {
   try {
@@ -20,10 +16,9 @@ const startServer = async () => {
     app.listen(PORT, () => {
       console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
     });
-
   } catch (error) {
     console.error("❌ Error al iniciar el servidor:", error);
-    process.exit(1); // corta la ejecución si falla
+    process.exit(1);
   }
 };
 

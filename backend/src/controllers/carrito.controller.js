@@ -1,32 +1,46 @@
 const carritoService = require("../services/carrito.service");
 
+const obtenerUsuarioId = (req) => req.usuario?._id;
+
 const crearCarrito = async (req, res) => {
   try {
-    const { usuarioId } = req.body;
+    const usuarioId = obtenerUsuarioId(req);
 
     if (!usuarioId) {
-      return res.status(400).json({
-        error: "usuarioId es obligatorio",
+      return res.status(401).json({
+        error: "Usuario no autenticado",
       });
     }
 
     const carrito = await carritoService.crearCarrito(usuarioId);
-    res.status(201).json(carrito);
+
+    return res.status(201).json(carrito);
   } catch (error) {
     if (error.message.includes("obligatorio")) {
       return res.status(400).json({ error: error.message });
     }
 
-    res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
 };
 
 const obtenerCarrito = async (req, res) => {
   try {
+    const usuarioId = obtenerUsuarioId(req);
     const idCarrito = req.params.id;
 
-    const carrito = await carritoService.obtenerCarritoActivo(idCarrito);
-    res.json(carrito);
+    if (!usuarioId) {
+      return res.status(401).json({
+        error: "Usuario no autenticado",
+      });
+    }
+
+    const carrito = await carritoService.obtenerCarritoActivo(
+      idCarrito,
+      usuarioId,
+    );
+
+    return res.json(carrito);
   } catch (error) {
     if (error.message.includes("no encontrado")) {
       return res.status(404).json({ error: error.message });
@@ -36,14 +50,25 @@ const obtenerCarrito = async (req, res) => {
       return res.status(400).json({ error: error.message });
     }
 
-    res.status(500).json({ error: error.message });
+    if (error.message.includes("permiso")) {
+      return res.status(403).json({ error: error.message });
+    }
+
+    return res.status(500).json({ error: error.message });
   }
 };
 
 const agregarItem = async (req, res) => {
   try {
+    const usuarioId = obtenerUsuarioId(req);
     const idCarrito = req.params.id;
     const { idCurso } = req.body;
+
+    if (!usuarioId) {
+      return res.status(401).json({
+        error: "Usuario no autenticado",
+      });
+    }
 
     if (!idCurso) {
       return res.status(400).json({
@@ -54,9 +79,10 @@ const agregarItem = async (req, res) => {
     const carrito = await carritoService.agregarCursoAlCarrito(
       idCarrito,
       idCurso,
+      usuarioId,
     );
 
-    res.json(carrito);
+    return res.json(carrito);
   } catch (error) {
     if (
       error.message.includes("no encontrado") ||
@@ -68,26 +94,39 @@ const agregarItem = async (req, res) => {
     if (
       error.message.includes("no activo") ||
       error.message.includes("ya está en el carrito") ||
-      error.message.includes("ya tenés acceso")
+      error.message.includes("ya tenés acceso") ||
+      error.message.includes("obligatorio")
     ) {
       return res.status(400).json({ error: error.message });
     }
 
-    res.status(500).json({ error: error.message });
+    if (error.message.includes("permiso")) {
+      return res.status(403).json({ error: error.message });
+    }
+
+    return res.status(500).json({ error: error.message });
   }
 };
 
 const eliminarItem = async (req, res) => {
   try {
+    const usuarioId = obtenerUsuarioId(req);
     const idCarrito = req.params.id;
     const itemId = req.params.itemId;
+
+    if (!usuarioId) {
+      return res.status(401).json({
+        error: "Usuario no autenticado",
+      });
+    }
 
     const carrito = await carritoService.eliminarItemDelCarrito(
       idCarrito,
       itemId,
+      usuarioId,
     );
 
-    res.json(carrito);
+    return res.json(carrito);
   } catch (error) {
     if (error.message.includes("no encontrado")) {
       return res.status(404).json({ error: error.message });
@@ -97,16 +136,28 @@ const eliminarItem = async (req, res) => {
       return res.status(400).json({ error: error.message });
     }
 
-    res.status(500).json({ error: error.message });
+    if (error.message.includes("permiso")) {
+      return res.status(403).json({ error: error.message });
+    }
+
+    return res.status(500).json({ error: error.message });
   }
 };
 
 const vaciarCarrito = async (req, res) => {
   try {
+    const usuarioId = obtenerUsuarioId(req);
     const idCarrito = req.params.id;
 
-    const carrito = await carritoService.vaciarCarrito(idCarrito);
-    res.json(carrito);
+    if (!usuarioId) {
+      return res.status(401).json({
+        error: "Usuario no autenticado",
+      });
+    }
+
+    const carrito = await carritoService.vaciarCarrito(idCarrito, usuarioId);
+
+    return res.json(carrito);
   } catch (error) {
     if (error.message.includes("no encontrado")) {
       return res.status(404).json({ error: error.message });
@@ -116,22 +167,41 @@ const vaciarCarrito = async (req, res) => {
       return res.status(400).json({ error: error.message });
     }
 
-    res.status(500).json({ error: error.message });
+    if (error.message.includes("permiso")) {
+      return res.status(403).json({ error: error.message });
+    }
+
+    return res.status(500).json({ error: error.message });
   }
 };
 
 const calcularTotal = async (req, res) => {
   try {
+    const usuarioId = obtenerUsuarioId(req);
     const idCarrito = req.params.id;
 
-    const total = await carritoService.calcularTotalCarrito(idCarrito);
-    res.json({ total });
+    if (!usuarioId) {
+      return res.status(401).json({
+        error: "Usuario no autenticado",
+      });
+    }
+
+    const total = await carritoService.calcularTotalCarrito(
+      idCarrito,
+      usuarioId,
+    );
+
+    return res.json({ total });
   } catch (error) {
     if (error.message.includes("no encontrado")) {
       return res.status(404).json({ error: error.message });
     }
 
-    res.status(500).json({ error: error.message });
+    if (error.message.includes("permiso")) {
+      return res.status(403).json({ error: error.message });
+    }
+
+    return res.status(500).json({ error: error.message });
   }
 };
 

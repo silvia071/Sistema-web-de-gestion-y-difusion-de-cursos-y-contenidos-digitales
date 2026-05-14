@@ -3,47 +3,48 @@ const usuarioService = require("../services/usuario.service");
 const registrarUsuario = async (req, res) => {
   try {
     const usuario = await usuarioService.registrarUsuario(req.body);
+
     return res.status(201).json({
       mensaje: "Usuario registrado correctamente",
-      usuario,
+      datos: usuario,
     });
   } catch (error) {
     return res.status(400).json({
-      mensaje: "Error en el registro",
-      detalle: error.message,
+      mensaje: "Error en el registro de usuario",
+      error: error.message,
     });
   }
 };
-
 const iniciarSesion = async (req, res) => {
   try {
     const { email, contrasenia } = req.body;
+
+    if (!email || !contrasenia) {
+      return res.status(400).json({
+        mensaje: "Email y contraseña son obligatorios",
+      });
+    }
+
     const { usuario, token } = await usuarioService.iniciarSesion(
       email,
       contrasenia,
     );
 
     return res.status(200).json({
-      mensaje: "Login exitoso",
-      usuario,
+      mensaje: "Inicio de sesión correcto",
       token,
+      usuario: {
+        _id: usuario._id,
+        nombre: usuario.nombre,
+        apellido: usuario.apellido,
+        email: usuario.email,
+        rol: usuario.rol,
+      },
     });
   } catch (error) {
     return res.status(401).json({
       mensaje: "Error al iniciar sesión",
-      detalle: error.message,
-    });
-  }
-};
-
-const cerrarSesion = async (req, res) => {
-  try {
-    const resultado = await usuarioService.cerrarSesion();
-    return res.status(200).json(resultado);
-  } catch (error) {
-    return res.status(500).json({
-      mensaje: "Error al cerrar sesión",
-      detalle: error.message,
+      error: error.message,
     });
   }
 };
@@ -51,11 +52,15 @@ const cerrarSesion = async (req, res) => {
 const listarUsuarios = async (req, res) => {
   try {
     const usuarios = await usuarioService.listarUsuarios();
-    return res.status(200).json(usuarios);
+
+    return res.status(200).json({
+      mensaje: "Usuarios obtenidos correctamente",
+      datos: usuarios,
+    });
   } catch (error) {
     return res.status(500).json({
       mensaje: "Error al obtener usuarios",
-      detalle: error.message,
+      error: error.message,
     });
   }
 };
@@ -70,11 +75,14 @@ const buscarUsuarioPorId = async (req, res) => {
       });
     }
 
-    return res.status(200).json(usuario);
+    return res.status(200).json({
+      mensaje: "Usuario obtenido correctamente",
+      datos: usuario,
+    });
   } catch (error) {
     return res.status(400).json({
       mensaje: "Error al buscar usuario",
-      detalle: error.message,
+      error: error.message,
     });
   }
 };
@@ -82,6 +90,7 @@ const buscarUsuarioPorId = async (req, res) => {
 const buscarUsuarioPorEmail = async (req, res) => {
   try {
     const { email } = req.params;
+
     const usuario = await usuarioService.buscarUsuarioPorEmail(email);
 
     if (!usuario) {
@@ -90,11 +99,14 @@ const buscarUsuarioPorEmail = async (req, res) => {
       });
     }
 
-    return res.status(200).json(usuario);
+    return res.status(200).json({
+      mensaje: "Usuario obtenido correctamente",
+      datos: usuario,
+    });
   } catch (error) {
     return res.status(400).json({
-      mensaje: "Error en la búsqueda",
-      detalle: error.message,
+      mensaje: "Error en la búsqueda del usuario",
+      error: error.message,
     });
   }
 };
@@ -102,6 +114,7 @@ const buscarUsuarioPorEmail = async (req, res) => {
 const editarPerfil = async (req, res) => {
   try {
     const { id } = req.params;
+
     const usuario = await usuarioService.editarPerfil(id, req.body);
 
     if (!usuario) {
@@ -112,12 +125,12 @@ const editarPerfil = async (req, res) => {
 
     return res.status(200).json({
       mensaje: "Perfil actualizado correctamente",
-      usuario,
+      datos: usuario,
     });
   } catch (error) {
     return res.status(500).json({
       mensaje: "Error al editar perfil",
-      detalle: error.message,
+      error: error.message,
     });
   }
 };
@@ -125,6 +138,7 @@ const editarPerfil = async (req, res) => {
 const cambiarContrasenia = async (req, res) => {
   try {
     const { id } = req.params;
+
     await usuarioService.cambiarContrasenia(id, req.body);
 
     return res.status(200).json({
@@ -133,7 +147,7 @@ const cambiarContrasenia = async (req, res) => {
   } catch (error) {
     return res.status(400).json({
       mensaje: "Error al cambiar contraseña",
-      detalle: error.message,
+      error: error.message,
     });
   }
 };
@@ -156,7 +170,7 @@ const eliminarUsuario = async (req, res) => {
   } catch (error) {
     return res.status(400).json({
       mensaje: "Error al eliminar usuario",
-      detalle: error.message,
+      error: error.message,
     });
   }
 };
@@ -172,13 +186,13 @@ const bloquearUsuario = async (req, res) => {
     }
 
     return res.status(200).json({
-      mensaje: "Usuario bloqueado con éxito",
-      usuario,
+      mensaje: "Usuario bloqueado correctamente",
+      datos: usuario,
     });
   } catch (error) {
     return res.status(400).json({
       mensaje: "Error al bloquear usuario",
-      detalle: error.message,
+      error: error.message,
     });
   }
 };
@@ -194,13 +208,13 @@ const activarUsuario = async (req, res) => {
     }
 
     return res.status(200).json({
-      mensaje: "Usuario activado con éxito",
-      usuario,
+      mensaje: "Usuario activado correctamente",
+      datos: usuario,
     });
   } catch (error) {
     return res.status(400).json({
       mensaje: "Error al activar usuario",
-      detalle: error.message,
+      error: error.message,
     });
   }
 };
@@ -208,6 +222,7 @@ const activarUsuario = async (req, res) => {
 const cambiarRol = async (req, res) => {
   try {
     const { nuevoRol } = req.body;
+
     const usuario = await usuarioService.cambiarRol(req.params.id, nuevoRol);
 
     if (!usuario) {
@@ -218,12 +233,12 @@ const cambiarRol = async (req, res) => {
 
     return res.status(200).json({
       mensaje: "Rol actualizado correctamente",
-      usuario,
+      datos: usuario,
     });
   } catch (error) {
     return res.status(400).json({
       mensaje: "Error al cambiar rol",
-      detalle: error.message,
+      error: error.message,
     });
   }
 };
@@ -231,6 +246,7 @@ const cambiarRol = async (req, res) => {
 const actualizarEmail = async (req, res) => {
   try {
     const { nuevoEmail } = req.body;
+
     const usuario = await usuarioService.actualizarEmail(
       req.params.id,
       nuevoEmail,
@@ -244,12 +260,12 @@ const actualizarEmail = async (req, res) => {
 
     return res.status(200).json({
       mensaje: "Email actualizado correctamente",
-      usuario,
+      datos: usuario,
     });
   } catch (error) {
     return res.status(400).json({
       mensaje: "Error al actualizar email",
-      detalle: error.message,
+      error: error.message,
     });
   }
 };
@@ -257,6 +273,7 @@ const actualizarEmail = async (req, res) => {
 const actualizarDireccion = async (req, res) => {
   try {
     const { nuevaDireccion } = req.body;
+
     const usuario = await usuarioService.actualizarDireccion(
       req.params.id,
       nuevaDireccion,
@@ -270,12 +287,12 @@ const actualizarDireccion = async (req, res) => {
 
     return res.status(200).json({
       mensaje: "Dirección actualizada correctamente",
-      usuario,
+      datos: usuario,
     });
   } catch (error) {
     return res.status(400).json({
       mensaje: "Error al actualizar dirección",
-      detalle: error.message,
+      error: error.message,
     });
   }
 };
@@ -283,6 +300,7 @@ const actualizarDireccion = async (req, res) => {
 const actualizarTelefono = async (req, res) => {
   try {
     const { nuevoTelefono } = req.body;
+
     const usuario = await usuarioService.actualizarTelefono(
       req.params.id,
       nuevoTelefono,
@@ -296,12 +314,12 @@ const actualizarTelefono = async (req, res) => {
 
     return res.status(200).json({
       mensaje: "Teléfono actualizado correctamente",
-      usuario,
+      datos: usuario,
     });
   } catch (error) {
     return res.status(400).json({
       mensaje: "Error al actualizar teléfono",
-      detalle: error.message,
+      error: error.message,
     });
   }
 };
@@ -309,19 +327,21 @@ const actualizarTelefono = async (req, res) => {
 const listarCursosAdquiridos = async (req, res) => {
   try {
     const cursos = await usuarioService.listarCursosAdquiridos(req.params.id);
-    return res.status(200).json(cursos);
+
+    return res.status(200).json({
+      mensaje: "Cursos adquiridos obtenidos correctamente",
+      datos: cursos,
+    });
   } catch (error) {
     return res.status(400).json({
       mensaje: "Error al listar cursos adquiridos",
-      detalle: error.message,
+      error: error.message,
     });
   }
 };
 
 module.exports = {
   registrarUsuario,
-  iniciarSesion,
-  cerrarSesion,
   listarUsuarios,
   buscarUsuarioPorId,
   buscarUsuarioPorEmail,
@@ -335,4 +355,5 @@ module.exports = {
   actualizarDireccion,
   actualizarTelefono,
   listarCursosAdquiridos,
+  iniciarSesion,
 };

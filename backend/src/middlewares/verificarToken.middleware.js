@@ -7,7 +7,7 @@ const verificarToken = async (req, res, next) => {
 
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return res.status(401).json({
-        mensaje: "Token de autenticación requerido",
+        mensaje: "No autorizado",
       });
     }
 
@@ -15,20 +15,20 @@ const verificarToken = async (req, res, next) => {
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    const usuario = await Usuario.findById(decoded.id);
+    const usuario = await Usuario.findById(decoded.id).select("-contrasenia");
 
     if (!usuario) {
       return res.status(401).json({
-        mensaje: "Usuario no encontrado",
+        mensaje: "No autorizado",
       });
     }
 
-    req.user = usuario;
+    req.usuario = usuario;
+
     next();
   } catch (error) {
     return res.status(401).json({
       mensaje: "Token inválido o expirado",
-      detalle: error.message,
     });
   }
 };

@@ -1,22 +1,25 @@
 const AccesoCurso = require("../models/accesoCurso.model");
 const Leccion = require("../models/leccion.model");
+const Curso = require("../models/curso.model");
 
 const obtenerUsuarioId = (req) => {
-  return (
-    req.body?.usuarioId ||
-    req.params?.usuarioId ||
-    req.query?.usuarioId ||
-    req.user?.id ||
-    null
-  );
+  return req.usuario?._id || null;
 };
 
 const obtenerCursoId = (req) => {
   return req.params?.cursoId || req.body?.curso || null;
 };
 
+const esAdministrador = (req) => {
+  return req.usuario?.rol === "ADMINISTRADOR";
+};
+
 const validarAccesoPorCurso = async (req, res, next) => {
   try {
+    if (esAdministrador(req)) {
+      return next();
+    }
+
     const usuarioId = obtenerUsuarioId(req);
     const cursoId = obtenerCursoId(req);
 
@@ -29,6 +32,20 @@ const validarAccesoPorCurso = async (req, res, next) => {
     if (!cursoId) {
       return res.status(400).json({
         mensaje: "El cursoId es obligatorio",
+      });
+    }
+
+    const curso = await Curso.findById(cursoId);
+
+    if (!curso) {
+      return res.status(404).json({
+        mensaje: "Curso no encontrado",
+      });
+    }
+
+    if (curso.estado !== "PUBLICADO") {
+      return res.status(403).json({
+        mensaje: "Este curso no se encuentra disponible actualmente",
       });
     }
 
@@ -55,6 +72,10 @@ const validarAccesoPorCurso = async (req, res, next) => {
 
 const validarAccesoPorLeccion = async (req, res, next) => {
   try {
+    if (esAdministrador(req)) {
+      return next();
+    }
+
     const usuarioId = obtenerUsuarioId(req);
     const { id } = req.params;
 
@@ -69,6 +90,26 @@ const validarAccesoPorLeccion = async (req, res, next) => {
     if (!leccion) {
       return res.status(404).json({
         mensaje: "Lección no encontrada",
+      });
+    }
+
+    const curso = await Curso.findById(leccion.curso);
+
+    if (!curso) {
+      return res.status(404).json({
+        mensaje: "Curso no encontrado",
+      });
+    }
+
+    if (curso.estado !== "PUBLICADO") {
+      return res.status(403).json({
+        mensaje: "Este curso no se encuentra disponible actualmente",
+      });
+    }
+
+    if (leccion.estado !== "PUBLICADO") {
+      return res.status(403).json({
+        mensaje: "Esta lección no se encuentra disponible actualmente",
       });
     }
 

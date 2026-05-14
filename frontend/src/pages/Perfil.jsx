@@ -1,38 +1,21 @@
 import { useNavigate } from "react-router-dom";
 import { useCallback, useEffect, useState } from "react";
-import { API_BASE, USE_MOCK_API } from "../config/api";
+import { USE_MOCK_API } from "../config/api";
+import api from "../services/api";
 import { readMockPerfil, writeMockPerfil } from "../services/mockPerfil";
 import "./Perfil.css";
 
+import { getImageUrl } from "../utils/getImageUrl";
 import logo from "../assets/logo.png";
-import jsImg from "../assets/JavaScript.png";
-import pyImg from "../assets/Python.png";
-import javaImg from "../assets/java.png";
-import htmlImg from "../assets/html.png";
-import cppImg from "../assets/C++.png";
-import reactImg from "../assets/react.png";
+import DatosFacturacion from "../components/DatosFacturacion";
 
 const obtenerImagenCurso = (curso) => {
-  const titulo = curso?.titulo?.toLowerCase() || "";
-
-  if (titulo.includes("javascript")) return jsImg;
-  if (titulo.includes("python")) return pyImg;
-  if (titulo.includes("java")) return javaImg;
-  if (titulo.includes("html")) return htmlImg;
-  if (titulo.includes("css")) return htmlImg;
-  if (titulo.includes("c++")) return cppImg;
-  if (titulo.includes("react")) return reactImg;
-
-  return "/placeholder-curso.png";
+  return (
+    getImageUrl(curso?.imagenPortada) ||
+    getImageUrl(curso?.imagen) ||
+    "/placeholder-curso.png"
+  );
 };
-
-function authHeaders() {
-  const token = localStorage.getItem("token");
-  return {
-    "Content-Type": "application/json",
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-  };
-}
 
 function Perfil() {
   const navigate = useNavigate();
@@ -62,6 +45,10 @@ function Perfil() {
     localStorage.removeItem("email");
     localStorage.removeItem("userId");
     localStorage.removeItem("nombre");
+    localStorage.removeItem("rol");
+    localStorage.removeItem("usuario");
+    localStorage.removeItem("carrito");
+
     navigate("/login", { replace: true });
   }, [navigate]);
 
@@ -74,19 +61,13 @@ function Perfil() {
         return;
       }
 
-      const res = await fetch(
-        `${API_BASE}/api/acceso-curso/usuario/${usuarioId}`,
-      );
+      const response = await api.get(`/api/accesos/usuario/${usuarioId}`);
 
-      const data = await res.json();
+      const accesos = Array.isArray(response.data?.datos)
+        ? response.data.datos
+        : [];
 
-      if (!res.ok) {
-        throw new Error(
-          data.error || data.mensaje || "No se pudieron cargar los cursos.",
-        );
-      }
-
-      setMisCursos(Array.isArray(data) ? data : []);
+      setMisCursos(accesos.filter((acceso) => acceso?.curso));
     } catch (error) {
       console.error("Error cargando cursos:", error);
       setMisCursos([]);
@@ -110,6 +91,7 @@ function Perfil() {
 
     if (USE_MOCK_API) {
       const u = readMockPerfil(email);
+
       if (!u) {
         setLoadError("Volvé a iniciar sesión para ver tu perfil.");
         setUsuario(null);
@@ -117,34 +99,28 @@ function Perfil() {
         setUsuario(u);
         syncFormFromUsuario(u);
       }
+
       setLoading(false);
       return;
     }
 
     try {
-      const res = await fetch(`${API_BASE}/api/usuarios/${userId}`, {
-        headers: authHeaders(),
-      });
+      const { data } = await api.get(`/api/usuarios/${userId}`);
 
-      if (res.status === 401) {
+      setUsuario(data.datos);
+      syncFormFromUsuario(data.datos);
+    } catch (error) {
+      if (error.response?.status === 401) {
         clearSessionAndRedirect();
         return;
       }
 
-      const data = await res.json().catch(() => ({}));
+      setLoadError(
+        error.response?.data?.detalle ||
+          error.response?.data?.mensaje ||
+          "No se pudo cargar el perfil.",
+      );
 
-      if (!res.ok) {
-        setLoadError(
-          data.detalle || data.mensaje || "No se pudo cargar el perfil.",
-        );
-        setUsuario(null);
-        return;
-      }
-
-      setUsuario(data);
-      syncFormFromUsuario(data);
-    } catch {
-      setLoadError("Error de red al cargar el perfil.");
       setUsuario(null);
     } finally {
       setLoading(false);
@@ -200,6 +176,7 @@ function Perfil() {
     }
 
     const body = { nombre: nombreLimpio, apellido: apellidoLimpio };
+
     if (direccionLimpia) body.direccion = direccionLimpia;
     if (telefonoLimpio) body.telefono = telefonoLimpio;
 
@@ -224,36 +201,27 @@ function Perfil() {
     setSaving(true);
 
     try {
-      const res = await fetch(`${API_BASE}/api/usuarios/perfil/${userId}`, {
-        method: "PUT",
-        headers: authHeaders(),
-        body: JSON.stringify(body),
-      });
+      const { data } = await api.put(`/api/usuarios/perfil/${userId}`, body);
 
-      if (res.status === 401) {
+      setUsuario(data.datos);
+      syncFormFromUsuario(data.datos);
+      setEditando(false);
+    } catch (error) {
+      if (error.response?.status === 401) {
         clearSessionAndRedirect();
         return;
       }
 
-      const data = await res.json().catch(() => ({}));
+      const data = error.response?.data;
 
-      if (!res.ok) {
-        if (data.errores?.length) {
-          const msg = data.errores.map((x) => x.mensaje).join(" ");
-          setSaveError(msg || "No se pudo guardar.");
-        } else {
-          setSaveError(
-            data.detalle || data.mensaje || "No se pudo guardar el perfil.",
-          );
-        }
-        return;
+      if (data?.errores?.length) {
+        const msg = data.errores.map((x) => x.mensaje).join(" ");
+        setSaveError(msg || "No se pudo guardar.");
+      } else {
+        setSaveError(
+          data?.detalle || data?.mensaje || "No se pudo guardar el perfil.",
+        );
       }
-
-      setUsuario(data.usuario);
-      syncFormFromUsuario(data.usuario);
-      setEditando(false);
-    } catch {
-      setSaveError("Error de red al guardar.");
     } finally {
       setSaving(false);
     }
@@ -268,248 +236,324 @@ function Perfil() {
 
   return (
     <section className="perfil-page">
-      <div className="perfil-card">
-        <div className="perfil-header">
-          <div className="perfil-avatar">
-            <img src={logo} alt="Logo" />
-          </div>
-
-          <div className="perfil-header-info">
-            <h1 className="perfil-title">Mi perfil</h1>
-            <p className="perfil-subtitle">Panel personal del usuario</p>
-          </div>
-        </div>
-
-        {loading && (
-          <p className="perfil-status" role="status">
-            Cargando perfil…
-          </p>
-        )}
-
-        {!loading && loadError && (
-          <p className="perfil-status perfil-status--error" role="alert">
-            {loadError}
-          </p>
-        )}
-
-        {!loading && usuario && !editando && (
-          <>
-            <div className="perfil-grid">
-              <div className="perfil-group">
-                <span className="perfil-label">Nombre</span>
-                <div className="perfil-value">{nombreCompleto || "-"}</div>
-              </div>
-
-              <div className="perfil-group">
-                <span className="perfil-label">Email</span>
-                <div className="perfil-value">{emailMostrado}</div>
-              </div>
-
-              <div className="perfil-group">
-                <span className="perfil-label">Dirección</span>
-                <div className="perfil-value">
-                  {usuario.direccion?.trim() ? usuario.direccion : "-"}
-                </div>
-              </div>
-
-              <div className="perfil-group">
-                <span className="perfil-label">Teléfono</span>
-                <div className="perfil-value">
-                  {usuario.telefono?.trim() ? usuario.telefono : "-"}
-                </div>
-              </div>
-
-              <div className="perfil-group">
-                <span className="perfil-label">Estado</span>
-                <div className="perfil-value">Sesión activa</div>
-              </div>
-
-              <div className="perfil-group">
-                <span className="perfil-label">Cursos comprados</span>
-                <div className="perfil-value">{misCursos.length} cursos</div>
-              </div>
+      <div className="perfil-shell">
+        <aside className="perfil-sidebar">
+          <div className="perfil-user">
+            <div className="perfil-avatar">
+              <img src={logo} alt="Logo" />
             </div>
 
-            <div className="perfil-actions">
-              <button
-                type="button"
-                className="btn btn-primary"
-                onClick={abrirEdicion}
-              >
-                Editar perfil
-              </button>
-
-              <button
-                type="button"
-                className="btn btn-primary"
-                onClick={cerrarSesion}
-              >
-                Cerrar sesión
-              </button>
+            <div>
+              <h2>Mi cuenta</h2>
+              <p>{nombreCompleto || "Usuario"}</p>
+              <span>{emailMostrado}</span>
             </div>
-          </>
-        )}
+          </div>
 
-        {!loading && usuario && editando && (
-          <form className="perfil-edit-form" onSubmit={guardarPerfil}>
-            {saveError && (
-              <p className="perfil-form-error" role="alert">
-                {saveError}
+          <nav className="perfil-menu" aria-label="Menú del perfil">
+            <button type="button" className="perfil-menu-item active">
+              <span>👤</span>
+              Mi perfil
+            </button>
+
+            <button
+              type="button"
+              className="perfil-menu-item"
+              onClick={() => navigate("/mis-cursos")}
+            >
+              <span>📚</span>
+              Mis cursos
+            </button>
+
+            <button type="button" className="perfil-menu-item">
+              <span>🧾</span>
+              Facturación
+            </button>
+
+            <button type="button" className="perfil-menu-item">
+              <span>⚙️</span>
+              Configuración
+            </button>
+
+            <button
+              type="button"
+              className="perfil-menu-item logout"
+              onClick={cerrarSesion}
+            >
+              <span>↪</span>
+              Cerrar sesión
+            </button>
+          </nav>
+
+          <div className="perfil-help">
+            <div className="perfil-help-icon">🎧</div>
+            <h3>¿Necesitás ayuda?</h3>
+            <p>Nuestro equipo está para ayudarte.</p>
+            <button type="button" onClick={() => navigate("/contacto")}>
+              Contactar soporte
+            </button>
+          </div>
+        </aside>
+
+        <main className="perfil-main">
+          <header className="perfil-main-header">
+            <div>
+              <span className="perfil-eyebrow">Panel de usuario</span>
+              <h1>Mi perfil</h1>
+              <p>
+                Gestioná tu información personal, tus datos de facturación y tus
+                cursos.
               </p>
-            )}
-
-            <div className="grid grid-2 perfil-edit-grid">
-              <div className="perfil-group">
-                <label className="perfil-label" htmlFor="perfil-nombre">
-                  Nombre
-                </label>
-                <input
-                  id="perfil-nombre"
-                  className="input"
-                  value={nombre}
-                  onChange={(e) => setNombre(e.target.value)}
-                  autoComplete="given-name"
-                  required
-                  minLength={2}
-                />
-              </div>
-
-              <div className="perfil-group">
-                <label className="perfil-label" htmlFor="perfil-apellido">
-                  Apellido
-                </label>
-                <input
-                  id="perfil-apellido"
-                  className="input"
-                  value={apellido}
-                  onChange={(e) => setApellido(e.target.value)}
-                  autoComplete="family-name"
-                  required
-                />
-              </div>
-
-              <div className="perfil-group">
-                <label className="perfil-label" htmlFor="perfil-email">
-                  Email
-                </label>
-                <input
-                  id="perfil-email"
-                  className="input"
-                  value={usuario.email ?? ""}
-                  readOnly
-                  aria-readonly="true"
-                />
-              </div>
-
-              <div className="perfil-group">
-                <label className="perfil-label" htmlFor="perfil-telefono">
-                  Teléfono
-                </label>
-                <input
-                  id="perfil-telefono"
-                  className="input"
-                  value={telefono}
-                  onChange={(e) => setTelefono(e.target.value)}
-                  autoComplete="tel"
-                  placeholder="Opcional"
-                />
-              </div>
-
-              <div className="perfil-group perfil-group--full">
-                <label className="perfil-label" htmlFor="perfil-direccion">
-                  Dirección
-                </label>
-                <input
-                  id="perfil-direccion"
-                  className="input"
-                  value={direccion}
-                  onChange={(e) => setDireccion(e.target.value)}
-                  autoComplete="street-address"
-                  placeholder="Opcional"
-                />
-              </div>
             </div>
+          </header>
 
-            <div className="perfil-form-actions">
-              <button
-                type="button"
-                className="btn btn-primary"
-                onClick={cancelarEdicion}
-                disabled={saving}
-              >
-                Cancelar
-              </button>
+          {loading && (
+            <p className="perfil-status" role="status">
+              Cargando perfil…
+            </p>
+          )}
 
-              <button
-                type="submit"
-                className="btn btn-primary"
-                disabled={saving}
-              >
-                {saving ? "Guardando…" : "Guardar"}
-              </button>
-            </div>
+          {!loading && loadError && (
+            <p className="perfil-status perfil-status--error" role="alert">
+              {loadError}
+            </p>
+          )}
 
-            <div className="perfil-actions perfil-actions--after-form">
-              <button
-                type="button"
-                className="btn btn-primary"
-                onClick={cerrarSesion}
-              >
-                Cerrar sesión
-              </button>
-            </div>
-          </form>
-        )}
+          {!loading && usuario && (
+            <article className="perfil-section-card">
+              <div className="perfil-section-header">
+                <div className="perfil-section-title">
+                  <span className="perfil-section-icon">👤</span>
+                  <div>
+                    <h2>Información personal</h2>
+                    <p>Datos principales de tu cuenta.</p>
+                  </div>
+                </div>
 
-        {!loading && !usuario && !loadError && (
-          <p className="perfil-status perfil-status--error" role="alert">
-            No se encontró el perfil.
-          </p>
-        )}
-      </div>
+                {!editando && (
+                  <button
+                    type="button"
+                    className="perfil-btn perfil-btn-primary"
+                    onClick={abrirEdicion}
+                  >
+                    Editar perfil
+                  </button>
+                )}
+              </div>
 
-      <div className="perfil-cursos">
-        <h2 className="perfil-cursos-title">Mis cursos</h2>
+              {!editando && (
+                <div className="perfil-info-grid">
+                  <div className="perfil-info-item">
+                    <span>Nombre completo</span>
+                    <strong>{nombreCompleto || "-"}</strong>
+                  </div>
 
-        <div className="perfil-cursos-list">
-          {misCursos.length > 0 ? (
-            misCursos.map((acceso) => (
-              <div
-                key={acceso._id}
-                className="perfil-curso-card"
-                onClick={() => navigate(`/curso/${acceso.curso._id}`)}
-                style={{ cursor: "pointer" }}
-              >
-                <img
-                  src={obtenerImagenCurso(acceso.curso)}
-                  alt={acceso.curso?.titulo || "Curso"}
-                  className="perfil-curso-img"
-                  onError={(e) => {
-                    e.currentTarget.src = "/placeholder-curso.png";
-                  }}
-                />
+                  <div className="perfil-info-item">
+                    <span>Email</span>
+                    <strong>{emailMostrado}</strong>
+                  </div>
 
-                <h3>{acceso.curso?.titulo || "Curso sin título"}</h3>
-                <p>Progreso: {acceso.progreso || 0}%</p>
+                  <div className="perfil-info-item">
+                    <span>Dirección</span>
+                    <strong>
+                      {usuario.direccion?.trim() ? usuario.direccion : "-"}
+                    </strong>
+                  </div>
 
+                  <div className="perfil-info-item">
+                    <span>Teléfono</span>
+                    <strong>
+                      {usuario.telefono?.trim() ? usuario.telefono : "-"}
+                    </strong>
+                  </div>
+
+                  <div className="perfil-info-item">
+                    <span>Estado de cuenta</span>
+                    <strong className="perfil-badge-active">
+                      Sesión activa
+                    </strong>
+                  </div>
+
+                  <div className="perfil-info-item">
+                    <span>Cursos comprados</span>
+                    <strong>{misCursos.length} cursos</strong>
+                  </div>
+                </div>
+              )}
+
+              {editando && (
+                <form className="perfil-edit-form" onSubmit={guardarPerfil}>
+                  {saveError && (
+                    <p className="perfil-form-error" role="alert">
+                      {saveError}
+                    </p>
+                  )}
+
+                  <div className="perfil-info-grid">
+                    <div className="perfil-form-group">
+                      <label htmlFor="perfil-nombre">Nombre</label>
+                      <input
+                        id="perfil-nombre"
+                        value={nombre}
+                        onChange={(e) => setNombre(e.target.value)}
+                        autoComplete="given-name"
+                        required
+                        minLength={2}
+                      />
+                    </div>
+
+                    <div className="perfil-form-group">
+                      <label htmlFor="perfil-apellido">Apellido</label>
+                      <input
+                        id="perfil-apellido"
+                        value={apellido}
+                        onChange={(e) => setApellido(e.target.value)}
+                        autoComplete="family-name"
+                        required
+                      />
+                    </div>
+
+                    <div className="perfil-form-group">
+                      <label htmlFor="perfil-email">Email</label>
+                      <input
+                        id="perfil-email"
+                        value={usuario.email ?? ""}
+                        readOnly
+                      />
+                    </div>
+
+                    <div className="perfil-form-group">
+                      <label htmlFor="perfil-telefono">Teléfono</label>
+                      <input
+                        id="perfil-telefono"
+                        value={telefono}
+                        onChange={(e) => setTelefono(e.target.value)}
+                        autoComplete="tel"
+                        placeholder="Opcional"
+                      />
+                    </div>
+
+                    <div className="perfil-form-group perfil-form-group-full">
+                      <label htmlFor="perfil-direccion">Dirección</label>
+                      <input
+                        id="perfil-direccion"
+                        value={direccion}
+                        onChange={(e) => setDireccion(e.target.value)}
+                        autoComplete="street-address"
+                        placeholder="Opcional"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="perfil-form-actions">
+                    <button
+                      type="button"
+                      className="perfil-btn perfil-btn-secondary"
+                      onClick={cancelarEdicion}
+                      disabled={saving}
+                    >
+                      Cancelar
+                    </button>
+
+                    <button
+                      type="submit"
+                      className="perfil-btn perfil-btn-primary"
+                      disabled={saving}
+                    >
+                      {saving ? "Guardando…" : "Guardar cambios"}
+                    </button>
+                  </div>
+                </form>
+              )}
+            </article>
+          )}
+
+          {!loading && !usuario && !loadError && (
+            <p className="perfil-status perfil-status--error" role="alert">
+              No se encontró el perfil.
+            </p>
+          )}
+
+          <div className="perfil-facturacion-wrap">
+            <DatosFacturacion />
+          </div>
+
+          <section className="perfil-cursos">
+            <div className="perfil-cursos-header">
+              <div>
+                <span className="perfil-section-icon">🎓</span>
+                <h2>Mis cursos</h2>
+              </div>
+
+              {misCursos.length > 0 && (
                 <button
                   type="button"
-                  className="btn btn-primary"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    navigate(`/curso/${acceso.curso._id}`);
-                  }}
+                  className="perfil-link-btn"
+                  onClick={() => navigate("/mis-cursos")}
                 >
-                  Continuar curso
+                  Ver todos →
                 </button>
-              </div>
-            ))
-          ) : (
-            <div className="perfil-vacio">
-              No tenés cursos comprados todavía.
+              )}
             </div>
-          )}
-        </div>
+
+            <div className="perfil-cursos-list">
+              {misCursos.length > 0 ? (
+                misCursos.slice(0, 3).map((acceso) => (
+                  <article
+                    key={acceso._id}
+                    className="perfil-curso-card"
+                    onClick={() =>
+                      navigate(`/curso/${acceso.curso._id}/aprender`)
+                    }
+                  >
+                    <div className="perfil-curso-img-wrap">
+                      <img
+                        src={obtenerImagenCurso(acceso.curso)}
+                        alt={acceso.curso?.titulo || "Curso"}
+                        className="perfil-curso-img"
+                        onError={(e) => {
+                          e.currentTarget.src = "/placeholder-curso.png";
+                        }}
+                      />
+
+                      <span className="perfil-curso-chip">En progreso</span>
+                    </div>
+
+                    <div className="perfil-curso-body">
+                      <h3>{acceso.curso?.titulo || "Curso sin título"}</h3>
+
+                      <div className="perfil-progress-row">
+                        <div className="perfil-progress-track">
+                          <span
+                            style={{
+                              width: `${Math.min(acceso.progreso || 0, 100)}%`,
+                            }}
+                          />
+                        </div>
+                        <strong>{acceso.progreso || 0}%</strong>
+                      </div>
+
+                      <button
+                        type="button"
+                        className="perfil-btn perfil-btn-primary"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/curso/${acceso.curso._id}/aprender`);
+                        }}
+                      >
+                        Continuar curso
+                      </button>
+                    </div>
+                  </article>
+                ))
+              ) : (
+                <div className="perfil-vacio">
+                  No tenés cursos comprados todavía.
+                </div>
+              )}
+            </div>
+          </section>
+        </main>
       </div>
     </section>
   );

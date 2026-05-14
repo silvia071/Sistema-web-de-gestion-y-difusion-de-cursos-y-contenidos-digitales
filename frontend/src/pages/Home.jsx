@@ -1,17 +1,12 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { API_BASE } from "../config/api";
+import api from "../services/api";
+import { getImageUrl } from "../utils/getImageUrl";
 import "./Home.css";
 
 import reactHero from "../assets/react-hero.png";
 import figmaHero from "../assets/figma-hero.png";
 import marketingHero from "../assets/marketing-hero.png";
-
-const imgJS = new URL("../assets/JavaScript.png", import.meta.url).href;
-const imgPython = new URL("../assets/Python.png", import.meta.url).href;
-const imgJava = new URL("../assets/java.png", import.meta.url).href;
-const imgCpp = new URL("../assets/C++.png", import.meta.url).href;
-const imgHtml = new URL("../assets/html.png", import.meta.url).href;
 
 export default function Home() {
   const [cursos, setCursos] = useState([]);
@@ -20,16 +15,9 @@ export default function Home() {
   useEffect(() => {
     const obtenerCursos = async () => {
       try {
-        const res = await fetch(`${API_BASE}/api/cursos`);
-        const data = await res.json();
+        const response = await api.get("/api/cursos");
+        const lista = response.data.datos || [];
 
-        const lista = Array.isArray(data)
-          ? data
-          : Array.isArray(data.cursos)
-            ? data.cursos
-            : [];
-
-        console.log("CURSOS HOME:", lista);
         setCursos(lista.slice(0, 4));
       } catch (error) {
         console.error("Error cargando cursos:", error);
@@ -56,6 +44,7 @@ export default function Home() {
     if (texto.includes("backend")) return "course-card--backend";
     if (texto.includes("python")) return "course-card--backend";
     if (texto.includes("java")) return "course-card--backend";
+
     return "course-card--dev";
   };
 
@@ -75,6 +64,7 @@ export default function Home() {
 
   const construirImagenCurso = (curso) => {
     const imagen =
+      curso?.imagenPortada ||
       curso?.imagen ||
       curso?.imagenUrl ||
       curso?.urlImagen ||
@@ -86,39 +76,7 @@ export default function Home() {
     const limpia = imagen.trim();
     if (!limpia) return null;
 
-    if (
-      limpia.startsWith("http://") ||
-      limpia.startsWith("https://") ||
-      limpia.startsWith("data:")
-    ) {
-      return limpia;
-    }
-
-    if (limpia.startsWith("/uploads/")) {
-      return `${API_BASE}${limpia}`;
-    }
-
-    if (limpia.startsWith("uploads/")) {
-      return `${API_BASE}/${limpia}`;
-    }
-
-    if (limpia.startsWith("/")) {
-      return `${API_BASE}${limpia}`;
-    }
-
-    return `${API_BASE}/uploads/${limpia}`;
-  };
-
-  const obtenerImagenLocal = (curso) => {
-    const titulo = (curso.titulo || "").toLowerCase();
-
-    if (titulo.includes("javascript")) return imgJS;
-    if (titulo.includes("python")) return imgPython;
-    if (titulo.includes("c++")) return imgCpp;
-    if (titulo.includes("html") || titulo.includes("css")) return imgHtml;
-    if (titulo.includes("java")) return imgJava;
-
-    return null;
+    return getImageUrl(limpia);
   };
 
   return (
@@ -126,17 +84,20 @@ export default function Home() {
       <section className="hero-home">
         <div className="hero-home__content">
           <div className="hero-home__left">
-            <span className="hero-home__eyebrow">PLATAFORMA DE CURSOS</span>
+            <span className="hero-home__eyebrow">
+              PLATAFORMA DE CURSOS ONLINE
+            </span>
 
             <h1 className="hero-home__title">
-              Aprendé hoy,
+              Aprendé hoy.
               <br />
-              <span>transformá tu futuro</span>
+              <span>Transformá tu futuro.</span>
             </h1>
 
             <p className="hero-home__text">
-              Accedé a los mejores cursos online y desarrollá nuevas habilidades
-              a tu ritmo.
+              Accedé a cursos digitales diseñados para ayudarte a desarrollar
+              nuevas habilidades, avanzar profesionalmente y aprender a tu
+              ritmo.
             </p>
 
             <div className="hero-home__actions">
@@ -173,7 +134,7 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="hero-home__right">
+          <div className="hero-home__right" aria-hidden="true">
             <div className="hero-home__visual">
               <div className="hero-card">
                 <span className="hero-card__badge">DESARROLLO WEB</span>
@@ -187,23 +148,24 @@ export default function Home() {
                     </h3>
 
                     <p>
-                      Aprendé React desde cero y construí aplicaciones modernas.
+                      Aprendé a crear interfaces modernas, dinámicas y
+                      escalables con herramientas actuales.
                     </p>
 
                     <Link to="/cursos" className="hero-card__btn">
-                      Ver curso
+                      Explorar
                     </Link>
                   </div>
 
                   <div className="hero-card__right">
                     <div className="hero-card__code hero-card__code--left"></div>
-                    <img src={reactHero} alt="React" />
+                    <img src={reactHero} alt="" />
                     <div className="hero-card__code hero-card__code--right"></div>
                   </div>
                 </div>
               </div>
 
-              <div className="hero-course-card hero-course-card--small hero-course-card--top">
+              <div className="hero-course-card hero-course-card--top">
                 <span className="hero-course-card__tag hero-course-card__tag--pink">
                   DISEÑO
                 </span>
@@ -215,12 +177,12 @@ export default function Home() {
                   </div>
 
                   <div className="hero-course-card__small-media">
-                    <img src={figmaHero} alt="Figma" />
+                    <img src={figmaHero} alt="" />
                   </div>
                 </div>
               </div>
 
-              <div className="hero-course-card hero-course-card--small hero-course-card--bottom">
+              <div className="hero-course-card hero-course-card--bottom">
                 <span className="hero-course-card__tag hero-course-card__tag--green">
                   MARKETING
                 </span>
@@ -232,7 +194,7 @@ export default function Home() {
                   </div>
 
                   <div className="hero-course-card__small-media">
-                    <img src={marketingHero} alt="Marketing" />
+                    <img src={marketingHero} alt="" />
                   </div>
                 </div>
               </div>
@@ -243,43 +205,41 @@ export default function Home() {
 
       <section className="benefits-strip" id="como">
         <div className="benefits-strip__grid">
-          <div className="benefit-item">
+          <article className="benefit-item">
             <div className="benefit-item__icon">📘</div>
+
             <div className="benefit-item__content">
               <h3>Aprendé a tu ritmo</h3>
-              <p>
-                Accedé a los cursos cuando quieras y desde cualquier
-                dispositivo.
-              </p>
+              <p>Accedé cuando quieras desde cualquier dispositivo.</p>
             </div>
-          </div>
+          </article>
 
-          <div className="benefit-item">
+          <article className="benefit-item">
             <div className="benefit-item__icon">📄</div>
+
             <div className="benefit-item__content">
               <h3>Certificados</h3>
-              <p>
-                Obtené certificados al completar cada curso y potenciá tu
-                perfil.
-              </p>
+              <p>Sumá valor a tu perfil al completar tus cursos.</p>
             </div>
-          </div>
+          </article>
 
-          <div className="benefit-item">
+          <article className="benefit-item">
             <div className="benefit-item__icon">∞</div>
+
             <div className="benefit-item__content">
               <h3>Acceso ilimitado</h3>
-              <p>Ingresá a todo el contenido siempre que lo necesites.</p>
+              <p>Revisá el contenido todas las veces que necesites.</p>
             </div>
-          </div>
+          </article>
 
-          <div className="benefit-item">
+          <article className="benefit-item">
             <div className="benefit-item__icon">🎧</div>
+
             <div className="benefit-item__content">
-              <h3>Soporte 24/7</h3>
-              <p>Nuestro equipo está siempre disponible para ayudarte.</p>
+              <h3>Soporte</h3>
+              <p>Acompañamiento para resolver dudas durante el aprendizaje.</p>
             </div>
-          </div>
+          </article>
         </div>
       </section>
 
@@ -288,7 +248,7 @@ export default function Home() {
           <div className="featured-courses__header">
             <div>
               <h2>Cursos destacados</h2>
-              <p>Elegidos especialmente para vos</p>
+              <p>Una selección de contenidos para empezar hoy.</p>
             </div>
 
             <Link to="/cursos" className="featured-courses__btn">
@@ -297,7 +257,7 @@ export default function Home() {
           </div>
 
           {loading ? (
-            <p className="home-loading">Cargando...</p>
+            <p className="home-loading">Cargando cursos...</p>
           ) : cursos.length === 0 ? (
             <p className="home-loading">No hay cursos disponibles.</p>
           ) : (
@@ -306,8 +266,7 @@ export default function Home() {
                 const categoriaTexto = obtenerCategoriaTexto(curso);
                 const categoriaClase = obtenerCategoriaClase(categoriaTexto);
                 const iniciales = obtenerIniciales(curso, categoriaTexto);
-                const imagenCurso =
-                  construirImagenCurso(curso) || obtenerImagenLocal(curso);
+                const imagenCurso = construirImagenCurso(curso);
 
                 return (
                   <article
@@ -363,9 +322,11 @@ export default function Home() {
                       <h3>{curso.titulo}</h3>
 
                       <div className="course-card__footer">
-                        <span className="course-card__teacher">
-                          {curso.profesor || curso.instructor || "Instructor"}
-                        </span>
+                        {(curso.profesor || curso.instructor) && (
+                          <span className="course-card__teacher">
+                            {curso.profesor || curso.instructor}
+                          </span>
+                        )}
 
                         <span className="course-card__rating">
                           ⭐ {curso.rating || 4.9}
@@ -388,6 +349,99 @@ export default function Home() {
               })}
             </div>
           )}
+        </div>
+      </section>
+      <section className="home-cta">
+        <div className="home-cta__content">
+          <div className="home-cta__icon">🎓</div>
+
+          <div>
+            <h2>¿Listo para comenzar?</h2>
+            <p>Unite a miles de estudiantes y empezá a aprender hoy mismo.</p>
+          </div>
+
+          <Link to="/cursos" className="home-cta__btn">
+            Explorar cursos
+          </Link>
+        </div>
+      </section>
+      <section className="mobile-preview">
+        <div className="mobile-preview__grid">
+          <div className="phone-mockup">
+            <div className="phone-mockup__top">
+              <span className="phone-logo">{"{MD}"}</span>
+              <span>☰</span>
+            </div>
+
+            <span className="phone-eyebrow">PLATAFORMA DE CURSOS</span>
+
+            <h3>
+              Aprendé hoy.
+              <span>Transformá tu futuro.</span>
+            </h3>
+
+            <p>Accedé a los mejores cursos online y desarrollá habilidades.</p>
+
+            <button>Ver cursos</button>
+
+            <div className="phone-stats">
+              <span>+100</span>
+              <span>+5.000</span>
+              <span>4.9/5</span>
+            </div>
+          </div>
+
+          <div className="phone-mockup">
+            <div className="phone-mockup__top">
+              <span>‹</span>
+              <span>☰</span>
+            </div>
+
+            <h4>Aprendé a tu ritmo</h4>
+
+            <div className="phone-feature">📘 Accedé cuando quieras</div>
+            <div className="phone-feature">📄 Certificados incluidos</div>
+            <div className="phone-feature">∞ Acceso ilimitado</div>
+            <div className="phone-feature">🎧 Soporte disponible</div>
+          </div>
+
+          <div className="phone-mockup">
+            <div className="phone-mockup__top">
+              <span>‹</span>
+              <span>☰</span>
+            </div>
+
+            <h4>Cursos destacados</h4>
+
+            <div className="phone-course">
+              <img
+                src={cursos[0] ? construirImagenCurso(cursos[0]) : ""}
+                alt=""
+              />
+              <strong>{cursos[0]?.titulo || "Curso de JavaScript"}</strong>
+              <span>⭐ 4.9</span>
+              <b>$15.000</b>
+              <button>Ver curso</button>
+            </div>
+          </div>
+
+          <div className="phone-mockup">
+            <div className="phone-mockup__top">
+              <span>‹</span>
+              <span>☰</span>
+            </div>
+
+            <span className="phone-badge">DESARROLLO WEB</span>
+
+            <h4>React Completo</h4>
+
+            <p>Aprendé React desde cero y construí aplicaciones modernas.</p>
+
+            <button>Ver curso</button>
+
+            <div className="phone-mini-card">DISEÑO · UI/UX Diseño Web</div>
+            <div className="phone-mini-card">MARKETING · Marketing Digital</div>
+          </div>
         </div>
       </section>
     </main>

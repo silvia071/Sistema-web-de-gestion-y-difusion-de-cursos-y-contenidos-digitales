@@ -1,31 +1,26 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import { useCarrito } from "../../context/CarritoContext";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import logo from "../../assets/logo.png";
 import "./Navbar.css";
+
+function obtenerPayloadToken(token) {
+  try {
+    return JSON.parse(atob(token.split(".")[1]));
+  } catch {
+    return null;
+  }
+}
 
 function Navbar() {
   const { cantidadTotal, limpiarCarritoVisual } = useCarrito();
   const navigate = useNavigate();
 
   const [openUserMenu, setOpenUserMenu] = useState(false);
-  const [animarBadge, setAnimarBadge] = useState(false);
 
   const token = localStorage.getItem("token");
-  const rol = localStorage.getItem("rol");
-  const esAdmin = rol === "ADMINISTRADOR";
-
-  useEffect(() => {
-    if (cantidadTotal > 0) {
-      setAnimarBadge(true);
-
-      const timer = setTimeout(() => {
-        setAnimarBadge(false);
-      }, 300);
-
-      return () => clearTimeout(timer);
-    }
-  }, [cantidadTotal]);
+  const payload = token ? obtenerPayloadToken(token) : null;
+  const esAdmin = payload?.rol === "ADMINISTRADOR";
 
   const handleLogout = () => {
     limpiarCarritoVisual();
@@ -35,8 +30,10 @@ function Navbar() {
     localStorage.removeItem("email");
     localStorage.removeItem("nombre");
     localStorage.removeItem("rol");
+    localStorage.removeItem("usuario");
 
     setOpenUserMenu(false);
+
     navigate("/login");
   };
 
@@ -108,39 +105,40 @@ function Navbar() {
         </nav>
 
         <div className="navbar__actions">
-          <NavLink
-            to="/carrito"
-            onClick={handleCarritoClick}
-            className={({ isActive }) =>
-              `navbar__cart ${isActive ? "active" : ""}`
-            }
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="22"
-              height="22"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
+          {!esAdmin && (
+            <NavLink
+              to="/carrito"
+              onClick={handleCarritoClick}
+              className={({ isActive }) =>
+                `navbar__cart ${isActive ? "active" : ""}`
+              }
             >
-              <circle cx="8" cy="21" r="1"></circle>
-              <circle cx="19" cy="21" r="1"></circle>
-              <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.72a2 2 0 0 0 2-1.64L23 6H6"></path>
-            </svg>
-
-            {token && cantidadTotal > 0 && (
-              <span
-                className={`navbar__cart-badge ${
-                  animarBadge ? "navbar__cart-badge--animado" : ""
-                }`}
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="22"
+                height="22"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
               >
-                {cantidadTotal}
-              </span>
-            )}
-          </NavLink>
+                <circle cx="8" cy="21" r="1"></circle>
+                <circle cx="19" cy="21" r="1"></circle>
+                <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.72a2 2 0 0 0 2-1.64L23 6H6"></path>
+              </svg>
+
+              {token && cantidadTotal > 0 && (
+                <span
+                  key={cantidadTotal}
+                  className="navbar__cart-badge navbar__cart-badge--animado"
+                >
+                  {cantidadTotal}
+                </span>
+              )}
+            </NavLink>
+          )}
 
           {token ? (
             <div className="navbar__user-menu">
@@ -164,25 +162,29 @@ function Navbar() {
                     Mi perfil
                   </button>
 
-                  <button
-                    className="navbar__dropdown-item"
-                    onClick={() => {
-                      setOpenUserMenu(false);
-                      navigate("/mis-cursos");
-                    }}
-                  >
-                    Mis cursos
-                  </button>
+                  {!esAdmin && (
+                    <>
+                      <button
+                        className="navbar__dropdown-item"
+                        onClick={() => {
+                          setOpenUserMenu(false);
+                          navigate("/mis-cursos");
+                        }}
+                      >
+                        Mis cursos
+                      </button>
 
-                  <button
-                    className="navbar__dropdown-item"
-                    onClick={() => {
-                      setOpenUserMenu(false);
-                      navigate("/carrito");
-                    }}
-                  >
-                    Mi carrito
-                  </button>
+                      <button
+                        className="navbar__dropdown-item"
+                        onClick={() => {
+                          setOpenUserMenu(false);
+                          navigate("/carrito");
+                        }}
+                      >
+                        Mi carrito
+                      </button>
+                    </>
+                  )}
 
                   {esAdmin && (
                     <button

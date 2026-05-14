@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { API_BASE, USE_MOCK_API } from "../config/api";
+import { USE_MOCK_API } from "../config/api";
+import api from "../services/api";
 import { readMockPerfil, writeMockPerfil } from "../services/mockPerfil";
 import { useCarrito } from "../context/CarritoContext";
 import "./Login.css";
@@ -27,6 +28,40 @@ function Login() {
     }));
   };
 
+  const guardarSesion = (token, usuario) => {
+    if (!token || !usuario) {
+      throw new Error("Respuesta de login inválida");
+    }
+
+    const usuarioId = usuario.id || usuario._id;
+
+    if (!usuarioId) {
+      throw new Error("No se pudo obtener el ID del usuario");
+    }
+
+    localStorage.removeItem("token");
+    localStorage.removeItem("usuario");
+    localStorage.removeItem("rol");
+    localStorage.removeItem("userId");
+    localStorage.removeItem("email");
+    localStorage.removeItem("nombre");
+    localStorage.removeItem("apellido");
+    localStorage.removeItem("nombreCompleto");
+    localStorage.removeItem("carrito");
+
+    const nombre = usuario.nombre || "Usuario";
+    const apellido = usuario.apellido || "";
+    const nombreCompleto = `${nombre} ${apellido}`.trim();
+
+    localStorage.setItem("token", token);
+    localStorage.setItem("userId", usuarioId);
+    localStorage.setItem("email", usuario.email || "");
+    localStorage.setItem("nombre", nombre);
+    localStorage.setItem("apellido", apellido);
+    localStorage.setItem("nombreCompleto", nombreCompleto);
+    localStorage.setItem("rol", usuario.rol || "USUARIO");
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -43,10 +78,13 @@ function Login() {
       const perfil = readMockPerfil(email);
       writeMockPerfil(perfil);
 
-      localStorage.setItem("token", "mock_session");
-      localStorage.setItem("userId", "local");
-      localStorage.setItem("email", email);
-      localStorage.setItem("nombre", perfil?.nombre || "Usuario");
+      guardarSesion("mock_session", {
+        id: "local",
+        email,
+        nombre: perfil?.nombre || "Usuario",
+        apellido: perfil?.apellido || "",
+        rol: perfil?.rol || "USUARIO",
+      });
 
       recargarCarrito();
       navigate("/cursos");
@@ -56,31 +94,25 @@ function Login() {
     setSubmitting(true);
 
     try {
-      const res = await fetch(`${API_BASE}/api/usuarios/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, contrasenia: password }),
+      const { data } = await api.post("/api/auth/login", {
+        email,
+        contrasenia: password,
       });
 
-      const data = await res.json().catch(() => ({}));
+      const token = data.token || data.datos?.token;
+      const usuario = data.usuario || data.datos?.usuario;
 
-      if (!res.ok) {
-        const msg =
-          data.detalle || data.mensaje || "No se pudo iniciar sesión.";
-        setError(msg);
-        return;
-      }
-
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("userId", data.usuario.id || data.usuario._id);
-      localStorage.setItem("email", data.usuario.email);
-      localStorage.setItem("nombre", data.usuario.nombre);
-      localStorage.setItem("rol", data.usuario.rol);
+      guardarSesion(token, usuario);
 
       recargarCarrito();
       navigate("/cursos");
-    } catch {
-      setError("Error de red. Intentá de nuevo.");
+    } catch (error) {
+      setError(
+        error.response?.data?.detalle ||
+          error.response?.data?.mensaje ||
+          error.message ||
+          "No se pudo iniciar sesión.",
+      );
     } finally {
       setSubmitting(false);
     }
@@ -135,7 +167,7 @@ function Login() {
               <button
                 type="button"
                 className="login-password-toggle"
-                onClick={() => setShowPassword(!showPassword)}
+                onClick={() => setShowPassword((prev) => !prev)}
               >
                 {showPassword ? "Ocultar" : "Mostrar"}
               </button>

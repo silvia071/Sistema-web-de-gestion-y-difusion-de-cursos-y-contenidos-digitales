@@ -11,7 +11,9 @@ const generarCompraDesdeCarrito = async (carrito, usuarioId) => {
   if (!usuarioId) {
     throw new Error("El usuario es obligatorio");
   }
-
+if (!carrito.usuario || carrito.usuario.toString() !== usuarioId.toString()) {
+  throw new Error("No tenés permiso para generar una compra con este carrito");
+}
   let subtotal = 0;
   const detallesIds = [];
 
@@ -36,8 +38,16 @@ const generarCompraDesdeCarrito = async (carrito, usuarioId) => {
       throw new Error("Ya tenés acceso a uno de los cursos del carrito");
     }
 
-    const subtotalDetalle = item.precioUnitario;
+    const subtotalDetalle = Number(item.precioUnitario);
 
+   if (
+     !carrito.usuario ||
+     carrito.usuario.toString() !== usuarioId.toString()
+   ) {
+     throw new Error(
+       "No tenés permiso para generar una compra con este carrito",
+     );
+   }
     const detalle = await DetalleCompra.create({
       curso: cursoId,
       precioUnitario: item.precioUnitario,

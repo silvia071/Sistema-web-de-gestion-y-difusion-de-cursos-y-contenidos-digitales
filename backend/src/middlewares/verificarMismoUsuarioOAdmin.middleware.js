@@ -1,7 +1,19 @@
 const verificarMismoUsuarioOAdmin = (req, res, next) => {
   try {
     const idParam = req.params.id;
-    const usuarioLogueado = req.user;
+    const usuarioLogueado = req.usuario;
+
+    if (!usuarioLogueado) {
+      return res.status(401).json({
+        mensaje: "No autorizado. Usuario no autenticado",
+      });
+    }
+
+    if (!idParam) {
+      return res.status(400).json({
+        mensaje: "ID requerido",
+      });
+    }
 
     if (
       usuarioLogueado._id.toString() === idParam ||

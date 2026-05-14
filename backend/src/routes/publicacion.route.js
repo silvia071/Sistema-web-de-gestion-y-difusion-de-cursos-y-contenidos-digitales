@@ -11,12 +11,31 @@ const {
   ocultarPublicacion,
 } = require("../controllers/publicacion.controller");
 
+const { verificarToken } = require("../middlewares/verificarToken.middleware");
+
+const { verificarAdmin } = require("../middlewares/verificarAdmin.validator");
+
 router.get("/", getPublicaciones);
 router.get("/:id", getPublicacionById);
-router.post("/", createPublicacion);
-router.put("/:id", updatePublicacion);
-router.delete("/:id", deletePublicacion);
-router.patch("/:id/publicar", publicarPublicacion);
-router.patch("/:id/ocultar", ocultarPublicacion);
+
+router.post("/", verificarToken, verificarAdmin, createPublicacion);
+
+router.put("/:id", verificarToken, verificarAdmin, updatePublicacion);
+
+router.delete("/:id", verificarToken, verificarAdmin, deletePublicacion);
+
+router.patch(
+  "/:id/publicar",
+  verificarToken,
+  verificarAdmin,
+  publicarPublicacion,
+);
+
+router.patch(
+  "/:id/ocultar",
+  verificarToken,
+  verificarAdmin,
+  ocultarPublicacion,
+);
 
 module.exports = router;

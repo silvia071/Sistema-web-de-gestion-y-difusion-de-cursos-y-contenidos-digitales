@@ -7,15 +7,29 @@ const {
   buscarMensajePorId,
   marcarComoLeido,
   marcarComoRespondido,
-  eliminarMensaje
+  eliminarMensaje,
 } = require("../controllers/mensajeContacto.controller");
 
-router.post("/", crearMensaje);
-router.get("/", listarMensajes);
-router.get("/:id", buscarMensajePorId);
+const { verificarToken } = require("../middlewares/verificarToken.middleware");
+const { verificarAdmin } = require("../middlewares/verificarAdmin.validator");
 
-router.patch("/:id/leido", marcarComoLeido);
-router.patch("/:id/respondido", marcarComoRespondido);
-router.patch("/:id/eliminar", eliminarMensaje);
+// Público
+router.post("/", crearMensaje);
+
+// Admin
+router.get("/", verificarToken, verificarAdmin, listarMensajes);
+
+router.get("/:id", verificarToken, verificarAdmin, buscarMensajePorId);
+
+router.patch("/:id/leido", verificarToken, verificarAdmin, marcarComoLeido);
+
+router.patch(
+  "/:id/respondido",
+  verificarToken,
+  verificarAdmin,
+  marcarComoRespondido,
+);
+
+router.patch("/:id/eliminar", verificarToken, verificarAdmin, eliminarMensaje);
 
 module.exports = router;

@@ -1,0 +1,78 @@
+.estado-pago-page {
+  min-height: calc(100vh - 90px);
+  padding: 90px 8%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.estado-pago-card {
+  width: min(620px, 100%);
+  padding: 42px;
+  border-radius: 24px;
+  background: linear-gradient(145deg, #1e1f6f, #15164f);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+  text-align: center;
+}
+
+.estado-pago-icono {
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 22px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 38px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #35d07f, #1fa463);
+}
+
+.estado-pago-icono.pendiente {
+  background: linear-gradient(135deg, #f4b942, #d98900);
+}
+
+.estado-pago-icono.fallido {
+  background: linear-gradient(135deg, #ff5f6d, #c92a3a);
+}
+
+.estado-pago-card h1 {
+  font-size: 38px;
+  margin-bottom: 14px;
+}
+
+.estado-pago-card p {
+  color: #d8dcff;
+  font-size: 17px;
+  line-height: 1.6;
+  margin-bottom: 28px;
+}
+
+.estado-pago-actions {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.estado-pago-btn {
+  border: none;
+  text-decoration: none;
+  color: white;
+  padding: 13px 22px;
+  border-radius: 999px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #6c63ff, #8f7cff);
+  box-shadow: 0 12px 28px rgba(108, 99, 255, 0.3);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.estado-pago-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 34px rgba(108, 99, 255, 0.45);
+}
+
+.estado-pago-btn.secundario {
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: none;
+}

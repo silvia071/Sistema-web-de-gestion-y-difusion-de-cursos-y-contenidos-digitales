@@ -105,6 +105,14 @@ class LeccionService {
       .populate("curso");
   }
 
+  async listarLeccionesPublicadasPorCurso(cursoId) {
+    return await Leccion.find({
+      curso: cursoId,
+      estado: EstadoContenido.PUBLICADO,
+    })
+      .sort({ orden: 1 })
+      .populate("curso");
+  }
   async buscarLeccionPorId(id) {
     return await Leccion.findById(id).populate("curso");
   }

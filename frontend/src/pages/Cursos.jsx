@@ -1,13 +1,14 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { useCarrito } from "../context/CarritoContext";
 import { useState, useEffect, useMemo } from "react";
-import { API_BASE } from "../config/api";
+import api from "../services/api";
+import { getImageUrl } from "../utils/getImageUrl";
 import "./Curso.css";
 
 function Cursos() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { agregarAlCarrito, mensajeCarrito } = useCarrito();
+  const { agregarAlCarrito, mensajeCarrito, estaEnCarrito } = useCarrito();
 
   const params = new URLSearchParams(location.search);
   const categoriaSeleccionada = decodeURIComponent(
@@ -17,15 +18,37 @@ function Cursos() {
   const [categoriaActiva, setCategoriaActiva] = useState(
     categoriaSeleccionada || null,
   );
+  const [busqueda, setBusqueda] = useState("");
   const [cursos, setCursos] = useState([]);
   const [misCursosIds, setMisCursosIds] = useState([]);
+  const [favoritosIds, setFavoritosIds] = useState(() => {
+    const favoritosGuardados = localStorage.getItem("favoritosCursos");
+
+    if (!favoritosGuardados) return [];
+
+    try {
+      const favoritosParseados = JSON.parse(favoritosGuardados);
+      return Array.isArray(favoritosParseados) ? favoritosParseados : [];
+    } catch (error) {
+      console.error("Error leyendo favoritos:", error);
+      return [];
+    }
+  });
   const [cursoAvisoId, setCursoAvisoId] = useState(null);
+  const [cursoAvisoTexto, setCursoAvisoTexto] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  const rol = localStorage.getItem("rol");
+  const esAdmin = rol === "ADMINISTRADOR";
 
   useEffect(() => {
     setCategoriaActiva(categoriaSeleccionada || null);
   }, [categoriaSeleccionada]);
+
+  useEffect(() => {
+    localStorage.setItem("favoritosCursos", JSON.stringify(favoritosIds));
+  }, [favoritosIds]);
 
   useEffect(() => {
     const cargarCursos = async () => {
@@ -33,14 +56,14 @@ function Cursos() {
         setLoading(true);
         setError("");
 
-        const res = await fetch(`${API_BASE}/api/cursos`);
-        const data = await res.json();
+        const rol = localStorage.getItem("rol");
 
-        if (!res.ok) {
-          throw new Error("No se pudieron cargar los cursos");
-        }
+        const endpoint =
+          rol === "ADMINISTRADOR" ? "/api/cursos/admin/todos" : "/api/cursos";
 
-        setCursos(Array.isArray(data) ? data : []);
+        const response = await api.get(endpoint);
+
+        setCursos(response.data.datos || []);
       } catch (err) {
         console.error(err);
         setError("Error al cargar los cursos");
@@ -63,20 +86,17 @@ function Cursos() {
           return;
         }
 
-        const res = await fetch(
-          `${API_BASE}/api/acceso-curso/usuario/${usuarioId}`,
-        );
-        const data = await res.json();
+        const response = await api.get(`/api/accesos/usuario/${usuarioId}`);
 
-        const ids = Array.isArray(data)
-          ? data
-              .map(
-                (acceso) =>
-                  acceso?.curso?._id || acceso?.curso?.id || acceso?.curso,
-              )
-              .filter(Boolean)
-              .map((id) => String(id))
-          : [];
+        const accesos = response.data.datos || [];
+
+        const ids = accesos
+          .map(
+            (acceso) =>
+              acceso?.curso?._id || acceso?.curso?.id || acceso?.curso,
+          )
+          .filter(Boolean)
+          .map((id) => String(id));
 
         setMisCursosIds(ids);
       } catch (error) {
@@ -96,16 +116,6 @@ function Cursos() {
     ];
   }, [cursos]);
 
-  const cursosFiltrados = useMemo(() => {
-    if (!categoriaActiva) return cursos;
-
-    return cursos.filter(
-      (curso) =>
-        curso.categoria?.nombre?.toLowerCase() ===
-        categoriaActiva.toLowerCase(),
-    );
-  }, [cursos, categoriaActiva]);
-
   const cantidadPorCategoria = useMemo(() => {
     const conteo = {};
 
@@ -120,9 +130,53 @@ function Cursos() {
     return conteo;
   }, [cursos]);
 
-  // 🔥 SOLO BACKEND
+  const cursosFiltrados = useMemo(() => {
+    const textoBusqueda = busqueda.trim().toLowerCase();
+
+    return cursos.filter((curso) => {
+      const coincideCategoria =
+        !categoriaActiva ||
+        curso.categoria?.nombre?.toLowerCase() ===
+          categoriaActiva.toLowerCase();
+
+      const coincideBusqueda =
+        !textoBusqueda ||
+        curso.titulo?.toLowerCase().includes(textoBusqueda) ||
+        curso.descripcion?.toLowerCase().includes(textoBusqueda) ||
+        curso.categoria?.nombre?.toLowerCase().includes(textoBusqueda);
+
+      return coincideCategoria && coincideBusqueda;
+    });
+  }, [cursos, categoriaActiva, busqueda]);
+
   const obtenerImagenCurso = (curso) => {
-    return `${API_BASE}${curso.imagenPortada}`;
+    return getImageUrl(curso.imagenPortada);
+  };
+
+  const mostrarAvisoCurso = (cursoId, texto) => {
+    setCursoAvisoId(cursoId);
+    setCursoAvisoTexto(texto);
+
+    setTimeout(() => {
+      setCursoAvisoId(null);
+      setCursoAvisoTexto("");
+    }, 2500);
+  };
+
+  const handleToggleFavorito = (e, cursoId) => {
+    e.stopPropagation();
+
+    setFavoritosIds((prev) => {
+      const yaEsFavorito = prev.includes(cursoId);
+
+      if (yaEsFavorito) {
+        mostrarAvisoCurso(cursoId, "Curso quitado de favoritos");
+        return prev.filter((id) => id !== cursoId);
+      }
+
+      mostrarAvisoCurso(cursoId, "Curso agregado a favoritos");
+      return [...prev, cursoId];
+    });
   };
 
   const handleAgregarAlCarrito = (e, curso) => {
@@ -140,12 +194,12 @@ function Cursos() {
     const cursoId = String(curso?._id || curso?.id);
 
     if (misCursosIds.includes(cursoId)) {
-      setCursoAvisoId(cursoId);
+      mostrarAvisoCurso(cursoId, "✔ Ya lo tenés en tu biblioteca");
+      return;
+    }
 
-      setTimeout(() => {
-        setCursoAvisoId(null);
-      }, 2500);
-
+    if (estaEnCarrito(cursoId)) {
+      mostrarAvisoCurso(cursoId, "✓ Ya está en el carrito");
       return;
     }
 
@@ -167,9 +221,9 @@ function Cursos() {
 
   if (loading) {
     return (
-      <div className="section">
-        <div className="container">
-          <p>Cargando cursos...</p>
+      <div className="cursos-page">
+        <div className="cursos-container">
+          <p className="cursos-estado">Cargando cursos...</p>
         </div>
       </div>
     );
@@ -177,32 +231,48 @@ function Cursos() {
 
   if (error) {
     return (
-      <div className="section">
-        <div className="container">
-          <p>{error}</p>
+      <div className="cursos-page">
+        <div className="cursos-container">
+          <p className="cursos-estado cursos-estado--error">{error}</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="section">
+    <div className="cursos-page">
       {mensajeCarrito && (
         <div className="toast-carrito">✅ {mensajeCarrito}</div>
       )}
 
-      <div className="container">
-        <div className="section-header">
-          <h2>Cursos</h2>
+      <section className="cursos-hero">
+        <div className="cursos-hero__text">
+          <span className="cursos-hero__badge">CATÁLOGO DE CURSOS</span>
+
+          <h1>
+            Cursos para llevar
+            <span> tus habilidades al siguiente nivel</span>
+          </h1>
+
           <p>
-            Explorá los cursos disponibles para aprender programación paso a
-            paso.
+            Explorá los cursos disponibles y encontrá el camino perfecto para
+            vos.
           </p>
         </div>
 
-        <div className="filtros">
-          <span className="filtros-titulo">Categorías</span>
+        <div className="cursos-hero__search">
+          <span>⌕</span>
+          <input
+            type="text"
+            value={busqueda}
+            onChange={(e) => setBusqueda(e.target.value)}
+            placeholder="Buscar cursos, tecnologías..."
+          />
+        </div>
+      </section>
 
+      <main className="cursos-container">
+        <div className="cursos-toolbar">
           <div className="filtros-botones">
             <button
               className={!categoriaActiva ? "activo" : ""}
@@ -223,69 +293,111 @@ function Cursos() {
           </div>
         </div>
 
-        <div
-          className="cursos-grid animar-grid"
-          key={categoriaActiva || "todas"}
-        >
-          {cursosFiltrados.map((curso) => {
-            const cursoId = String(curso?._id || curso?.id);
-            const cursoComprado = misCursosIds.includes(cursoId);
-            const mostrarAviso = cursoAvisoId === cursoId;
+        {cursosFiltrados.length === 0 ? (
+          <p className="cursos-estado">
+            No se encontraron cursos con esos filtros.
+          </p>
+        ) : (
+          <div
+            className="cursos-grid animar-grid"
+            key={`${categoriaActiva || "todas"}-${busqueda}`}
+          >
+            {cursosFiltrados.map((curso) => {
+              const cursoId = String(curso?._id || curso?.id);
+              const cursoComprado = misCursosIds.includes(cursoId);
+              const mostrarAviso = cursoAvisoId === cursoId;
+              const esFavorito = favoritosIds.includes(cursoId);
 
-            return (
-              <div
-                className={`card course-card ${cursoComprado ? "course-card-comprado" : ""}`}
-                key={curso._id}
-                onClick={() => navigate(`/cursos/${curso._id}`)}
-              >
-                <div className="course-top">
-                  <img src={obtenerImagenCurso(curso)} alt={curso.titulo} />
-                </div>
+              return (
+                <article
+                  className={`curso-card ${
+                    cursoComprado ? "curso-card--comprado" : ""
+                  }`}
+                  key={curso._id || curso.id}
+                  onClick={() => navigate(`/cursos/${cursoId}`)}
+                >
+                  <div className="curso-card__imagen">
+                    <img src={obtenerImagenCurso(curso)} alt={curso.titulo} />
 
-                <h3>{curso.titulo}</h3>
-                <p>{curso.descripcion}</p>
+                    <span className="curso-card__categoria">
+                      {curso.categoria?.nombre || "Programación"}
+                    </span>
 
-                <span className="tag">{curso.categoria?.nombre}</span>
-
-                <p className="course-price">
-                  ${curso.precio?.toLocaleString()}
-                </p>
-
-                <div className="course-actions">
-                  <button
-                    className="btn btn-secondary full-width"
-                    onClick={(e) => handleVerCurso(e, curso._id)}
-                  >
-                    Ver curso
-                  </button>
-
-                  {cursoComprado ? (
                     <button
-                      className="btn btn-secondary full-width"
-                      onClick={(e) => handleIrAlCurso(e, curso._id)}
+                      className={`curso-card__favorito ${
+                        esFavorito ? "curso-card__favorito--activo" : ""
+                      }`}
+                      type="button"
+                      onClick={(e) => handleToggleFavorito(e, cursoId)}
+                      aria-label={
+                        esFavorito
+                          ? "Quitar de favoritos"
+                          : "Agregar a favoritos"
+                      }
                     >
-                      Ir al curso
+                      {esFavorito ? "♥" : "♡"}
                     </button>
-                  ) : (
-                    <button
-                      className="btn btn-primary full-width"
-                      onClick={(e) => handleAgregarAlCarrito(e, curso)}
-                    >
-                      Agregar al carrito
-                    </button>
-                  )}
-                </div>
 
-                {mostrarAviso && (
-                  <div className="curso-aviso-comprado">
-                    ✔ Ya lo tenés en tu biblioteca
+                    {esAdmin && (
+                      <span
+                        className={`curso-card__estado curso-card__estado--${curso.estado?.toLowerCase()}`}
+                      >
+                        {curso.estado || "SIN ESTADO"}
+                      </span>
+                    )}
                   </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </div>
+
+                  <div className="curso-card__body">
+                    <h3>{curso.titulo}</h3>
+
+                    <p>{curso.descripcion}</p>
+
+                    <div className="curso-card__meta">
+                      <span className="curso-card__rating">★ 4.9</span>
+                      <span>👥 +1.000 estudiantes</span>
+                    </div>
+
+                    <div className="curso-card__precio">
+                      ${curso.precio?.toLocaleString("es-AR")}
+                    </div>
+
+                    <div className="curso-card__acciones">
+                      <button
+                        className="curso-card__btn curso-card__btn--primary"
+                        onClick={(e) => handleVerCurso(e, cursoId)}
+                      >
+                        Ver curso
+                      </button>
+
+                      {cursoComprado || esAdmin ? (
+                        <button
+                          className="curso-card__btn curso-card__btn--secondary"
+                          onClick={(e) => handleIrAlCurso(e, cursoId)}
+                        >
+                          Ir al curso
+                        </button>
+                      ) : (
+                        <button
+                          className="curso-card__btn curso-card__btn--secondary"
+                          onClick={(e) => handleAgregarAlCarrito(e, curso)}
+                        >
+                          Agregar al carrito
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {mostrarAviso && (
+                    <div className="curso-aviso-comprado">
+                      {cursoAvisoTexto}
+                    </div>
+                  )}
+                </article>
+              );
+            })}
+          </div>
+        )}
+      </main>
     </div>
   );
 }

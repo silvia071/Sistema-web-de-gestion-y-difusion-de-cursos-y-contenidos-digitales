@@ -68,6 +68,19 @@ const cursoSchema = new mongoose.Schema(
       type: String,
       required: false,
       trim: true,
+      validate: {
+        validator: function (valor) {
+          if (!valor) return true;
+
+          return (
+            valor.startsWith("http://") ||
+            valor.startsWith("https://") ||
+            valor.startsWith("/uploads/") ||
+            valor.startsWith("/")
+          );
+        },
+        message: "La imagen de portada debe ser una URL o una ruta válida",
+      },
     },
     aprendizajes: [
       {

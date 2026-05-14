@@ -1,28 +1,22 @@
-const jwt = require('jsonwebtoken');
-const Usuario = require('../models/usuario.model');
-
-const verificarAdmin = async (req, res, next) => {
+const verificarAdmin = (req, res, next) => {
   try {
-    const token = req.header('Authorization')?.replace('Bearer ', '');
-    if (!token) {
-      return res.status(401).json({ mensaje: 'Token de autenticación requerido' });
+    if (!req.usuario) {
+      return res.status(401).json({
+        mensaje: "No autorizado",
+      });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const usuario = await Usuario.findById(decoded.id);
-
-    if (!usuario) {
-      return res.status(401).json({ mensaje: 'Usuario no encontrado' });
+    if (req.usuario.rol !== "ADMINISTRADOR") {
+      return res.status(403).json({
+        mensaje: "Acceso denegado",
+      });
     }
 
-    if (!usuario.esAdministrador()) {
-      return res.status(403).json({ mensaje: 'Acceso denegado: se requiere rol de administrador' });
-    }
-
-    req.user = usuario;
     next();
   } catch (error) {
-    res.status(401).json({ mensaje: 'Token inválido' });
+    return res.status(500).json({
+      mensaje: "Error interno del servidor",
+    });
   }
 };
 

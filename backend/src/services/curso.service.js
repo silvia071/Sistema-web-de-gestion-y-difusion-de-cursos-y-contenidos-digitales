@@ -3,6 +3,16 @@ const Categoria = require("../models/categoria.model");
 const Leccion = require("../models/leccion.model");
 const EstadoContenido = require("../enums/estadoContenido");
 
+const populateCategoria = {
+  path: "categoria",
+};
+
+const populateLecciones = {
+  path: "lecciones",
+  select: "titulo descripcion duracionMinutos orden estado",
+  options: { sort: { orden: 1 } },
+};
+
 class CursoService {
   async crearCurso(datosCurso) {
     if (!datosCurso.categoria) {
@@ -18,11 +28,8 @@ class CursoService {
     const cursoGuardado = await curso.save();
 
     return await Curso.findById(cursoGuardado._id)
-      .populate("categoria")
-      .populate({
-        path: "lecciones",
-        options: { sort: { orden: 1 } },
-      });
+      .populate(populateCategoria)
+      .populate(populateLecciones);
   }
 
   async editarCurso(id, datosActualizados) {
@@ -40,11 +47,8 @@ class CursoService {
       new: true,
       runValidators: true,
     })
-      .populate("categoria")
-      .populate({
-        path: "lecciones",
-        options: { sort: { orden: 1 } },
-      });
+      .populate(populateCategoria)
+      .populate(populateLecciones);
   }
 
   async eliminarCurso(id) {
@@ -71,20 +75,14 @@ class CursoService {
     }
 
     return await Curso.find(filtroMongo)
-      .populate("categoria")
-      .populate({
-        path: "lecciones",
-        options: { sort: { orden: 1 } },
-      });
+      .populate(populateCategoria)
+      .populate(populateLecciones);
   }
 
   async buscarCursoPorId(id) {
     return await Curso.findById(id)
-      .populate("categoria")
-      .populate({
-        path: "lecciones",
-        options: { sort: { orden: 1 } },
-      });
+      .populate(populateCategoria)
+      .populate(populateLecciones);
   }
 
   async publicarCurso(id) {
@@ -93,11 +91,8 @@ class CursoService {
       { estado: EstadoContenido.PUBLICADO },
       { new: true, runValidators: true },
     )
-      .populate("categoria")
-      .populate({
-        path: "lecciones",
-        options: { sort: { orden: 1 } },
-      });
+      .populate(populateCategoria)
+      .populate(populateLecciones);
   }
 
   async ocultarCurso(id) {
@@ -106,11 +101,8 @@ class CursoService {
       { estado: EstadoContenido.OCULTO },
       { new: true, runValidators: true },
     )
-      .populate("categoria")
-      .populate({
-        path: "lecciones",
-        options: { sort: { orden: 1 } },
-      });
+      .populate(populateCategoria)
+      .populate(populateLecciones);
   }
 }
 
