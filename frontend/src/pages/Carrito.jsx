@@ -25,6 +25,9 @@ function Carrito() {
     mensaje: "",
     tipo: "info",
     accion: null,
+    textoConfirmar: "Aceptar",
+    textoCancelar: "Cancelar",
+    mostrarCancelar: false,
   });
 
   const subtotal = carrito.reduce(
@@ -60,26 +63,44 @@ function Carrito() {
   const metodoExiste = (tipo) =>
     metodosPago.some((metodo) => metodo.tipo === tipo);
 
-  const mostrarModal = ({ titulo, mensaje, tipo = "info", accion = null }) => {
+  const mostrarModal = ({
+    titulo,
+    mensaje,
+    tipo = "info",
+    accion = null,
+    textoConfirmar = "Aceptar",
+    textoCancelar = "Cancelar",
+    mostrarCancelar = false,
+  }) => {
     setModal({
       visible: true,
       titulo,
       mensaje,
       tipo,
       accion,
+      textoConfirmar,
+      textoCancelar,
+      mostrarCancelar,
     });
   };
 
-  const cerrarModal = async () => {
-    const accion = modal.accion;
-
+  const cerrarModal = () => {
     setModal({
       visible: false,
       titulo: "",
       mensaje: "",
       tipo: "info",
       accion: null,
+      textoConfirmar: "Aceptar",
+      textoCancelar: "Cancelar",
+      mostrarCancelar: false,
     });
+  };
+
+  const confirmarModal = async () => {
+    const accion = modal.accion;
+
+    cerrarModal();
 
     if (accion) {
       await accion();
@@ -98,6 +119,7 @@ function Carrito() {
           mensaje: "Tenés que iniciar sesión para poder comprar cursos.",
           tipo: "info",
           accion: () => navigate("/login"),
+          textoConfirmar: "Iniciar sesión",
         });
 
         return;
@@ -177,6 +199,7 @@ function Carrito() {
         mensaje: "La compra fue generada correctamente.",
         tipo: "success",
         accion: () => navigate("/mis-cursos"),
+        textoConfirmar: "Ver mis cursos",
       });
     } catch (error) {
       console.error("Error al finalizar compra:", error);
@@ -194,6 +217,20 @@ function Carrito() {
     }
   };
 
+  const handleVaciarCarrito = () => {
+    mostrarModal({
+      titulo: "Vaciar carrito",
+      mensaje: "¿Seguro que querés eliminar todos los cursos del carrito?",
+      tipo: "warning",
+      accion: async () => {
+        await vaciarCarrito();
+      },
+      textoConfirmar: "Sí, vaciar carrito",
+      textoCancelar: "Cancelar",
+      mostrarCancelar: true,
+    });
+  };
+
   return (
     <section className="carrito-page">
       {modal.visible && (
@@ -209,9 +246,25 @@ function Carrito() {
             <h2>{modal.titulo}</h2>
             <p>{modal.mensaje}</p>
 
-            <button type="button" onClick={cerrarModal}>
-              Aceptar
-            </button>
+            <div className="carrito-modal-actions">
+              {modal.mostrarCancelar && (
+                <button
+                  type="button"
+                  className="carrito-modal-btn-cancelar"
+                  onClick={cerrarModal}
+                >
+                  {modal.textoCancelar}
+                </button>
+              )}
+
+              <button
+                type="button"
+                className="carrito-modal-btn-confirmar"
+                onClick={confirmarModal}
+              >
+                {modal.textoConfirmar}
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -363,15 +416,7 @@ function Carrito() {
             <button
               type="button"
               className="btn-vaciar"
-              onClick={() => {
-                mostrarModal({
-                  titulo: "Vaciar carrito",
-                  mensaje:
-                    "¿Seguro que querés eliminar todos los cursos del carrito?",
-                  tipo: "warning",
-                  accion: () => vaciarCarrito(),
-                });
-              }}
+              onClick={handleVaciarCarrito}
             >
               Vaciar carrito
             </button>

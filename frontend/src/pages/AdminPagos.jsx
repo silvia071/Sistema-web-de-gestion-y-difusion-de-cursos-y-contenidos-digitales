@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 import "./AdminPagos.css";
 
 function AdminPagos() {
+  const navigate = useNavigate();
   const [pagos, setPagos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [mensaje, setMensaje] = useState("");
@@ -253,7 +255,15 @@ function AdminPagos() {
             <p>Revisá los pagos generados y aprobá o rechazá transferencias.</p>
           </div>
 
-         
+          <div className="admin-pagos-header-actions">
+            <button
+              type="button"
+              className="admin-pagos-back-btn"
+              onClick={() => navigate("/admin")}
+            >
+              ← Volver al panel
+            </button>
+          </div>
         </header>
 
         {(mensaje || error) && (

@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 import "./AdminDatosFacturacion.css";
 
 function AdminDatosFacturacion() {
+  const navigate = useNavigate();
   const [datos, setDatos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -133,14 +135,22 @@ function AdminDatosFacturacion() {
         <header className="admin-facturacion-header">
           <div>
             <div className="admin-facturacion-breadcrumb">
-              Dashboard <span>›</span> Datos de facturación
+              Dashboard <span>›</span> Facturación
             </div>
 
             <h1>Datos de facturación</h1>
 
-            <p>
-              Consultá los datos fiscales cargados por los clientes del sistema.
-            </p>
+            <p>Administrá los datos fiscales cargados por los usuarios.</p>
+          </div>
+
+          <div className="admin-facturacion-header-actions">
+            <button
+              type="button"
+              className="admin-facturacion-back-btn"
+              onClick={() => navigate("/admin")}
+            >
+              ← Volver al panel
+            </button>
           </div>
         </header>
 

@@ -299,14 +299,24 @@ function AdminLecciones() {
             </p>
           </div>
 
-          <button
-            type="button"
-            className="admin-lecciones-primary-btn"
-            onClick={handleNuevaLeccion}
-          >
-            <span>+</span>
-            Nueva lección
-          </button>
+          <div className="admin-lecciones-header-actions">
+            <button
+              type="button"
+              className="admin-lecciones-back-btn"
+              onClick={() => navigate("/admin")}
+            >
+              ← Volver al panel
+            </button>
+
+            <button
+              type="button"
+              className="admin-lecciones-primary-btn"
+              onClick={handleNuevaLeccion}
+            >
+              <span>+</span>
+              Nueva lección
+            </button>
+          </div>
         </header>
 
         {(mensaje || error || editandoId) && (

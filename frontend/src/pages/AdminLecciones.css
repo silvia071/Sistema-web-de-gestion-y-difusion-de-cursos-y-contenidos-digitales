@@ -6,9 +6,21 @@
   color: #f8fbff;
   overflow-x: hidden;
   background:
-    radial-gradient(circle at 18% 8%, rgba(59, 130, 246, 0.26), transparent 28%),
-    radial-gradient(circle at 78% 12%, rgba(168, 85, 247, 0.32), transparent 32%),
-    radial-gradient(circle at 50% 95%, rgba(14, 165, 233, 0.16), transparent 34%),
+    radial-gradient(
+      circle at 18% 8%,
+      rgba(59, 130, 246, 0.26),
+      transparent 28%
+    ),
+    radial-gradient(
+      circle at 78% 12%,
+      rgba(168, 85, 247, 0.32),
+      transparent 32%
+    ),
+    radial-gradient(
+      circle at 50% 95%,
+      rgba(14, 165, 233, 0.16),
+      transparent 34%
+    ),
     linear-gradient(135deg, #050b24 0%, #10195a 45%, #17165f 100%);
 }
 
@@ -18,8 +30,17 @@
   inset: 0;
   pointer-events: none;
   background:
-    linear-gradient(115deg, transparent 0%, rgba(255, 255, 255, 0.035) 48%, transparent 52%),
-    radial-gradient(circle at 70% 20%, rgba(139, 92, 246, 0.12), transparent 22%);
+    linear-gradient(
+      115deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.035) 48%,
+      transparent 52%
+    ),
+    radial-gradient(
+      circle at 70% 20%,
+      rgba(139, 92, 246, 0.12),
+      transparent 22%
+    );
 }
 
 .admin-lecciones-shell {
@@ -30,8 +51,11 @@
   padding: clamp(18px, 2vw, 28px);
   border: 1px solid rgba(120, 145, 255, 0.28);
   border-radius: clamp(20px, 2vw, 28px);
-  background:
-    linear-gradient(180deg, rgba(18, 30, 88, 0.88), rgba(7, 15, 52, 0.92));
+  background: linear-gradient(
+    180deg,
+    rgba(18, 30, 88, 0.88),
+    rgba(7, 15, 52, 0.92)
+  );
   box-shadow:
     0 32px 90px rgba(0, 0, 0, 0.42),
     0 0 80px rgba(76, 109, 255, 0.13),
@@ -47,7 +71,11 @@
   width: 520px;
   height: 520px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(132, 77, 255, 0.32), transparent 65%);
+  background: radial-gradient(
+    circle,
+    rgba(132, 77, 255, 0.32),
+    transparent 65%
+  );
   pointer-events: none;
 }
 
@@ -203,7 +231,11 @@
   border: 1px solid rgba(116, 145, 255, 0.22);
   border-radius: 18px;
   background:
-    radial-gradient(circle at 100% 0%, rgba(147, 51, 234, 0.16), transparent 34%),
+    radial-gradient(
+      circle at 100% 0%,
+      rgba(147, 51, 234, 0.16),
+      transparent 34%
+    ),
     linear-gradient(180deg, rgba(12, 24, 72, 0.82), rgba(7, 15, 49, 0.88));
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.055),
@@ -282,8 +314,11 @@
   padding: 16px;
   border: 1px solid rgba(93, 148, 255, 0.34);
   border-radius: 22px;
-  background:
-    linear-gradient(180deg, rgba(16, 30, 86, 0.78), rgba(6, 14, 48, 0.76));
+  background: linear-gradient(
+    180deg,
+    rgba(16, 30, 86, 0.78),
+    rgba(6, 14, 48, 0.76)
+  );
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.07),
     0 18px 42px rgba(0, 0, 0, 0.22),
@@ -311,8 +346,11 @@
   padding: 0 15px;
   border: 1px solid rgba(112, 160, 255, 0.38);
   border-radius: 14px;
-  background:
-    linear-gradient(180deg, rgba(14, 25, 72, 0.96), rgba(8, 16, 51, 0.94));
+  background: linear-gradient(
+    180deg,
+    rgba(14, 25, 72, 0.96),
+    rgba(8, 16, 51, 0.94)
+  );
 }
 
 .admin-lecciones-search span {
@@ -342,8 +380,11 @@
   border: 1px solid rgba(115, 145, 255, 0.24);
   outline: none;
   color: #f8fbff;
-  background:
-    linear-gradient(180deg, rgba(14, 25, 72, 0.96), rgba(8, 16, 51, 0.94));
+  background: linear-gradient(
+    180deg,
+    rgba(14, 25, 72, 0.96),
+    rgba(8, 16, 51, 0.94)
+  );
   border-radius: 13px;
   font-family: inherit;
   font-size: 0.92rem;
@@ -379,8 +420,11 @@
   border: 1px solid rgba(92, 184, 255, 0.42);
   border-radius: 13px;
   color: #eaf0ff;
-  background:
-    linear-gradient(180deg, rgba(25, 49, 112, 0.9), rgba(11, 25, 70, 0.9));
+  background: linear-gradient(
+    180deg,
+    rgba(25, 49, 112, 0.9),
+    rgba(11, 25, 70, 0.9)
+  );
   white-space: nowrap;
 }
 
@@ -459,7 +503,11 @@
   border: 1px solid rgba(151, 170, 255, 0.18);
   border-radius: 15px;
   background:
-    radial-gradient(circle at 0% 50%, rgba(56, 189, 248, 0.12), transparent 42%),
+    radial-gradient(
+      circle at 0% 50%,
+      rgba(56, 189, 248, 0.12),
+      transparent 42%
+    ),
     rgba(13, 26, 76, 0.56);
 }
 
@@ -523,8 +571,11 @@
 .admin-lecciones-clean-btn {
   color: #f1f5ff;
   border: 1px solid rgba(157, 125, 255, 0.42);
-  background:
-    linear-gradient(180deg, rgba(23, 31, 76, 0.9), rgba(8, 15, 44, 0.92));
+  background: linear-gradient(
+    180deg,
+    rgba(23, 31, 76, 0.9),
+    rgba(8, 15, 44, 0.92)
+  );
 }
 
 .admin-lecciones-save-btn {
@@ -621,8 +672,11 @@
   border: 1px solid rgba(119, 176, 255, 0.25);
   border-radius: 999px;
   color: #cfe9ff;
-  background:
-    linear-gradient(135deg, rgba(59, 130, 246, 0.28), rgba(147, 51, 234, 0.24));
+  background: linear-gradient(
+    135deg,
+    rgba(59, 130, 246, 0.28),
+    rgba(147, 51, 234, 0.24)
+  );
   font-size: 0.82rem;
   font-weight: 900;
   white-space: nowrap;
@@ -668,8 +722,11 @@
   padding: 9px 12px;
   border: 1px solid rgba(103, 133, 255, 0.19);
   border-radius: 17px;
-  background:
-    linear-gradient(180deg, rgba(15, 30, 88, 0.88), rgba(6, 15, 52, 0.92));
+  background: linear-gradient(
+    180deg,
+    rgba(15, 30, 88, 0.88),
+    rgba(6, 15, 52, 0.92)
+  );
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.045),
     0 12px 28px rgba(0, 0, 0, 0.16);
@@ -794,8 +851,11 @@
 .admin-leccion-edit-btn {
   color: #eaf0ff;
   border: 1px solid rgba(126, 160, 255, 0.34);
-  background:
-    linear-gradient(180deg, rgba(28, 45, 111, 0.85), rgba(13, 25, 72, 0.9));
+  background: linear-gradient(
+    180deg,
+    rgba(28, 45, 111, 0.85),
+    rgba(13, 25, 72, 0.9)
+  );
 }
 
 .admin-leccion-delete-btn {
@@ -1215,5 +1275,69 @@
 
   .admin-lecciones-help-card p {
     font-size: 0.68rem;
+  }
+}
+
+.admin-lecciones-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.admin-lecciones-back-btn {
+  position: relative;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 50px;
+  padding: 0 24px;
+  border: 1px solid rgba(179, 198, 255, 0.24);
+  border-radius: 14px;
+  color: #ffffff;
+  background: linear-gradient(135deg, #38bdf8 0%, #6366f1 45%, #c026d3 100%);
+  box-shadow:
+    0 0 0 1px rgba(124, 161, 255, 0.15),
+    0 18px 42px rgba(89, 96, 255, 0.38),
+    0 0 36px rgba(147, 51, 234, 0.28);
+  white-space: nowrap;
+  font-family: inherit;
+  font-weight: 900;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease,
+    background 0.2s ease;
+}
+
+.admin-lecciones-back-btn:hover {
+  transform: translateY(-2px);
+}
+
+@media (min-width: 1200px) {
+  .admin-lecciones-primary-btn,
+  .admin-lecciones-back-btn {
+    min-height: 38px;
+    padding: 0 18px;
+    font-size: 0.82rem;
+    border-radius: 12px;
+  }
+}
+
+@media (max-width: 760px) {
+  .admin-lecciones-header-actions {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .admin-lecciones-back-btn,
+  .admin-lecciones-primary-btn {
+    width: 100%;
+    justify-content: center;
   }
 }

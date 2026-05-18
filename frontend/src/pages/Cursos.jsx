@@ -242,7 +242,10 @@ function Cursos() {
   return (
     <div className="cursos-page">
       {mensajeCarrito && (
-        <div className="toast-carrito">✅ {mensajeCarrito}</div>
+        <div className="toast-carrito">
+          <span className="toast-carrito-icon">✓</span>
+          <strong>{mensajeCarrito}</strong>
+        </div>
       )}
 
       <section className="cursos-hero">

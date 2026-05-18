@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 import "./AdminUsuarios.css";
 
@@ -20,6 +21,7 @@ function AdminUsuarios() {
   const [busqueda, setBusqueda] = useState("");
   const [filtroRol, setFiltroRol] = useState("");
   const [filtroEstado, setFiltroEstado] = useState("");
+  const navigate = useNavigate();
 
   const [nuevoUsuario, setNuevoUsuario] = useState(USUARIO_INICIAL);
   const formUsuarioRef = useRef(null);
@@ -177,14 +179,24 @@ function AdminUsuarios() {
             <p>Administrá usuarios, roles y accesos de la plataforma.</p>
           </div>
 
-          <button
-            type="button"
-            className="admin-usuarios-primary-btn"
-            onClick={handleNuevoUsuario}
-          >
-            <span>+</span>
-            Nuevo usuario
-          </button>
+          <div className="admin-usuarios-header-actions">
+            <button
+              type="button"
+              className="admin-usuarios-back-btn"
+              onClick={() => navigate("/admin")}
+            >
+              ← Volver al panel
+            </button>
+
+            <button
+              type="button"
+              className="admin-usuarios-primary-btn"
+              onClick={handleNuevoUsuario}
+            >
+              <span>+</span>
+              Nuevo usuario
+            </button>
+          </div>
         </header>
 
         {(mensaje || error) && (
