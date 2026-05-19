@@ -46,6 +46,11 @@ const validarRegistro = [
     .isLength({ min: 6 })
     .withMessage("La contraseña debe tener al menos 6 caracteres"),
 
+  body("rol")
+    .optional()
+    .isIn(["CLIENTE", "ADMINISTRADOR"])
+    .withMessage("El rol debe ser CLIENTE o ADMINISTRADOR"),
+
   validarRespuesta,
 ];
 

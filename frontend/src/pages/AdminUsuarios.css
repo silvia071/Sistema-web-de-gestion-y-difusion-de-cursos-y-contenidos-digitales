@@ -287,10 +287,9 @@
   position: relative;
   z-index: 1;
   display: grid;
-  grid-template-columns: minmax(260px, 1.3fr) minmax(170px, 0.65fr) minmax(
-      170px,
-      0.65fr
-    ) auto;
+  grid-template-columns:
+    minmax(260px, 1.3fr) minmax(170px, 0.65fr) minmax(170px, 0.65fr)
+    auto;
   gap: 14px;
   align-items: end;
   margin-bottom: 14px;
@@ -1135,5 +1134,161 @@
   .admin-usuarios-primary-btn {
     width: 100%;
     justify-content: center;
+  }
+}
+
+.admin-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(2, 6, 32, 0.72);
+  backdrop-filter: blur(10px);
+}
+
+.admin-modal-card {
+  width: min(460px, 100%);
+  padding: 30px;
+  border-radius: 26px;
+  background: linear-gradient(
+    145deg,
+    rgba(20, 28, 92, 0.98),
+    rgba(39, 31, 112, 0.98)
+  );
+  border: 1px solid rgba(130, 150, 255, 0.26);
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.45);
+  color: white;
+  animation: adminModalIn 0.18s ease-out;
+}
+
+.admin-modal-icon {
+  width: 54px;
+  height: 54px;
+  margin-bottom: 18px;
+  display: grid;
+  place-items: center;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #527fff, #9b5cff);
+  box-shadow: 0 16px 36px rgba(101, 92, 255, 0.32);
+  font-size: 1.35rem;
+}
+
+.admin-modal-card h2 {
+  margin: 0 0 10px;
+  font-size: 1.55rem;
+  font-weight: 900;
+}
+
+.admin-modal-card p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.74);
+  line-height: 1.5;
+}
+
+.admin-modal-actions {
+  margin-top: 26px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.admin-modal-cancel,
+.admin-modal-confirm,
+.admin-modal-danger {
+  border: 0;
+  border-radius: 14px;
+  padding: 12px 18px;
+  min-height: 44px;
+  color: white;
+  font-weight: 900;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.admin-modal-cancel {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.admin-modal-confirm {
+  background: linear-gradient(135deg, #527fff, #7a54ff);
+  box-shadow: 0 14px 28px rgba(89, 104, 255, 0.28);
+}
+
+.admin-modal-danger {
+  background: linear-gradient(135deg, #ff4b6b, #d9274f);
+  box-shadow: 0 14px 28px rgba(255, 75, 107, 0.26);
+}
+
+.admin-modal-cancel:hover,
+.admin-modal-confirm:hover,
+.admin-modal-danger:hover {
+  transform: translateY(-2px);
+}
+
+.admin-modal-cancel:disabled,
+.admin-modal-confirm:disabled,
+.admin-modal-danger:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none;
+}
+
+@keyframes adminModalIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.97);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.admin-modal-form {
+  width: min(560px, 100%);
+}
+
+.admin-modal-form-grid {
+  margin-top: 24px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.admin-modal-form-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.admin-modal-form-grid span {
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 0.86rem;
+  font-weight: 800;
+}
+
+.admin-modal-form-grid input {
+  width: 100%;
+  min-height: 44px;
+  padding: 11px 13px;
+  border-radius: 14px;
+  border: 1px solid rgba(130, 150, 255, 0.25);
+  outline: none;
+  color: white;
+  background: rgba(5, 12, 48, 0.58);
+  transition: 0.2s ease;
+}
+
+.admin-modal-form-grid input:focus {
+  border-color: rgba(120, 145, 255, 0.8);
+  box-shadow: 0 0 0 4px rgba(82, 127, 255, 0.14);
+}
+
+@media (max-width: 620px) {
+  .admin-modal-form-grid {
+    grid-template-columns: 1fr;
   }
 }

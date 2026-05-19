@@ -21,6 +21,7 @@ function AdminCursos() {
   const [form, setForm] = useState(ESTADO_INICIAL_FORM);
   const [loading, setLoading] = useState(true);
   const [guardando, setGuardando] = useState(false);
+  const [procesandoId, setProcesandoId] = useState("");
   const [mensaje, setMensaje] = useState("");
   const [error, setError] = useState("");
 
@@ -29,9 +30,15 @@ function AdminCursos() {
   const [filtroCategoria, setFiltroCategoria] = useState("");
   const [filtroEstado, setFiltroEstado] = useState("");
 
+  const [modalEliminar, setModalEliminar] = useState(null);
+
   const formCursoRef = useRef(null);
   const inputTituloRef = useRef(null);
   const navigate = useNavigate();
+
+  const obtenerIdCurso = (curso) => {
+    return curso?._id || curso?.id;
+  };
 
   const limpiarForm = () => {
     setForm(ESTADO_INICIAL_FORM);
@@ -166,20 +173,48 @@ function AdminCursos() {
     }
   };
 
-  const eliminarCurso = async (id) => {
-    const confirma = window.confirm(
-      "¿Seguro que querés eliminar este curso? También se eliminarán sus lecciones.",
-    );
+  const abrirModalEliminar = (curso) => {
+    setMensaje("");
+    setError("");
 
-    if (!confirma) return;
+    const cursoId = obtenerIdCurso(curso);
+
+    if (!cursoId) {
+      setError("No se pudo obtener el ID del curso.");
+      return;
+    }
+
+    setModalEliminar(curso);
+  };
+
+  const cerrarModalEliminar = () => {
+    setModalEliminar(null);
+  };
+
+  const confirmarEliminarCurso = async () => {
+    if (!modalEliminar) return;
+
+    const cursoId = obtenerIdCurso(modalEliminar);
+
+    if (!cursoId) {
+      setError("No se pudo obtener el ID del curso.");
+      return;
+    }
 
     try {
+      setProcesandoId(cursoId);
       setMensaje("");
       setError("");
 
-      await api.delete(`/api/cursos/${id}`);
+      await api.delete(`/api/cursos/${cursoId}`);
 
       setMensaje("Curso eliminado correctamente.");
+      setModalEliminar(null);
+
+      if (editandoId === cursoId) {
+        limpiarForm();
+      }
+
       await cargarDatos();
     } catch (error) {
       console.error("Error eliminando curso:", error);
@@ -189,11 +224,15 @@ function AdminCursos() {
           error.response?.data?.detalle ||
           "Error al eliminar curso.",
       );
+    } finally {
+      setProcesandoId("");
     }
   };
 
   const cargarCursoParaEditar = (curso) => {
-    setEditandoId(curso._id || curso.id);
+    const cursoId = obtenerIdCurso(curso);
+
+    setEditandoId(cursoId);
 
     setForm({
       titulo: curso.titulo || "",
@@ -303,7 +342,9 @@ function AdminCursos() {
     (curso) => curso.estado === "BORRADOR",
   ).length;
 
-  const totalCategorias = categorias.length;
+  const totalOcultos = cursos.filter(
+    (curso) => curso.estado === "OCULTO",
+  ).length;
 
   if (loading) {
     return (
@@ -403,11 +444,11 @@ function AdminCursos() {
           </article>
 
           <article className="admin-curso-stat-card cyan">
-            <div className="admin-curso-stat-icon">▰</div>
+            <div className="admin-curso-stat-icon">◌</div>
             <div>
-              <span>Categorías</span>
-              <strong>{totalCategorias}</strong>
-              <p>Áreas activas</p>
+              <span>Ocultos</span>
+              <strong>{totalOcultos}</strong>
+              <p>No visibles al público</p>
             </div>
           </article>
         </section>
@@ -635,7 +676,7 @@ function AdminCursos() {
           <div className="admin-list-card">
             <div className="admin-list-header">
               <div>
-                <h2>Cursos publicados</h2>
+                <h2>Cursos cargados</h2>
                 <p>Listado general de cursos cargados en la plataforma.</p>
               </div>
 
@@ -646,77 +687,121 @@ function AdminCursos() {
               {cursosFiltrados.length === 0 ? (
                 <div className="admin-empty">No hay cursos para mostrar.</div>
               ) : (
-                cursosFiltrados.map((curso) => (
-                  <article key={curso._id || curso.id} className="admin-item">
-                    <div className="admin-course-main">
-                      <div className="admin-course-avatar">
-                        {obtenerInicialesCurso(curso.titulo)}
+                cursosFiltrados.map((curso) => {
+                  const cursoId = obtenerIdCurso(curso);
+
+                  return (
+                    <article key={cursoId} className="admin-item">
+                      <div className="admin-course-main">
+                        <div className="admin-course-avatar">
+                          {obtenerInicialesCurso(curso.titulo)}
+                        </div>
+
+                        <div>
+                          <h3>{curso.titulo}</h3>
+                          <p>{curso.descripcion}</p>
+                        </div>
                       </div>
 
-                      <div>
-                        <h3>{curso.titulo}</h3>
-                        <p>{curso.descripcion}</p>
-                      </div>
-                    </div>
+                      <div className="admin-course-meta">
+                        <div>
+                          <span>Nivel</span>
+                          <strong className="admin-pill level">
+                            {formatearNivel(curso.nivel)}
+                          </strong>
+                        </div>
 
-                    <div className="admin-course-meta">
-                      <div>
-                        <span>Nivel</span>
-                        <strong className="admin-pill level">
-                          {formatearNivel(curso.nivel)}
-                        </strong>
+                        <div>
+                          <span>Categoría</span>
+                          <strong>
+                            {obtenerCategoriaNombre(curso.categoria)}
+                          </strong>
+                        </div>
+
+                        <div>
+                          <span>Precio</span>
+                          <strong>
+                            ${Number(curso.precio || 0).toLocaleString("es-AR")}
+                          </strong>
+                        </div>
+
+                        <div>
+                          <span>Estado</span>
+                          <strong
+                            className={`admin-pill status ${curso.estado?.toLowerCase()}`}
+                          >
+                            {formatearEstado(curso.estado)}
+                          </strong>
+                        </div>
                       </div>
 
-                      <div>
-                        <span>Categoría</span>
-                        <strong>
-                          {obtenerCategoriaNombre(curso.categoria)}
-                        </strong>
-                      </div>
-
-                      <div>
-                        <span>Precio</span>
-                        <strong>
-                          ${Number(curso.precio || 0).toLocaleString("es-AR")}
-                        </strong>
-                      </div>
-
-                      <div>
-                        <span>Estado</span>
-                        <strong
-                          className={`admin-pill status ${curso.estado?.toLowerCase()}`}
+                      <div className="admin-course-actions">
+                        <button
+                          type="button"
+                          className="admin-edit-btn"
+                          onClick={() => cargarCursoParaEditar(curso)}
+                          title="Editar curso"
+                          disabled={procesandoId === cursoId}
                         >
-                          {formatearEstado(curso.estado)}
-                        </strong>
+                          ✎
+                        </button>
+
+                        <button
+                          type="button"
+                          className="admin-delete-btn"
+                          onClick={() => abrirModalEliminar(curso)}
+                          title="Eliminar curso"
+                          disabled={procesandoId === cursoId}
+                        >
+                          🗑
+                        </button>
                       </div>
-                    </div>
-
-                    <div className="admin-course-actions">
-                      <button
-                        type="button"
-                        className="admin-edit-btn"
-                        onClick={() => cargarCursoParaEditar(curso)}
-                        title="Editar curso"
-                      >
-                        ✎
-                      </button>
-
-                      <button
-                        type="button"
-                        className="admin-delete-btn"
-                        onClick={() => eliminarCurso(curso._id || curso.id)}
-                        title="Eliminar curso"
-                      >
-                        🗑
-                      </button>
-                    </div>
-                  </article>
-                ))
+                    </article>
+                  );
+                })
               )}
             </div>
           </div>
         </div>
       </div>
+
+      {modalEliminar && (
+        <div className="admin-modal-overlay">
+          <div className="admin-modal-card">
+            <div className="admin-modal-icon">🗑</div>
+
+            <h2>Eliminar curso</h2>
+
+            <p>
+              ¿Seguro que querés eliminar el curso{" "}
+              <strong>{modalEliminar.titulo}</strong>? También se eliminarán sus
+              lecciones. Esta acción no se puede deshacer.
+            </p>
+
+            <div className="admin-modal-actions">
+              <button
+                type="button"
+                className="admin-modal-cancel"
+                onClick={cerrarModalEliminar}
+                disabled={procesandoId === obtenerIdCurso(modalEliminar)}
+              >
+                Cancelar
+              </button>
+
+              <button
+                type="button"
+                className="admin-modal-danger"
+                onClick={confirmarEliminarCurso}
+                disabled={procesandoId === obtenerIdCurso(modalEliminar)}
+              >
+                {procesandoId === obtenerIdCurso(modalEliminar)
+                  ? "Eliminando..."
+                  : "Eliminar"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

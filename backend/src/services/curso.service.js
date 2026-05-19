@@ -20,6 +20,7 @@ class CursoService {
     }
 
     const categoriaExistente = await Categoria.findById(datosCurso.categoria);
+
     if (!categoriaExistente) {
       throw new Error("La categoría indicada no existe");
     }
@@ -75,6 +76,7 @@ class CursoService {
     }
 
     return await Curso.find(filtroMongo)
+      .sort({ createdAt: -1 })
       .populate(populateCategoria)
       .populate(populateLecciones);
   }

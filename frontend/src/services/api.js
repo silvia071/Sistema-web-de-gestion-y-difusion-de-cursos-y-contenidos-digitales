@@ -36,6 +36,10 @@ function esRutaPrivada(pathname) {
   );
 }
 
+function esRutaAdmin(pathname) {
+  return pathname.startsWith("/admin");
+}
+
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
@@ -52,13 +56,20 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      limpiarSesion();
+    const status = error.response?.status;
+    const pathname = window.location.pathname;
 
-      const pathname = window.location.pathname;
+    if (status === 401) {
+      limpiarSesion();
 
       if (esRutaPrivada(pathname) && pathname !== "/login") {
         window.location.href = "/login";
+      }
+    }
+
+    if (status === 403) {
+      if (esRutaAdmin(pathname)) {
+        window.location.href = "/";
       }
     }
 

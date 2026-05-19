@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { USE_MOCK_API } from "../config/api";
 import api from "../services/api";
@@ -13,15 +13,25 @@ function Login() {
   const { recargarCarrito } = useCarrito();
 
   const from = location.state?.from || "/";
+  const emailInicial = location.state?.email || "";
 
   const [form, setForm] = useState({
-    email: "",
+    email: emailInicial,
     password: "",
   });
 
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (emailInicial) {
+      setForm((prev) => ({
+        ...prev,
+        email: emailInicial,
+      }));
+    }
+  }, [emailInicial]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -30,6 +40,22 @@ function Login() {
       ...prev,
       [name]: value,
     }));
+
+    if (error) {
+      setError("");
+    }
+  };
+
+  const limpiarSesionAnterior = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("usuario");
+    localStorage.removeItem("rol");
+    localStorage.removeItem("userId");
+    localStorage.removeItem("email");
+    localStorage.removeItem("nombre");
+    localStorage.removeItem("apellido");
+    localStorage.removeItem("nombreCompleto");
+    localStorage.removeItem("carrito");
   };
 
   const guardarSesion = (token, usuario) => {
@@ -43,15 +69,7 @@ function Login() {
       throw new Error("No se pudo obtener el ID del usuario");
     }
 
-    localStorage.removeItem("token");
-    localStorage.removeItem("usuario");
-    localStorage.removeItem("rol");
-    localStorage.removeItem("userId");
-    localStorage.removeItem("email");
-    localStorage.removeItem("nombre");
-    localStorage.removeItem("apellido");
-    localStorage.removeItem("nombreCompleto");
-    localStorage.removeItem("carrito");
+    limpiarSesionAnterior();
 
     const nombre = usuario.nombre || "Usuario";
     const apellido = usuario.apellido || "";
@@ -63,14 +81,18 @@ function Login() {
     localStorage.setItem("nombre", nombre);
     localStorage.setItem("apellido", apellido);
     localStorage.setItem("nombreCompleto", nombreCompleto);
-    localStorage.setItem("rol", usuario.rol || "USUARIO");
+    localStorage.setItem("rol", usuario.rol || "CLIENTE");
+    localStorage.setItem("usuario", JSON.stringify(usuario));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (submitting) return;
+
     setError("");
 
-    const email = form.email.trim();
+    const email = form.email.trim().toLowerCase();
     const password = form.password;
 
     if (!email || !password) {
@@ -80,14 +102,23 @@ function Login() {
 
     if (USE_MOCK_API) {
       const perfil = readMockPerfil(email);
-      writeMockPerfil(perfil);
+
+      const perfilMock = perfil || {
+        id: "local",
+        email,
+        nombre: "Usuario",
+        apellido: "",
+        rol: "CLIENTE",
+      };
+
+      writeMockPerfil(perfilMock);
 
       guardarSesion("mock_session", {
         id: "local",
         email,
-        nombre: perfil?.nombre || "Usuario",
-        apellido: perfil?.apellido || "",
-        rol: perfil?.rol || "USUARIO",
+        nombre: perfilMock.nombre || "Usuario",
+        apellido: perfilMock.apellido || "",
+        rol: perfilMock.rol || "CLIENTE",
       });
 
       recargarCarrito();
@@ -112,7 +143,8 @@ function Login() {
       navigate(from, { replace: true });
     } catch (error) {
       setError(
-        error.response?.data?.detalle ||
+        error.response?.data?.error ||
+          error.response?.data?.detalle ||
           error.response?.data?.mensaje ||
           error.message ||
           "No se pudo iniciar sesión.",

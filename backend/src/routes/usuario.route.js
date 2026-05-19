@@ -35,22 +35,46 @@ const {
 // Públicas
 router.post("/registro", validarRegistro, registrarUsuario);
 router.post("/login", iniciarSesion);
+
 // Usuario autenticado
 router.get("/me", verificarToken, (req, res) => {
   return res.status(200).json({
     datos: {
       _id: req.usuario._id,
+      id: req.usuario._id,
       nombre: req.usuario.nombre,
       apellido: req.usuario.apellido,
       email: req.usuario.email,
       rol: req.usuario.rol,
       estadoCuenta: req.usuario.estadoCuenta,
+      direccion: req.usuario.direccion,
+      telefono: req.usuario.telefono,
+      fechaCreacion: req.usuario.fechaCreacion,
+      createdAt: req.usuario.createdAt,
     },
   });
 });
 
+router.put("/me", verificarToken, validarEditarPerfil, (req, res, next) => {
+  req.params.id = req.usuario._id;
+  return editarPerfil(req, res, next);
+});
+
+router.put("/me/password", verificarToken, (req, res, next) => {
+  req.params.id = req.usuario._id;
+  return cambiarContrasenia(req, res, next);
+});
+
 // Admin
 router.get("/", verificarToken, verificarAdmin, listarUsuarios);
+
+router.post(
+  "/",
+  verificarToken,
+  verificarAdmin,
+  validarRegistro,
+  registrarUsuario,
+);
 
 router.get(
   "/email/:email",

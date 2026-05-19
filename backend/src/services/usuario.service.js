@@ -26,7 +26,7 @@ const registrarUsuario = async (datos) => {
     contrasenia: contraseniaHasheada,
     direccion: datos.direccion,
     telefono: datos.telefono,
-    rol: "CLIENTE",
+    rol: datos.rol || "CLIENTE",
   });
 
   return await nuevoUsuario.save();

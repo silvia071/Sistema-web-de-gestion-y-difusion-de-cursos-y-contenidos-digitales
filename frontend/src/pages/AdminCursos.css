@@ -1120,3 +1120,109 @@
     flex-wrap: wrap;
   }
 }
+
+.admin-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(2, 6, 32, 0.72);
+  backdrop-filter: blur(10px);
+}
+
+.admin-modal-card {
+  width: min(470px, 100%);
+  padding: 30px;
+  border-radius: 26px;
+  background: linear-gradient(
+    145deg,
+    rgba(20, 28, 92, 0.98),
+    rgba(39, 31, 112, 0.98)
+  );
+  border: 1px solid rgba(130, 150, 255, 0.26);
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.45);
+  color: white;
+  animation: adminCursoModalIn 0.18s ease-out;
+}
+
+.admin-modal-icon {
+  width: 54px;
+  height: 54px;
+  margin-bottom: 18px;
+  display: grid;
+  place-items: center;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #527fff, #9b5cff);
+  box-shadow: 0 16px 36px rgba(101, 92, 255, 0.32);
+  font-size: 1.35rem;
+}
+
+.admin-modal-card h2 {
+  margin: 0 0 10px;
+  font-size: 1.55rem;
+  font-weight: 900;
+}
+
+.admin-modal-card p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.74);
+  line-height: 1.5;
+}
+
+.admin-modal-card p strong {
+  color: white;
+}
+
+.admin-modal-actions {
+  margin-top: 26px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.admin-modal-cancel,
+.admin-modal-danger {
+  border: 0;
+  border-radius: 14px;
+  padding: 12px 18px;
+  min-height: 44px;
+  color: white;
+  font-weight: 900;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.admin-modal-cancel {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.admin-modal-danger {
+  background: linear-gradient(135deg, #ff4b6b, #d9274f);
+  box-shadow: 0 14px 28px rgba(255, 75, 107, 0.26);
+}
+
+.admin-modal-cancel:hover,
+.admin-modal-danger:hover {
+  transform: translateY(-2px);
+}
+
+.admin-modal-cancel:disabled,
+.admin-modal-danger:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none;
+}
+
+@keyframes adminCursoModalIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.97);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}

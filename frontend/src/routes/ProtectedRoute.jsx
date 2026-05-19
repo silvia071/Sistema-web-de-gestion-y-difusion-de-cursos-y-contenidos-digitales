@@ -2,7 +2,24 @@ import { Navigate, useLocation } from "react-router-dom";
 
 function obtenerPayloadToken(token) {
   try {
-    return JSON.parse(atob(token.split(".")[1]));
+    if (!token || typeof token !== "string") return null;
+
+    const partes = token.split(".");
+
+    if (partes.length !== 3) return null;
+
+    const payloadBase64 = partes[1].replace(/-/g, "+").replace(/_/g, "/");
+
+    const payloadDecodificado = decodeURIComponent(
+      atob(payloadBase64)
+        .split("")
+        .map((caracter) => {
+          return `%${`00${caracter.charCodeAt(0).toString(16)}`.slice(-2)}`;
+        })
+        .join(""),
+    );
+
+    return JSON.parse(payloadDecodificado);
   } catch {
     return null;
   }

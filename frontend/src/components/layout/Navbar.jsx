@@ -1,12 +1,29 @@
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { useCarrito } from "../../context/CarritoContext";
-import { useState } from "react";
 import logo from "../../assets/logo.png";
 import "./Navbar.css";
 
 function obtenerPayloadToken(token) {
   try {
-    return JSON.parse(atob(token.split(".")[1]));
+    if (!token || typeof token !== "string") return null;
+
+    const partes = token.split(".");
+
+    if (partes.length !== 3) return null;
+
+    const payloadBase64 = partes[1].replace(/-/g, "+").replace(/_/g, "/");
+
+    const payloadDecodificado = decodeURIComponent(
+      atob(payloadBase64)
+        .split("")
+        .map((caracter) => {
+          return `%${`00${caracter.charCodeAt(0).toString(16)}`.slice(-2)}`;
+        })
+        .join(""),
+    );
+
+    return JSON.parse(payloadDecodificado);
   } catch {
     return null;
   }
@@ -15,8 +32,13 @@ function obtenerPayloadToken(token) {
 function Navbar() {
   const { cantidadTotal, limpiarCarritoVisual } = useCarrito();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [openUserMenu, setOpenUserMenu] = useState(false);
+
+  useEffect(() => {
+    setOpenUserMenu(false);
+  }, [location.pathname]);
 
   const tokenGuardado = localStorage.getItem("token");
 
@@ -45,7 +67,6 @@ function Navbar() {
     localStorage.removeItem("carrito");
 
     setOpenUserMenu(false);
-
     navigate("/");
   };
 
@@ -157,7 +178,7 @@ function Navbar() {
               <button
                 type="button"
                 className="navbar__user-btn"
-                onClick={() => setOpenUserMenu(!openUserMenu)}
+                onClick={() => setOpenUserMenu((prev) => !prev)}
               >
                 Mi cuenta ▼
               </button>
@@ -165,11 +186,9 @@ function Navbar() {
               {openUserMenu && (
                 <div className="navbar__dropdown">
                   <button
+                    type="button"
                     className="navbar__dropdown-item"
-                    onClick={() => {
-                      setOpenUserMenu(false);
-                      navigate("/perfil");
-                    }}
+                    onClick={() => navigate("/perfil")}
                   >
                     Mi perfil
                   </button>
@@ -177,21 +196,17 @@ function Navbar() {
                   {!esAdmin && (
                     <>
                       <button
+                        type="button"
                         className="navbar__dropdown-item"
-                        onClick={() => {
-                          setOpenUserMenu(false);
-                          navigate("/mis-cursos");
-                        }}
+                        onClick={() => navigate("/mis-cursos")}
                       >
                         Mis cursos
                       </button>
 
                       <button
+                        type="button"
                         className="navbar__dropdown-item"
-                        onClick={() => {
-                          setOpenUserMenu(false);
-                          navigate("/carrito");
-                        }}
+                        onClick={() => navigate("/carrito")}
                       >
                         Mi carrito
                       </button>
@@ -200,17 +215,16 @@ function Navbar() {
 
                   {esAdmin && (
                     <button
+                      type="button"
                       className="navbar__dropdown-item"
-                      onClick={() => {
-                        setOpenUserMenu(false);
-                        navigate("/admin");
-                      }}
+                      onClick={() => navigate("/admin")}
                     >
                       Panel administrador
                     </button>
                   )}
 
                   <button
+                    type="button"
                     className="navbar__dropdown-item"
                     onClick={handleLogout}
                   >

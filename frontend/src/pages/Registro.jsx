@@ -69,7 +69,7 @@ function Registro() {
     }
 
     try {
-      const { data } = await api.post("/api/usuarios/registro", {
+      const { data } = await api.post("/api/auth/register", {
         nombre,
         apellido,
         email,
@@ -81,10 +81,17 @@ function Registro() {
     } catch (err) {
       console.error(err);
 
+      const erroresValidacion = err.response?.data?.errores;
+
+      if (Array.isArray(erroresValidacion) && erroresValidacion.length > 0) {
+        setError(erroresValidacion.map((item) => item.mensaje).join(" - "));
+        return;
+      }
+
       setError(
-        err.response?.data?.detalle ||
+        err.response?.data?.error ||
+          err.response?.data?.detalle ||
           err.response?.data?.mensaje ||
-          err.response?.data?.error ||
           "No se pudo registrar el usuario.",
       );
     } finally {
