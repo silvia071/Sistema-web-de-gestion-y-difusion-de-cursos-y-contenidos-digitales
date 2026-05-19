@@ -23,7 +23,7 @@ export default function MisCursos() {
       const usuarioLogueado =
         usuarioResponse.data?.datos || usuarioResponse.data;
 
-      const usuarioId = usuarioLogueado?._id;
+      const usuarioId = usuarioLogueado?._id || usuarioLogueado?.id;
 
       if (!usuarioId) {
         setError("No se encontró sesión activa");
@@ -70,7 +70,11 @@ export default function MisCursos() {
       console.error(error);
 
       setError(
-        error.response?.data?.mensaje || "No se pudieron cargar tus cursos",
+        error.response?.data?.detalle ||
+          error.response?.data?.mensaje ||
+          error.response?.data?.error ||
+          error.message ||
+          "No se pudieron cargar tus cursos",
       );
 
       setAccesos([]);

@@ -5,6 +5,12 @@ import api from "../services/api";
 import { getImageUrl } from "../utils/getImageUrl";
 import "./Curso.css";
 
+function tokenValido(token) {
+  return (
+    token && token !== "null" && token !== "undefined" && token.trim() !== ""
+  );
+}
+
 function Cursos() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -56,10 +62,12 @@ function Cursos() {
         setLoading(true);
         setError("");
 
-        const rol = localStorage.getItem("rol");
+        const rolActual = localStorage.getItem("rol");
 
         const endpoint =
-          rol === "ADMINISTRADOR" ? "/api/cursos/admin/todos" : "/api/cursos";
+          rolActual === "ADMINISTRADOR"
+            ? "/api/cursos/admin/todos"
+            : "/api/cursos";
 
         const response = await api.get(endpoint);
 
@@ -81,14 +89,18 @@ function Cursos() {
         const token = localStorage.getItem("token");
         const usuarioId = localStorage.getItem("userId");
 
-        if (!token || !usuarioId) {
+        if (!tokenValido(token) || !usuarioId) {
           setMisCursosIds([]);
           return;
         }
 
         const response = await api.get(`/api/accesos/usuario/${usuarioId}`);
 
-        const accesos = response.data.datos || [];
+        const accesos = Array.isArray(response.data?.datos)
+          ? response.data.datos
+          : Array.isArray(response.data)
+            ? response.data
+            : [];
 
         const ids = accesos
           .map(
@@ -150,7 +162,11 @@ function Cursos() {
   }, [cursos, categoriaActiva, busqueda]);
 
   const obtenerImagenCurso = (curso) => {
-    return getImageUrl(curso.imagenPortada);
+    return (
+      getImageUrl(curso?.imagenPortada) ||
+      getImageUrl(curso?.imagen) ||
+      "/placeholder-curso.png"
+    );
   };
 
   const mostrarAvisoCurso = (cursoId, texto) => {
@@ -184,9 +200,9 @@ function Cursos() {
 
     const token = localStorage.getItem("token");
 
-    if (!token) {
+    if (!tokenValido(token)) {
       navigate("/login", {
-        state: { from: location.pathname },
+        state: { from: location.pathname + location.search },
       });
       return;
     }

@@ -18,7 +18,16 @@ function Navbar() {
 
   const [openUserMenu, setOpenUserMenu] = useState(false);
 
-  const token = localStorage.getItem("token");
+  const tokenGuardado = localStorage.getItem("token");
+
+  const token =
+    tokenGuardado &&
+    tokenGuardado !== "null" &&
+    tokenGuardado !== "undefined" &&
+    tokenGuardado.trim() !== ""
+      ? tokenGuardado
+      : null;
+
   const payload = token ? obtenerPayloadToken(token) : null;
   const esAdmin = payload?.rol === "ADMINISTRADOR";
 
@@ -26,15 +35,18 @@ function Navbar() {
     limpiarCarritoVisual();
 
     localStorage.removeItem("token");
+    localStorage.removeItem("usuario");
+    localStorage.removeItem("rol");
     localStorage.removeItem("userId");
     localStorage.removeItem("email");
     localStorage.removeItem("nombre");
-    localStorage.removeItem("rol");
-    localStorage.removeItem("usuario");
+    localStorage.removeItem("apellido");
+    localStorage.removeItem("nombreCompleto");
+    localStorage.removeItem("carrito");
 
     setOpenUserMenu(false);
 
-    navigate("/login");
+    navigate("/");
   };
 
   const handleCarritoClick = (e) => {

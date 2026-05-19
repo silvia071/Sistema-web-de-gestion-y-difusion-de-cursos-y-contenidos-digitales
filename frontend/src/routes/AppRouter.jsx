@@ -1,9 +1,10 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
+
 import MainLayout from "../layouts/MainLayout";
 import AuthLayout from "../layouts/AuthLayout";
 import ProtectedRoute from "./ProtectedRoute";
-import Admin from "../pages/Admin";
 
+import Admin from "../pages/Admin";
 import Home from "../pages/Home";
 import Login from "../pages/Login";
 import Registro from "../pages/Registro";
@@ -13,7 +14,6 @@ import Blog from "../pages/Blog";
 import BlogDetalle from "../pages/BlogDetalle";
 import Perfil from "../pages/Perfil";
 import Carrito from "../pages/Carrito";
-
 import Nosotros from "../pages/Nosotros";
 import Contactos from "../pages/Contactos";
 import MisCursos from "../pages/MisCursos";
@@ -23,27 +23,24 @@ import AdminCursos from "../pages/AdminCursos";
 import AdminLecciones from "../pages/AdminLecciones";
 import AdminPagos from "../pages/AdminPagos";
 import AdminDatosFacturacion from "../pages/AdminDatosFacturacion";
+import AdminUsuarios from "../pages/AdminUsuarios";
+
 import PagoExitoso from "../pages/PagoExitoso";
 import PagoPendiente from "../pages/PagoPendiente";
 import PagoFallido from "../pages/PagoFallido";
-import AdminUsuarios from "../pages/AdminUsuarios";
 
 function AppRouter() {
   return (
     <Routes>
-      {/* RUTAS PUBLICAS */}
+      {/* RUTAS PÚBLICAS */}
       <Route element={<MainLayout />}>
         <Route path="/" element={<Home />} />
         <Route path="/cursos" element={<Cursos />} />
         <Route path="/cursos/:id" element={<DetalleCurso />} />
         <Route path="/blog" element={<Blog />} />
         <Route path="/blog/:id" element={<BlogDetalle />} />
-
         <Route path="/nosotros" element={<Nosotros />} />
         <Route path="/contactos" element={<Contactos />} />
-        <Route path="/pago-exitoso" element={<PagoExitoso />} />
-        <Route path="/pago-pendiente" element={<PagoPendiente />} />
-        <Route path="/pago-fallido" element={<PagoFallido />} />
       </Route>
 
       {/* AUTH */}
@@ -52,7 +49,7 @@ function AppRouter() {
         <Route path="/registro" element={<Registro />} />
       </Route>
 
-      {/* PRIVADAS */}
+      {/* RUTAS PRIVADAS */}
       <Route element={<MainLayout />}>
         <Route
           path="/perfil"
@@ -80,19 +77,48 @@ function AppRouter() {
             </ProtectedRoute>
           }
         />
-        <Route
-          path="/admin"
-          element={
-            <ProtectedRoute adminOnly={true}>
-              <Admin />
-            </ProtectedRoute>
-          }
-        />
+
         <Route
           path="/curso/:id/aprender"
           element={
             <ProtectedRoute>
               <AprenderCurso />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/pago-exitoso"
+          element={
+            <ProtectedRoute>
+              <PagoExitoso />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/pago-pendiente"
+          element={
+            <ProtectedRoute>
+              <PagoPendiente />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/pago-fallido"
+          element={
+            <ProtectedRoute>
+              <PagoFallido />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute adminOnly={true}>
+              <Admin />
             </ProtectedRoute>
           }
         />
@@ -105,6 +131,7 @@ function AppRouter() {
             </ProtectedRoute>
           }
         />
+
         <Route
           path="/admin/lecciones"
           element={
@@ -113,6 +140,7 @@ function AppRouter() {
             </ProtectedRoute>
           }
         />
+
         <Route
           path="/admin/pagos"
           element={
@@ -121,6 +149,7 @@ function AppRouter() {
             </ProtectedRoute>
           }
         />
+
         <Route
           path="/admin/datos-facturacion"
           element={
@@ -129,6 +158,7 @@ function AppRouter() {
             </ProtectedRoute>
           }
         />
+
         <Route
           path="/admin/usuarios"
           element={
@@ -138,6 +168,9 @@ function AppRouter() {
           }
         />
       </Route>
+
+      {/* CUALQUIER RUTA DESCONOCIDA VA AL INICIO */}
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }

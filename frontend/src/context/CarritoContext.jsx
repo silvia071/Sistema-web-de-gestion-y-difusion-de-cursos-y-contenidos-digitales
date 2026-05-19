@@ -13,7 +13,13 @@ export function CarritoProvider({ children }) {
   const [mensajeCarrito, setMensajeCarrito] = useState("");
   const [cargandoCarrito, setCargandoCarrito] = useState(false);
 
-  const haySesion = () => Boolean(localStorage.getItem("token"));
+  const haySesion = () => {
+    const token = localStorage.getItem("token");
+
+    return (
+      token && token !== "null" && token !== "undefined" && token.trim() !== ""
+    );
+  };
 
   const normalizarItem = (item) => {
     const curso = item.curso || item;
@@ -21,12 +27,11 @@ export function CarritoProvider({ children }) {
     if (!curso) return null;
 
     const imagenRaw = curso.imagenPortada || curso.imagen || "";
-
     const imagen = getImageUrl(imagenRaw);
 
     return {
-      id: curso._id || curso.id,
-      itemId: item._id,
+      id: String(curso._id || curso.id),
+      itemId: item._id ? String(item._id) : undefined,
       titulo: curso.titulo || "Curso sin título",
       precio: Number(item.precioUnitario || curso.precio || 0),
       imagen,
@@ -38,6 +43,7 @@ export function CarritoProvider({ children }) {
     if (!haySesion()) {
       setCarritoBackend(null);
       setCarrito([]);
+      setCargandoCarrito(false);
       return null;
     }
 
@@ -65,20 +71,20 @@ export function CarritoProvider({ children }) {
     }
   };
 
- useEffect(() => {
-   cargarCarritoBackend();
+  useEffect(() => {
+    cargarCarritoBackend();
 
-   const syncSesion = () => {
-     cargarCarritoBackend();
-   };
+    const syncSesion = () => {
+      cargarCarritoBackend();
+    };
 
-   window.addEventListener("storage", syncSesion);
+    window.addEventListener("storage", syncSesion);
 
-   return () => {
-     window.removeEventListener("storage", syncSesion);
-   };
- }, []);
-  
+    return () => {
+      window.removeEventListener("storage", syncSesion);
+    };
+  }, []);
+
   const recargarCarrito = () => {
     cargarCarritoBackend();
   };
@@ -89,6 +95,10 @@ export function CarritoProvider({ children }) {
     setTimeout(() => {
       setMensajeCarrito("");
     }, 2200);
+  };
+
+  const estaEnCarrito = (id) => {
+    return carrito.some((item) => String(item.id) === String(id));
   };
 
   const agregarAlCarrito = async (producto) => {
@@ -156,7 +166,8 @@ export function CarritoProvider({ children }) {
 
     const item = carrito.find(
       (producto) =>
-        producto.id === String(id) || producto.itemId === String(id),
+        String(producto.id) === String(id) ||
+        String(producto.itemId) === String(id),
     );
 
     const itemId = item?.itemId || id;
@@ -209,26 +220,20 @@ export function CarritoProvider({ children }) {
     }
   };
 
-const limpiarCarritoVisual = () => {
-  setCarrito([]);
+  const limpiarCarritoVisual = () => {
+    setCarrito([]);
 
-  setCarritoBackend((prev) =>
-    prev
-      ? {
-          ...prev,
-          items: [],
-        }
-      : null,
-  );
+    setCarritoBackend((prev) =>
+      prev
+        ? {
+            ...prev,
+            items: [],
+          }
+        : null,
+    );
 
-  setMensajeCarrito("");
-};
-
-  const estaEnCarrito = (id) => {
-    return carrito.some((item) => item.id === String(id));
+    setMensajeCarrito("");
   };
-
-  
 
   const cantidadTotal = useMemo(() => carrito.length, [carrito]);
 
@@ -250,7 +255,6 @@ const limpiarCarritoVisual = () => {
         vaciarCarrito,
         limpiarCarritoVisual,
         recargarCarrito,
-     
         estaEnCarrito,
       }}
     >

@@ -15,8 +15,12 @@ function PagoPendiente() {
         </p>
 
         <div className="estado-pago-actions">
-          <Link to="/carrito" className="estado-pago-btn">
-            Volver al carrito
+          <Link to="/mis-cursos" className="estado-pago-btn">
+            Ir a Mis Cursos
+          </Link>
+
+          <Link to="/cursos" className="estado-pago-btn secundario">
+            Ver más cursos
           </Link>
         </div>
       </div>

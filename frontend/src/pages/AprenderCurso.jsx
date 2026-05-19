@@ -1,25 +1,45 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import api from "../services/api";
 import logo from "../assets/logo.png";
 import "./AprenderCurso.css";
 
+function tokenValido(token) {
+  return (
+    token && token !== "null" && token !== "undefined" && token.trim() !== ""
+  );
+}
+
+function obtenerPayloadToken(token) {
+  try {
+    return JSON.parse(atob(token.split(".")[1]));
+  } catch {
+    return null;
+  }
+}
+
+function limpiarSesion() {
+  localStorage.removeItem("token");
+  localStorage.removeItem("usuario");
+  localStorage.removeItem("rol");
+  localStorage.removeItem("userId");
+  localStorage.removeItem("email");
+  localStorage.removeItem("nombre");
+  localStorage.removeItem("apellido");
+  localStorage.removeItem("nombreCompleto");
+  localStorage.removeItem("carrito");
+}
+
 function AprenderCurso() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  const leccionUrlId = searchParams.get("leccion");
 
   const token = localStorage.getItem("token");
-
-  let esAdmin = false;
-
-  try {
-    if (token) {
-      const payload = JSON.parse(atob(token.split(".")[1]));
-      esAdmin = payload?.rol === "ADMINISTRADOR";
-    }
-  } catch {
-    esAdmin = false;
-  }
+  const payload = tokenValido(token) ? obtenerPayloadToken(token) : null;
+  const esAdmin = payload?.rol === "ADMINISTRADOR";
 
   const [curso, setCurso] = useState(null);
   const [accesoCurso, setAccesoCurso] = useState(null);
@@ -45,32 +65,94 @@ function AprenderCurso() {
     }
   };
 
-useEffect(() => {
-  const cargarCurso = async () => {
-    try {
-      setError("");
+  useEffect(() => {
+    const cargarCurso = async () => {
+      try {
+        setError("");
+        setCurso(null);
+        setLeccionActual(null);
+        setAccesoCurso(null);
+        setLeccionesCompletadas([]);
 
-      const usuarioResponse = await api.get("/api/usuarios/me");
-      const usuarioLogueado =
-        usuarioResponse.data?.datos || usuarioResponse.data;
+        const usuarioResponse = await api.get("/api/usuarios/me");
+        const usuarioLogueado =
+          usuarioResponse.data?.datos || usuarioResponse.data;
 
-      setUsuarioActual(usuarioLogueado);
+        setUsuarioActual(usuarioLogueado);
 
-      const usuarioId = usuarioLogueado?._id;
+        const usuarioId = usuarioLogueado?._id || usuarioLogueado?.id;
 
-      if (!usuarioId) {
-        setError("Tenés que iniciar sesión para acceder a este curso.");
-        return;
-      }
+        if (!usuarioId) {
+          setError("Tenés que iniciar sesión para acceder a este curso.");
+          return;
+        }
 
-      const leccionesResponse = await api.get(`/api/lecciones/curso/${id}`);
+        const endpointLecciones = esAdmin
+          ? `/api/lecciones/admin/curso/${id}`
+          : `/api/lecciones/curso/${id}`;
 
-      const lecciones = Array.isArray(leccionesResponse.data.datos)
-        ? leccionesResponse.data.datos
-        : [];
+        const leccionesResponse = await api.get(endpointLecciones);
 
-      if (esAdmin) {
-        const cursoResponse = await api.get(`/api/cursos/admin/${id}`);
+        const lecciones = Array.isArray(leccionesResponse.data.datos)
+          ? leccionesResponse.data.datos
+          : Array.isArray(leccionesResponse.data)
+            ? leccionesResponse.data
+            : [];
+
+        if (esAdmin) {
+          const cursoResponse = await api.get(`/api/cursos/admin/${id}`);
+          const cursoBase = cursoResponse.data.datos || cursoResponse.data;
+
+          setCurso({
+            ...cursoBase,
+            lecciones,
+          });
+
+          let leccionInicial = null;
+
+          if (leccionUrlId) {
+            leccionInicial = lecciones.find(
+              (leccion) => leccion._id?.toString() === leccionUrlId.toString(),
+            );
+          }
+
+          if (!leccionInicial) {
+            leccionInicial = lecciones[0];
+          }
+
+          if (leccionInicial?._id) {
+            await cargarLeccionCompleta(leccionInicial._id);
+          }
+
+          return;
+        }
+
+        const accesoResponse = await api.get(
+          `/api/accesos/usuario/${usuarioId}`,
+        );
+
+        const accesosData = Array.isArray(accesoResponse.data.datos)
+          ? accesoResponse.data.datos
+          : Array.isArray(accesoResponse.data)
+            ? accesoResponse.data
+            : [];
+
+        const accesoEncontrado = accesosData.find((acceso) => {
+          const cursoAccesoId =
+            acceso?.curso?._id || acceso?.curso?.id || acceso?.curso;
+
+          const estadoActivo =
+            !acceso?.estado || acceso.estado.toUpperCase() === "ACTIVO";
+
+          return cursoAccesoId?.toString() === id?.toString() && estadoActivo;
+        });
+
+        if (!accesoEncontrado) {
+          setError("No tenés acceso a este curso.");
+          return;
+        }
+
+        const cursoResponse = await api.get(`/api/cursos/${id}`);
         const cursoBase = cursoResponse.data.datos || cursoResponse.data;
 
         setCurso({
@@ -78,76 +160,46 @@ useEffect(() => {
           lecciones,
         });
 
-        setAccesoCurso(null);
-        setLeccionesCompletadas([]);
+        setAccesoCurso(accesoEncontrado);
+        setLeccionesCompletadas(accesoEncontrado.leccionesCompletadas || []);
 
-        if (lecciones.length > 0) {
-          await cargarLeccionCompleta(lecciones[0]._id);
+        let leccionInicial = null;
+
+        if (leccionUrlId) {
+          leccionInicial = lecciones.find(
+            (leccion) => leccion._id?.toString() === leccionUrlId.toString(),
+          );
         }
 
-        return;
-      }
+        if (!leccionInicial && accesoEncontrado.ultimaLeccion) {
+          leccionInicial =
+            lecciones.find(
+              (leccion) =>
+                leccion._id?.toString() ===
+                accesoEncontrado.ultimaLeccion.toString(),
+            ) || lecciones[0];
+        }
 
-      const accesoResponse = await api.get(`/api/accesos/usuario/${usuarioId}`);
+        if (!leccionInicial) {
+          leccionInicial = lecciones[0];
+        }
 
-      const accesosData = Array.isArray(accesoResponse.data.datos)
-        ? accesoResponse.data.datos
-        : [];
+        if (leccionInicial?._id) {
+          await cargarLeccionCompleta(leccionInicial._id);
+        }
+      } catch (error) {
+        console.error(error);
 
-      const accesoEncontrado = accesosData.find((acceso) => {
-        const cursoAccesoId = acceso.curso?._id || acceso.curso;
-
-        return (
-          cursoAccesoId?.toString() === id?.toString() &&
-          acceso.estado === "ACTIVO"
+        setError(
+          error.response?.data?.mensaje ||
+            error.response?.data?.error ||
+            "No se pudo cargar el curso.",
         );
-      });
-
-      if (!accesoEncontrado) {
-        setError("No tenés acceso a este curso.");
-        return;
       }
+    };
 
-      const cursoResponse = await api.get(`/api/cursos/${id}`);
-      const cursoBase = cursoResponse.data.datos || cursoResponse.data;
-
-      setCurso({
-        ...cursoBase,
-        lecciones,
-      });
-
-      setAccesoCurso(accesoEncontrado);
-      setLeccionesCompletadas(accesoEncontrado.leccionesCompletadas || []);
-
-      let leccionInicial = null;
-
-      if (accesoEncontrado.ultimaLeccion) {
-        leccionInicial =
-          lecciones.find(
-            (leccion) =>
-              leccion._id?.toString() ===
-              accesoEncontrado.ultimaLeccion.toString(),
-          ) || lecciones[0];
-      } else {
-        leccionInicial = lecciones[0];
-      }
-
-      if (leccionInicial?._id) {
-        await cargarLeccionCompleta(leccionInicial._id);
-      }
-    } catch (error) {
-      console.error(error);
-
-      setError(
-        error.response?.data?.mensaje ||
-          error.response?.data?.error ||
-          "No se pudo cargar el curso.",
-      );
-    }
-  };
-
-  cargarCurso();
-}, [id, esAdmin]);
+    cargarCurso();
+  }, [id, esAdmin, leccionUrlId]);
 
   const indiceActual = useMemo(() => {
     if (!curso?.lecciones || !leccionActual) return -1;
@@ -198,6 +250,7 @@ useEffect(() => {
 
   const leccionEstaBloqueada = (index) => {
     if (esAdmin) return false;
+    if (!curso?.lecciones?.length) return true;
     if (index === 0) return false;
 
     const leccionAnterior = curso.lecciones[index - 1];
@@ -256,6 +309,12 @@ useEffect(() => {
     }
   };
 
+  const cerrarSesion = () => {
+    limpiarSesion();
+    setMenuCuentaAbierto(false);
+    navigate("/");
+  };
+
   if (error) {
     return (
       <main className="curso-estado-page">
@@ -263,6 +322,12 @@ useEffect(() => {
           <div className="curso-estado-icono error">🔒</div>
           <h2>No se pudo acceder al curso</h2>
           <p>{error}</p>
+          <button
+            className="btn-volver-cursos"
+            onClick={() => navigate("/cursos")}
+          >
+            Volver a cursos
+          </button>
         </div>
       </main>
     );
@@ -318,15 +383,14 @@ useEffect(() => {
                 <button onClick={() => navigate("/mis-cursos")}>
                   Mis cursos
                 </button>
-                <button onClick={() => navigate("/carrito")}>Mi carrito</button>
-                <button
-                  onClick={() => {
-                    localStorage.clear();
-                    navigate("/login");
-                  }}
-                >
-                  Cerrar sesión
-                </button>
+
+                {!esAdmin && (
+                  <button onClick={() => navigate("/carrito")}>
+                    Mi carrito
+                  </button>
+                )}
+
+                <button onClick={cerrarSesion}>Cerrar sesión</button>
               </div>
             )}
           </div>
@@ -470,7 +534,6 @@ useEffect(() => {
 
                 <div className="leccion-meta">
                   <span>⏱ Duración: {leccionActual.duracionMinutos} min</span>
-
                   <span>📚 Nivel: {curso.nivel || "Curso"}</span>
 
                   {curso.categoria && (
@@ -481,8 +544,6 @@ useEffect(() => {
                         : curso.categoria}
                     </span>
                   )}
-
-                  
                 </div>
               </div>
 
@@ -492,6 +553,7 @@ useEffect(() => {
                 </div>
               )}
             </div>
+
             {videoEmbed ? (
               <div className="video-container">
                 <iframe

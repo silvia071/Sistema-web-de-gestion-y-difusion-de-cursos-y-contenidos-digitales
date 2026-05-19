@@ -5,11 +5,42 @@ const api = axios.create({
   baseURL: API_BASE,
 });
 
+function limpiarSesion() {
+  localStorage.removeItem("token");
+  localStorage.removeItem("usuario");
+  localStorage.removeItem("rol");
+  localStorage.removeItem("userId");
+  localStorage.removeItem("email");
+  localStorage.removeItem("nombre");
+  localStorage.removeItem("apellido");
+  localStorage.removeItem("nombreCompleto");
+  localStorage.removeItem("carrito");
+}
+
+function tokenValido(token) {
+  return (
+    token && token !== "null" && token !== "undefined" && token.trim() !== ""
+  );
+}
+
+function esRutaPrivada(pathname) {
+  return (
+    pathname.startsWith("/perfil") ||
+    pathname.startsWith("/carrito") ||
+    pathname.startsWith("/mis-cursos") ||
+    pathname.startsWith("/curso/") ||
+    pathname.startsWith("/admin") ||
+    pathname.startsWith("/pago-exitoso") ||
+    pathname.startsWith("/pago-pendiente") ||
+    pathname.startsWith("/pago-fallido")
+  );
+}
+
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
 
-    if (token) {
+    if (tokenValido(token)) {
       config.headers.Authorization = `Bearer ${token}`;
     }
 
@@ -22,15 +53,11 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem("token");
-      localStorage.removeItem("usuario");
-      localStorage.removeItem("rol");
-      localStorage.removeItem("userId");
-      localStorage.removeItem("email");
-      localStorage.removeItem("nombre");
-      localStorage.removeItem("carrito");
+      limpiarSesion();
 
-      if (window.location.pathname !== "/login") {
+      const pathname = window.location.pathname;
+
+      if (esRutaPrivada(pathname) && pathname !== "/login") {
         window.location.href = "/login";
       }
     }

@@ -1,8 +1,14 @@
 import "./Carrito.css";
 import { useCarrito } from "../context/CarritoContext";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import api from "../services/api";
+
+function tokenValido(token) {
+  return (
+    token && token !== "null" && token !== "undefined" && token.trim() !== ""
+  );
+}
 
 function Carrito() {
   const {
@@ -14,6 +20,7 @@ function Carrito() {
   } = useCarrito();
 
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [metodoPago, setMetodoPago] = useState("TRANSFERENCIA");
   const [metodosPago, setMetodosPago] = useState([]);
@@ -113,12 +120,16 @@ function Carrito() {
 
       const token = localStorage.getItem("token");
 
-      if (!token) {
+      if (!tokenValido(token)) {
         mostrarModal({
           titulo: "Iniciá sesión",
           mensaje: "Tenés que iniciar sesión para poder comprar cursos.",
           tipo: "info",
-          accion: () => navigate("/login"),
+          accion: () =>
+            navigate("/login", {
+              replace: true,
+              state: { from: location.pathname },
+            }),
           textoConfirmar: "Iniciar sesión",
         });
 
@@ -299,7 +310,7 @@ function Carrito() {
         <div className="carrito-container">
           <div className="carrito-lista">
             {carrito.map((item) => {
-              const itemId = item.id || item._id;
+              const itemId = item.itemId || item.id || item._id;
 
               return (
                 <article key={itemId} className="carrito-card">

@@ -27,32 +27,46 @@ function Registro() {
     }));
   };
 
+  const irALogin = (email) => {
+    setTimeout(() => {
+      navigate("/login", {
+        replace: true,
+        state: { email },
+      });
+    }, 1200);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (submitting) return;
+
     setError("");
     setSuccess("");
 
     const nombre = form.nombre.trim();
     const apellido = form.apellido.trim();
-    const email = form.email.trim();
-    const contrasenia = form.password;
+    const email = form.email.trim().toLowerCase();
+    const contrasenia = form.password.trim();
 
     if (!nombre || !apellido || !email || !contrasenia) {
       setError("Completá todos los campos.");
       return;
     }
+
     if (contrasenia.length < 6) {
       setError("La contraseña debe tener al menos 6 caracteres.");
       return;
     }
 
+    setSubmitting(true);
+
     if (USE_MOCK_API) {
       setSuccess("Usuario registrado correctamente.");
-      setTimeout(() => navigate("/login"), 1200);
+      irALogin(email);
+      setSubmitting(false);
       return;
     }
-
-    setSubmitting(true);
 
     try {
       const { data } = await api.post("/api/usuarios/registro", {
@@ -63,7 +77,7 @@ function Registro() {
       });
 
       setSuccess(data?.mensaje || "Usuario registrado correctamente.");
-      setTimeout(() => navigate("/login"), 1200);
+      irALogin(email);
     } catch (err) {
       console.error(err);
 

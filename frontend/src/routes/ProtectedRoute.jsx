@@ -1,4 +1,4 @@
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 
 function obtenerPayloadToken(token) {
   try {
@@ -25,10 +25,14 @@ function limpiarSesion() {
   localStorage.removeItem("userId");
   localStorage.removeItem("email");
   localStorage.removeItem("nombre");
+  localStorage.removeItem("apellido");
+  localStorage.removeItem("nombreCompleto");
   localStorage.removeItem("carrito");
 }
 
 function ProtectedRoute({ children, adminOnly = false }) {
+  const location = useLocation();
+
   const token = localStorage.getItem("token");
 
   const haySesion =
@@ -36,7 +40,8 @@ function ProtectedRoute({ children, adminOnly = false }) {
 
   if (!haySesion || tokenExpirado(token)) {
     limpiarSesion();
-    return <Navigate to="/login" replace />;
+
+    return <Navigate to="/login" replace state={{ from: location.pathname }} />;
   }
 
   const payload = obtenerPayloadToken(token);

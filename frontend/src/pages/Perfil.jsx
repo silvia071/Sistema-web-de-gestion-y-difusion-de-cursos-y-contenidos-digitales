@@ -34,6 +34,7 @@ function Perfil() {
 
   const syncFormFromUsuario = useCallback((u) => {
     if (!u) return;
+
     setNombre(u.nombre ?? "");
     setApellido(u.apellido ?? "");
     setDireccion(u.direccion ?? "");
@@ -42,14 +43,16 @@ function Perfil() {
 
   const clearSessionAndRedirect = useCallback(() => {
     localStorage.removeItem("token");
-    localStorage.removeItem("email");
-    localStorage.removeItem("userId");
-    localStorage.removeItem("nombre");
-    localStorage.removeItem("rol");
     localStorage.removeItem("usuario");
+    localStorage.removeItem("rol");
+    localStorage.removeItem("userId");
+    localStorage.removeItem("email");
+    localStorage.removeItem("nombre");
+    localStorage.removeItem("apellido");
+    localStorage.removeItem("nombreCompleto");
     localStorage.removeItem("carrito");
 
-    navigate("/login", { replace: true });
+    navigate("/", { replace: true });
   }, [navigate]);
 
   const cargarMisCursos = useCallback(async () => {
@@ -138,13 +141,21 @@ function Perfil() {
 
   const abrirEdicion = () => {
     setSaveError("");
-    if (usuario) syncFormFromUsuario(usuario);
+
+    if (usuario) {
+      syncFormFromUsuario(usuario);
+    }
+
     setEditando(true);
   };
 
   const cancelarEdicion = () => {
     setSaveError("");
-    if (usuario) syncFormFromUsuario(usuario);
+
+    if (usuario) {
+      syncFormFromUsuario(usuario);
+    }
+
     setEditando(false);
   };
 
@@ -175,13 +186,17 @@ function Perfil() {
       return;
     }
 
-    const body = { nombre: nombreLimpio, apellido: apellidoLimpio };
+    const body = {
+      nombre: nombreLimpio,
+      apellido: apellidoLimpio,
+    };
 
     if (direccionLimpia) body.direccion = direccionLimpia;
     if (telefonoLimpio) body.telefono = telefonoLimpio;
 
     if (USE_MOCK_API) {
       const email = usuario?.email ?? localStorage.getItem("email") ?? "";
+
       const actualizado = {
         id: "local",
         email,
@@ -206,6 +221,15 @@ function Perfil() {
       setUsuario(data.datos);
       syncFormFromUsuario(data.datos);
       setEditando(false);
+
+      localStorage.setItem("nombre", data.datos?.nombre || nombreLimpio);
+      localStorage.setItem("apellido", data.datos?.apellido || apellidoLimpio);
+      localStorage.setItem(
+        "nombreCompleto",
+        `${data.datos?.nombre || nombreLimpio} ${
+          data.datos?.apellido || apellidoLimpio
+        }`.trim(),
+      );
     } catch (error) {
       if (error.response?.status === 401) {
         clearSessionAndRedirect();
@@ -289,7 +313,8 @@ function Perfil() {
             <div className="perfil-help-icon">🎧</div>
             <h3>¿Necesitás ayuda?</h3>
             <p>Nuestro equipo está para ayudarte.</p>
-            <button type="button" onClick={() => navigate("/contacto")}>
+
+            <button type="button" onClick={() => navigate("/contactos")}>
               Contactar soporte
             </button>
           </div>
@@ -530,6 +555,7 @@ function Perfil() {
                             }}
                           />
                         </div>
+
                         <strong>{acceso.progreso || 0}%</strong>
                       </div>
 

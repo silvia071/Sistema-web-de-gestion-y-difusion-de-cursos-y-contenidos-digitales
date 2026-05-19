@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { USE_MOCK_API } from "../config/api";
 import api from "../services/api";
 import { readMockPerfil, writeMockPerfil } from "../services/mockPerfil";
@@ -8,7 +8,11 @@ import "./Login.css";
 
 function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
+
   const { recargarCarrito } = useCarrito();
+
+  const from = location.state?.from || "/";
 
   const [form, setForm] = useState({
     email: "",
@@ -87,7 +91,7 @@ function Login() {
       });
 
       recargarCarrito();
-      navigate("/cursos");
+      navigate(from, { replace: true });
       return;
     }
 
@@ -105,7 +109,7 @@ function Login() {
       guardarSesion(token, usuario);
 
       recargarCarrito();
-      navigate("/cursos");
+      navigate(from, { replace: true });
     } catch (error) {
       setError(
         error.response?.data?.detalle ||

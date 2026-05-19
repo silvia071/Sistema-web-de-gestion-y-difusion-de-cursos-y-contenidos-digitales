@@ -1,19 +1,30 @@
 import { useEffect, useMemo, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useCarrito } from "../context/CarritoContext";
 import api from "../services/api";
 import { getImageUrl } from "../utils/getImageUrl";
 import "./DetalleCurso.css";
 
+function tokenValido(token) {
+  return (
+    token && token !== "null" && token !== "undefined" && token.trim() !== ""
+  );
+}
+
 function DetalleCurso() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+
   const { agregarAlCarrito } = useCarrito();
 
   const [curso, setCurso] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [yaComprado, setYaComprado] = useState(false);
+
+  const token = localStorage.getItem("token");
+  const haySesion = tokenValido(token);
 
   const rol = localStorage.getItem("rol");
   const esAdmin = rol === "ADMINISTRADOR";
@@ -46,7 +57,7 @@ function DetalleCurso() {
       try {
         const userId = localStorage.getItem("userId");
 
-        if (!userId) return;
+        if (!haySesion || !userId || esAdmin) return;
 
         const response = await api.get(`/api/accesos/usuario/${userId}`);
         const accesos = response.data.datos || [];
@@ -60,12 +71,13 @@ function DetalleCurso() {
 
         setYaComprado(tieneCurso);
       } catch (err) {
-        console.error(err);
+        console.error("Error al verificar acceso al curso:", err);
+        setYaComprado(false);
       }
     };
 
     verificarCompra();
-  }, [id]);
+  }, [id, haySesion, esAdmin]);
 
   const precioFormateado = useMemo(() => {
     if (!curso?.precio) return "$0";
@@ -81,16 +93,32 @@ function DetalleCurso() {
   };
 
   const handleEntrarAlCurso = () => {
+    if (!haySesion) {
+      navigate("/login", {
+        state: { from: location.pathname },
+        replace: true,
+      });
+      return;
+    }
+
     navigate(`/curso/${curso._id}/aprender`);
   };
 
-  const handleAgregarAlCarrito = () => {
+  const handleAgregarAlCarrito = async () => {
+    if (!haySesion) {
+      navigate("/login", {
+        state: { from: location.pathname },
+        replace: true,
+      });
+      return;
+    }
+
     if (esAdmin) {
       handleEntrarAlCurso();
       return;
     }
 
-    agregarAlCarrito({
+    await agregarAlCarrito({
       ...curso,
       imagen: obtenerImagenCurso(curso),
     });
@@ -226,9 +254,9 @@ function DetalleCurso() {
                   !puedeEntrarAlCurso ? "leccion-bloqueada" : ""
                 }`}
                 onClick={() => {
-                  if (puedeEntrarAlCurso) {
-                    navigate(`/curso/${curso._id}/aprender?leccion=${l._id}`);
-                  }
+                  if (!puedeEntrarAlCurso) return;
+
+                  navigate(`/curso/${curso._id}/aprender?leccion=${l._id}`);
                 }}
               >
                 <div className="leccion-numero">{i + 1}</div>

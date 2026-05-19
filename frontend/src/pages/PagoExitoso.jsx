@@ -1,14 +1,18 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { useCarrito } from "../context/CarritoContext";
 import "./EstadoPago.css";
 
 function PagoExitoso() {
-  const { vaciarCarrito } = useCarrito();
+  const { limpiarCarritoVisual } = useCarrito();
+  const yaLimpio = useRef(false);
 
   useEffect(() => {
-    vaciarCarrito();
-  }, [vaciarCarrito]);
+    if (yaLimpio.current) return;
+
+    limpiarCarritoVisual();
+    yaLimpio.current = true;
+  }, [limpiarCarritoVisual]);
 
   return (
     <section className="estado-pago-page">
