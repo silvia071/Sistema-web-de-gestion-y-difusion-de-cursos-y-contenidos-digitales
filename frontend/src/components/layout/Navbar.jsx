@@ -1,5 +1,13 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import { useState } from "react";
+import {
+  Home,
+  BookOpen,
+  Newspaper,
+  UsersRound,
+  MessageCircle,
+  ShoppingCart,
+} from "lucide-react";
 import { useCarrito } from "../../context/CarritoContext";
 import logo from "../../assets/logo.png";
 import "./Navbar.css";
@@ -103,7 +111,8 @@ function Navbar() {
               `navbar__link ${isActive ? "active" : ""}`
             }
           >
-            Inicio
+            <Home />
+            <span>Inicio</span>
           </NavLink>
 
           <NavLink
@@ -113,7 +122,8 @@ function Navbar() {
               `navbar__link ${isActive ? "active" : ""}`
             }
           >
-            Cursos
+            <BookOpen />
+            <span>Cursos</span>
           </NavLink>
 
           <NavLink
@@ -123,7 +133,8 @@ function Navbar() {
               `navbar__link ${isActive ? "active" : ""}`
             }
           >
-            Blog
+            <Newspaper />
+            <span>Blog</span>
           </NavLink>
 
           <NavLink
@@ -133,7 +144,8 @@ function Navbar() {
               `navbar__link ${isActive ? "active" : ""}`
             }
           >
-            Nosotros
+            <UsersRound />
+            <span>Nosotros</span>
           </NavLink>
 
           <NavLink
@@ -143,7 +155,8 @@ function Navbar() {
               `navbar__link ${isActive ? "active" : ""}`
             }
           >
-            Contacto
+            <MessageCircle />
+            <span>Contacto</span>
           </NavLink>
         </nav>
 
@@ -156,21 +169,7 @@ function Navbar() {
                 `navbar__cart ${isActive ? "active" : ""}`
               }
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="22"
-                height="22"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <circle cx="8" cy="21" r="1"></circle>
-                <circle cx="19" cy="21" r="1"></circle>
-                <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.72a2 2 0 0 0 2-1.64L23 6H6"></path>
-              </svg>
+              <ShoppingCart />
 
               {token && cantidadTotal > 0 && (
                 <span
