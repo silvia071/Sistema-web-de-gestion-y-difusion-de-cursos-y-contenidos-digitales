@@ -1,10 +1,22 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import api from "../services/api";
 import "./AdminPagos.css";
 
+function normalizarFiltroEstado(valor) {
+  const estado = String(valor || "").toUpperCase();
+
+  const estadosValidos = ["PENDIENTE", "APROBADO", "RECHAZADO"];
+
+  return estadosValidos.includes(estado) ? estado : "";
+}
+
 function AdminPagos() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  const estadoInicial = normalizarFiltroEstado(searchParams.get("estado"));
+
   const [pagos, setPagos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [mensaje, setMensaje] = useState("");
@@ -13,7 +25,7 @@ function AdminPagos() {
 
   const [busqueda, setBusqueda] = useState("");
   const [filtroMetodo, setFiltroMetodo] = useState("");
-  const [filtroEstado, setFiltroEstado] = useState("");
+  const [filtroEstado, setFiltroEstado] = useState(estadoInicial);
 
   const [modalConfirmacion, setModalConfirmacion] = useState(false);
   const [accionPendiente, setAccionPendiente] = useState(null);
@@ -42,6 +54,14 @@ function AdminPagos() {
   useEffect(() => {
     obtenerPagos();
   }, []);
+
+  useEffect(() => {
+    const estadoUrl = normalizarFiltroEstado(searchParams.get("estado"));
+
+    if (estadoUrl) {
+      setFiltroEstado(estadoUrl);
+    }
+  }, [searchParams]);
 
   const abrirModalConfirmacion = (pagoId, accion) => {
     setPagoPendiente(pagoId);
@@ -105,6 +125,13 @@ function AdminPagos() {
 
   const rechazarPago = (pagoId) => {
     abrirModalConfirmacion(pagoId, "rechazar");
+  };
+
+  const limpiarFiltros = () => {
+    setBusqueda("");
+    setFiltroMetodo("");
+    setFiltroEstado("");
+    navigate("/admin/pagos", { replace: true });
   };
 
   const formatearPrecio = (valor) => {
@@ -230,6 +257,8 @@ function AdminPagos() {
     return [...new Set(metodos)];
   }, [pagos]);
 
+  const hayFiltrosActivos = Boolean(busqueda || filtroMetodo || filtroEstado);
+
   if (loading) {
     return (
       <section className="admin-pagos-page">
@@ -272,6 +301,12 @@ function AdminPagos() {
               <div className="admin-pagos-alert success">{mensaje}</div>
             )}
             {error && <div className="admin-pagos-alert error">{error}</div>}
+          </div>
+        )}
+
+        {filtroEstado === "PENDIENTE" && (
+          <div className="admin-pagos-alert info">
+            Mostrando pagos pendientes de revisión.
           </div>
         )}
 
@@ -352,6 +387,16 @@ function AdminPagos() {
               <option value="RECHAZADO">Rechazado</option>
             </select>
           </label>
+
+          {hayFiltrosActivos && (
+            <button
+              type="button"
+              className="admin-pagos-secondary-btn"
+              onClick={limpiarFiltros}
+            >
+              Limpiar filtros
+            </button>
+          )}
 
           <button
             type="button"

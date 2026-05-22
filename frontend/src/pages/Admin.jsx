@@ -1,8 +1,57 @@
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import api from "../services/api";
 import "./Admin.css";
+
+function formatearNumero(valor) {
+  const numero = Number(valor || 0);
+
+  return numero.toLocaleString("es-AR", {
+    maximumFractionDigits: 0,
+  });
+}
+
+function formatearPrecio(valor) {
+  const numero = Number(valor || 0);
+
+  return numero.toLocaleString("es-AR", {
+    style: "currency",
+    currency: "ARS",
+    maximumFractionDigits: 0,
+  });
+}
+
+function formatearFecha(fecha) {
+  if (!fecha) return "Sin actualizar";
+
+  return new Date(fecha).toLocaleDateString("es-AR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
 
 function Admin() {
   const navigate = useNavigate();
+
+  const [periodo, setPeriodo] = useState("30dias");
+  const [busqueda, setBusqueda] = useState("");
+  const [loadingResumen, setLoadingResumen] = useState(true);
+
+  const [resumen, setResumen] = useState({
+    totalCursos: 0,
+    totalUsuarios: 0,
+    pagosPendientes: 0,
+    leccionesPublicadas: 0,
+    totalCompras: 0,
+    totalVendido: 0,
+    cursosVendidos: 0,
+    accesosActivos: 0,
+    actividadReciente: [],
+    ultimaActualizacion: null,
+  });
 
   const adminCards = [
     {
@@ -11,6 +60,7 @@ function Admin() {
       icono: "🎓",
       ruta: "/admin/cursos",
       color: "violet",
+      keywords: "curso cursos administrar crear editar",
     },
     {
       titulo: "Lecciones",
@@ -18,6 +68,7 @@ function Admin() {
       icono: "🎥",
       ruta: "/admin/lecciones",
       color: "blue",
+      keywords: "leccion lecciones clases contenido",
     },
     {
       titulo: "Blog",
@@ -25,6 +76,8 @@ function Admin() {
       icono: "📝",
       ruta: null,
       color: "pink",
+      proximamente: true,
+      keywords: "blog publicaciones noticias articulos",
     },
     {
       titulo: "Usuarios",
@@ -32,6 +85,7 @@ function Admin() {
       icono: "👥",
       ruta: "/admin/usuarios",
       color: "cyan",
+      keywords: "usuarios clientes administradores roles",
     },
     {
       titulo: "Pagos",
@@ -39,6 +93,15 @@ function Admin() {
       icono: "💳",
       ruta: "/admin/pagos",
       color: "orange",
+      keywords: "pagos pago aprobar rechazar pendiente",
+    },
+    {
+      titulo: "Compras",
+      descripcion: "Consultar órdenes de compra",
+      icono: "🛒",
+      ruta: "/admin/compras",
+      color: "blue",
+      keywords: "compras ordenes ventas carrito",
     },
     {
       titulo: "Facturación",
@@ -46,42 +109,196 @@ function Admin() {
       icono: "🧾",
       ruta: "/admin/datos-facturacion",
       color: "green",
+      keywords: "facturacion fiscal datos fiscales",
     },
   ];
 
-  const stats = [
-    {
-      label: "Cursos activos",
-      value: "32",
-      icono: "🎓",
-      change: "+12%",
-      color: "violet",
-    },
-    {
-      label: "Usuarios registrados",
-      value: "1.245",
-      icono: "👥",
-      change: "+18%",
-      color: "blue",
-    },
+  const cargarResumen = async (periodoSeleccionado = periodo) => {
+    try {
+      setLoadingResumen(true);
+
+      const response = await api.get(
+        `/api/admin/resumen?periodo=${periodoSeleccionado}`,
+      );
+
+      const datos = response.data?.datos || response.data || {};
+
+      setResumen({
+        totalCursos: datos.totalCursos || 0,
+        totalUsuarios: datos.totalUsuarios || 0,
+        pagosPendientes: datos.pagosPendientes || 0,
+        leccionesPublicadas: datos.leccionesPublicadas || 0,
+        totalCompras: datos.totalCompras || 0,
+        totalVendido: datos.totalVendido || 0,
+        cursosVendidos: datos.cursosVendidos || 0,
+        accesosActivos: datos.accesosActivos || 0,
+        actividadReciente: Array.isArray(datos.actividadReciente)
+          ? datos.actividadReciente
+          : [],
+        ultimaActualizacion: datos.ultimaActualizacion || new Date(),
+      });
+    } catch (error) {
+      console.warn(
+        "No se pudo cargar el resumen del panel administrador:",
+        error.response?.data?.mensaje || error.message,
+      );
+    } finally {
+      setLoadingResumen(false);
+    }
+  };
+
+  useEffect(() => {
+    cargarResumen(periodo);
+  }, [periodo]);
+
+  const stats = useMemo(
+    () => [
+      {
+        label: "Cursos activos",
+        value: loadingResumen ? "..." : formatearNumero(resumen.totalCursos),
+        icono: "🎓",
+        change: "Cursos publicados",
+        color: "violet",
+      },
+      {
+        label: "Usuarios registrados",
+        value: loadingResumen ? "..." : formatearNumero(resumen.totalUsuarios),
+        icono: "👥",
+        change: "Usuarios del período",
+        color: "blue",
+      },
+      {
+        label: "Pagos pendientes",
+        value: loadingResumen
+          ? "..."
+          : formatearNumero(resumen.pagosPendientes),
+        icono: "💳",
+        change: "Requieren revisión",
+        color: "orange",
+      },
+      {
+        label: "Lecciones publicadas",
+        value: loadingResumen
+          ? "..."
+          : formatearNumero(resumen.leccionesPublicadas),
+        icono: "📘",
+        change: "Contenido disponible",
+        color: "cyan",
+      },
+    ],
+    [loadingResumen, resumen],
+  );
+
+  const extraStats = useMemo(
+    () => [
+      {
+        label: "Compras realizadas",
+        value: loadingResumen ? "..." : formatearNumero(resumen.totalCompras),
+      },
+      {
+        label: "Total vendido",
+        value: loadingResumen ? "..." : formatearPrecio(resumen.totalVendido),
+      },
+      {
+        label: "Cursos vendidos",
+        value: loadingResumen ? "..." : formatearNumero(resumen.cursosVendidos),
+      },
+      {
+        label: "Accesos activos",
+        value: loadingResumen ? "..." : formatearNumero(resumen.accesosActivos),
+      },
+    ],
+    [loadingResumen, resumen],
+  );
+
+  const cardsFiltradas = useMemo(() => {
+    const texto = busqueda.trim().toLowerCase();
+
+    if (!texto) return adminCards;
+
+    return adminCards.filter((card) => {
+      const contenido = `${card.titulo} ${card.descripcion} ${card.keywords}`;
+      return contenido.toLowerCase().includes(texto);
+    });
+  }, [busqueda]);
+
+const alertas = useMemo(
+  () => [
     {
       label: "Pagos pendientes",
-      value: "23",
-      icono: "💳",
-      change: "-8%",
-      color: "orange",
+      value: formatearNumero(resumen.pagosPendientes),
+      descripcion:
+        resumen.pagosPendientes > 0
+          ? "Requieren revisión administrativa"
+          : "No hay pagos pendientes",
+      color: resumen.pagosPendientes > 0 ? "orange" : "green",
+      ruta: "/admin/pagos?estado=PENDIENTE",
     },
     {
-      label: "Lecciones publicadas",
-      value: "156",
-      icono: "📘",
-      change: "+15%",
-      color: "cyan",
+      label: "Compras registradas",
+      value: formatearNumero(resumen.totalCompras),
+      descripcion: "Órdenes dentro del período seleccionado",
+      color: "blue",
+      ruta: "/admin/compras",
     },
-  ];
+    {
+      label: "Accesos activos",
+      value: formatearNumero(resumen.accesosActivos),
+      descripcion: "Usuarios con cursos habilitados",
+      color: "cyan",
+      ruta: "/admin/usuarios",
+    },
+    {
+      label: "Total vendido",
+      value: formatearPrecio(resumen.totalVendido),
+      descripcion: "Ventas aprobadas del período",
+      color: "green",
+      ruta: "/admin/compras",
+    },
+  ],
+  [resumen],
+);
+  
+  const cambiarPeriodo = (nuevoPeriodo) => {
+    setPeriodo(nuevoPeriodo);
+  };
 
-  const handleNavigate = (ruta) => {
-    if (ruta) navigate(ruta);
+ const handleNavigate = (card) => {
+   if (card.proximamente) return;
+   if (card.ruta) navigate(card.ruta);
+ };
+
+ const navegarPrimerModulo = (e) => {
+   if (e.key !== "Enter") return;
+
+   const primerModuloDisponible = cardsFiltradas.find(
+     (card) => !card.proximamente && card.ruta,
+   );
+
+   if (primerModuloDisponible) {
+     navigate(primerModuloDisponible.ruta);
+   }
+ };
+
+ const navegarDesdeAlerta = (ruta) => {
+   if (ruta) navigate(ruta);
+  };
+  
+  const obtenerRutaActividad = (tipo) => {
+    const rutas = {
+      usuario: "/admin/usuarios",
+      compra: "/admin/compras",
+      pago: "/admin/pagos",
+      curso: "/admin/cursos",
+      leccion: "/admin/lecciones",
+    };
+
+    return rutas[tipo] || "/admin";
+  };
+
+  const navegarDesdeActividad = (actividad) => {
+    const ruta = obtenerRutaActividad(actividad.tipo);
+    navigate(ruta);
   };
 
   return (
@@ -97,15 +314,25 @@ function Admin() {
 
         <nav className="admin-nav">
           <button className="active">🏠 Inicio</button>
+
           <button onClick={() => navigate("/admin/cursos")}>🎓 Cursos</button>
+
           <button onClick={() => navigate("/admin/lecciones")}>
             🎥 Lecciones
           </button>
-          <button>📝 Blog</button>
+
+          <button disabled className="disabled">
+            📝 Blog
+          </button>
+
           <button onClick={() => navigate("/admin/usuarios")}>
             👥 Usuarios
           </button>
+
           <button onClick={() => navigate("/admin/pagos")}>💳 Pagos</button>
+
+          <button onClick={() => navigate("/admin/compras")}>🛒 Compras</button>
+
           <button onClick={() => navigate("/admin/datos-facturacion")}>
             🧾 Facturación
           </button>
@@ -121,7 +348,13 @@ function Admin() {
         <header className="admin-topbar">
           <div className="admin-search">
             <span>🔎</span>
-            <input type="text" placeholder="Buscar en el sistema..." />
+            <input
+              type="text"
+              value={busqueda}
+              onChange={(e) => setBusqueda(e.target.value)}
+              onKeyDown={navegarPrimerModulo}
+              placeholder="Buscar módulo del sistema..."
+            />
           </div>
 
           <div className="admin-user-pill">
@@ -137,18 +370,63 @@ function Admin() {
           <div className="admin-hero">
             <div>
               <span className="admin-eyebrow">Panel de control</span>
+
               <h1>Panel de administración</h1>
+
               <p>
-                Gestioná cursos, usuarios, pagos, lecciones y contenido desde un
-                solo lugar.
+                Gestioná cursos, usuarios, pagos, compras, lecciones y contenido
+                desde un solo lugar.
               </p>
+
+              <small className="admin-last-update">
+                Última actualización:{" "}
+                {formatearFecha(resumen.ultimaActualizacion)}
+              </small>
             </div>
 
-            <div className="admin-date-filter">
-              <button>Hoy</button>
-              <button>7 días</button>
-              <button className="active">30 días</button>
-              <button>Este mes</button>
+            <div className="admin-hero-actions">
+              <div className="admin-date-filter">
+                <button
+                  className={periodo === "hoy" ? "active" : ""}
+                  onClick={() => cambiarPeriodo("hoy")}
+                  type="button"
+                >
+                  Hoy
+                </button>
+
+                <button
+                  className={periodo === "7dias" ? "active" : ""}
+                  onClick={() => cambiarPeriodo("7dias")}
+                  type="button"
+                >
+                  7 días
+                </button>
+
+                <button
+                  className={periodo === "30dias" ? "active" : ""}
+                  onClick={() => cambiarPeriodo("30dias")}
+                  type="button"
+                >
+                  30 días
+                </button>
+
+                <button
+                  className={periodo === "mes" ? "active" : ""}
+                  onClick={() => cambiarPeriodo("mes")}
+                  type="button"
+                >
+                  Este mes
+                </button>
+
+                <button
+                  type="button"
+                  className="admin-refresh-btn"
+                  onClick={() => cargarResumen(periodo)}
+                  disabled={loadingResumen}
+                >
+                  {loadingResumen ? "Actualizando..." : "↻ Actualizar"}
+                </button>
+              </div>
             </div>
           </div>
 
@@ -158,14 +436,32 @@ function Admin() {
                 <div className={`admin-stat-icon ${stat.color}`}>
                   {stat.icono}
                 </div>
+
                 <div>
                   <span>{stat.label}</span>
                   <strong>{stat.value}</strong>
-                  <small>{stat.change} vs. mes anterior</small>
+                  <small>{stat.change}</small>
                 </div>
               </article>
             ))}
           </div>
+
+          <section className="admin-alert-panel">
+            {alertas.map((alerta) => (
+              <button
+                type="button"
+                className={`admin-alert-card ${alerta.color}`}
+                key={alerta.label}
+                onClick={() => navegarDesdeAlerta(alerta.ruta)}
+                title={`Ir a ${alerta.label.toLowerCase()}`}
+              >
+                <small>{alerta.label}</small>
+                <strong>{alerta.value}</strong>
+                <p>{alerta.descripcion}</p>
+                <span className="admin-alert-arrow">→</span>
+              </button>
+            ))}
+          </section>
 
           <div className="admin-dashboard-grid">
             <section className="admin-module-panel">
@@ -177,64 +473,107 @@ function Admin() {
               </div>
 
               <div className="admin-grid">
-                {adminCards.map((card) => (
-                  <button
-                    className={`admin-card ${card.color}`}
-                    key={card.titulo}
-                    onClick={() => handleNavigate(card.ruta)}
-                    type="button"
-                  >
-                    <div className="admin-card-icon">{card.icono}</div>
-                    <div>
-                      <h3>{card.titulo}</h3>
-                      <p>{card.descripcion}</p>
-                    </div>
-                    <span className="admin-card-arrow">→</span>
-                  </button>
-                ))}
+                {cardsFiltradas.length === 0 ? (
+                  <div className="admin-empty-modules">
+                    No se encontraron módulos para esa búsqueda.
+                  </div>
+                ) : (
+                  cardsFiltradas.map((card) => (
+                    <button
+                      className={`admin-card ${card.color} ${
+                        card.proximamente ? "disabled-card" : ""
+                      }`}
+                      key={card.titulo}
+                      onClick={() => handleNavigate(card)}
+                      type="button"
+                    >
+                      <div className="admin-card-icon">{card.icono}</div>
+
+                      <div>
+                        <h3>
+                          {card.titulo}
+
+                          {card.proximamente && (
+                            <span className="admin-badge-proximamente">
+                              Próximamente
+                            </span>
+                          )}
+                        </h3>
+
+                        <p>{card.descripcion}</p>
+                      </div>
+
+                      <span className="admin-card-arrow">
+                        {card.proximamente ? "⏳" : "→"}
+                      </span>
+                    </button>
+                  ))
+                )}
               </div>
             </section>
 
             <aside className="admin-summary-panel">
               <div className="admin-section-title">
                 <div>
-                  <h2>Actividad reciente</h2>
-                  <p>Últimos movimientos de la plataforma</p>
+                  <h2>Resumen comercial</h2>
+                  <p>Indicadores generales de la plataforma</p>
                 </div>
               </div>
 
               <ul className="admin-activity-list">
-                <li>
-                  <span className="dot violet"></span>
-                  <div>
-                    <strong>Nuevo usuario registrado</strong>
-                    <p>Hace 5 minutos</p>
-                  </div>
-                </li>
-                <li>
-                  <span className="dot blue"></span>
-                  <div>
-                    <strong>Curso actualizado</strong>
-                    <p>Hace 20 minutos</p>
-                  </div>
-                </li>
-                <li>
-                  <span className="dot orange"></span>
-                  <div>
-                    <strong>Pago pendiente de revisión</strong>
-                    <p>Hace 1 hora</p>
-                  </div>
-                </li>
-                <li>
-                  <span className="dot cyan"></span>
-                  <div>
-                    <strong>Lección publicada</strong>
-                    <p>Hace 2 horas</p>
-                  </div>
-                </li>
+                {extraStats.map((item) => (
+                  <li key={item.label}>
+                    <span className="dot blue"></span>
+
+                    <div>
+                      <strong>{item.label}</strong>
+                      <p>{item.value}</p>
+                    </div>
+                  </li>
+                ))}
               </ul>
             </aside>
           </div>
+
+          <section className="admin-recent-panel">
+            <div className="admin-section-title">
+              <div>
+                <h2>Actividad reciente</h2>
+                <p>Últimos movimientos reales registrados en la plataforma</p>
+              </div>
+            </div>
+
+            {resumen.actividadReciente.length === 0 ? (
+              <div className="admin-empty-modules">
+                Todavía no hay actividad reciente para mostrar.
+              </div>
+            ) : (
+              <ul className="admin-activity-list recent">
+                {resumen.actividadReciente.map((actividad, index) => (
+                  <li key={`${actividad.tipo}-${index}`}>
+                    <button
+                      type="button"
+                      className="admin-recent-item"
+                      onClick={() => navegarDesdeActividad(actividad)}
+                      title={`Ir a ${actividad.titulo.toLowerCase()}`}
+                    >
+                      <span
+                        className={`dot ${actividad.color || "blue"}`}
+                      ></span>
+
+                      <div>
+                        <strong>{actividad.titulo}</strong>
+                        <p>{actividad.descripcion}</p>
+                        <small>{actividad.tiempo}</small>
+                      </div>
+
+                      <span className="admin-recent-arrow">→</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
         </div>
       </main>
     </section>

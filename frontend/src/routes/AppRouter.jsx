@@ -32,6 +32,7 @@ import PagoExitoso from "../pages/PagoExitoso";
 import PagoPendiente from "../pages/PagoPendiente";
 import PagoFallido from "../pages/PagoFallido";
 import MisCompras from "../pages/MisCompras";
+import AdminCompras from "../pages/AdminCompras";
 
 function AppRouter() {
   return (
@@ -165,6 +166,14 @@ function AppRouter() {
           element={
             <ProtectedRoute adminOnly={true}>
               <AdminPagos />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/compras"
+          element={
+            <ProtectedRoute adminOnly={true}>
+              <AdminCompras />
             </ProtectedRoute>
           }
         />

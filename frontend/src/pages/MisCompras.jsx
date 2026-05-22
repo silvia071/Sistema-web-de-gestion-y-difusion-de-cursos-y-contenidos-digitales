@@ -60,6 +60,16 @@ function obtenerClaseEstado(estado) {
   return "";
 }
 
+function compraHabilitada(estado) {
+  const estadoNormalizado = normalizarEstado(estado);
+
+  return (
+    estadoNormalizado === "PAGADA" ||
+    estadoNormalizado === "APROBADA" ||
+    estadoNormalizado === "COMPLETADA"
+  );
+}
+
 function obtenerIconoCurso(titulo = "") {
   const texto = titulo.toLowerCase();
 
@@ -74,6 +84,169 @@ function obtenerIconoCurso(titulo = "") {
   if (texto.includes("sql")) return "SQL";
 
   return "📘";
+}
+
+function limpiarHtml(valor) {
+  return String(valor || "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function obtenerDatoLocalStorage(clave) {
+  const valor = localStorage.getItem(clave);
+  return valor && valor !== "null" && valor !== "undefined" ? valor : "";
+}
+
+function obtenerDatosCliente(compra) {
+  const usuario = compra?.usuario || {};
+
+  const nombreLocal =
+    obtenerDatoLocalStorage("nombreCompleto") ||
+    `${obtenerDatoLocalStorage("nombre")} ${obtenerDatoLocalStorage(
+      "apellido",
+    )}`.trim();
+
+  const nombre =
+    `${usuario.nombre || ""} ${usuario.apellido || ""}`.trim() ||
+    nombreLocal ||
+    "Cliente";
+
+  const email =
+    usuario.email || obtenerDatoLocalStorage("email") || "Sin email";
+
+  return {
+    nombre,
+    email,
+  };
+}
+
+function imprimirComprobante(compra) {
+  if (!compra) return;
+
+  const detalles = obtenerCursosCompra(compra);
+  const cliente = obtenerDatosCliente(compra);
+  const orden = String(compra._id || compra.id || "").slice(-6);
+  const fecha = formatearFecha(compra.createdAt || compra.fechaCompra, true);
+  const estado = normalizarEstado(compra.estado);
+  const total = formatearPrecio(compra.total);
+
+  const cursosHtml = detalles
+    .map((detalle) => {
+      const titulo = detalle?.curso?.titulo || "Curso sin título";
+      const descripcion =
+        detalle?.curso?.descripcion ||
+        detalle?.curso?.categoria?.nombre ||
+        "Curso online";
+
+      const precio = formatearPrecio(
+        detalle?.precioUnitario || detalle?.subtotal,
+      );
+
+      return `
+        <tr>
+          <td>
+            <strong>${limpiarHtml(titulo)}</strong>
+            <span>${limpiarHtml(descripcion)}</span>
+          </td>
+          <td>${limpiarHtml(precio)}</td>
+        </tr>
+      `;
+    })
+    .join("");
+
+const ventana = window.open("", "_blank", "width=980,height=900");
+
+  if (!ventana) {
+    alert(
+      "No se pudo abrir el comprobante. Revisá si el navegador bloqueó la ventana emergente.",
+    );
+    return;
+  }
+
+  ventana.document.write(`
+    <!DOCTYPE html>
+    <html lang="es">
+      <head>
+        <meta charset="UTF-8" />
+        <title>Comprobante de compra - Mundo Dev</title>
+        <link rel="stylesheet" href="/comprobante.css" />
+      </head>
+
+      <body>
+        <div class="acciones">
+          <button class="secondary" onclick="window.close()">Cerrar</button>
+          <button onclick="window.print()">Descargar / imprimir comprobante</button>
+        </div>
+
+        <div class="comprobante">
+          <div class="header">
+            <div class="brand">
+              <h1>MUNDO <strong>DEV</strong></h1>
+              <p>Comprobante de compra de cursos online</p>
+            </div>
+
+            <div class="estado">${limpiarHtml(estado)}</div>
+          </div>
+
+          <div class="info-grid">
+            <div class="info">
+              <small>Orden</small>
+              <strong>#${limpiarHtml(orden)}</strong>
+            </div>
+
+            <div class="info">
+              <small>Fecha</small>
+              <strong>${limpiarHtml(fecha)}</strong>
+            </div>
+
+            <div class="info">
+              <small>Cliente</small>
+              <strong>${limpiarHtml(cliente.nombre)}</strong>
+            </div>
+
+            <div class="info">
+              <small>Email</small>
+              <strong>${limpiarHtml(cliente.email)}</strong>
+            </div>
+          </div>
+
+          <h2>Cursos incluidos</h2>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Curso</th>
+                <th>Importe</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              ${cursosHtml}
+            </tbody>
+          </table>
+
+          <div class="total">
+            <div class="total-box">
+              <small>Total</small>
+              <strong>${limpiarHtml(total)}</strong>
+            </div>
+          </div>
+
+          <div class="footer">
+            Este comprobante fue generado digitalmente desde Mundo Dev.
+            La disponibilidad del curso depende del estado de aprobación del pago.
+            Este documento no reemplaza una factura fiscal.
+          </div>
+        </div>
+      </body>
+    </html>
+  `);
+
+  ventana.document.close();
+  ventana.focus();
 }
 
 export default function MisCompras() {
@@ -440,18 +613,22 @@ export default function MisCompras() {
           onClick={() => setCompraSeleccionada(null)}
         >
           <div
-            className="mis-compra-modal"
+            className="mis-compra-modal mis-compra-modal-premium"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="mis-compra-modal-header">
-              <div>
-                <span>Detalle de orden</span>
-                <h2>
-                  #
-                  {String(
-                    compraSeleccionada._id || compraSeleccionada.id,
-                  ).slice(-6)}
-                </h2>
+            <div className="mis-compra-modal-header premium">
+              <div className="mis-compra-modal-title-wrap">
+                <div className="mis-compra-modal-icon">🧾</div>
+
+                <div>
+                  <span>Detalle de orden</span>
+                  <h2>
+                    #
+                    {String(
+                      compraSeleccionada._id || compraSeleccionada.id,
+                    ).slice(-6)}
+                  </h2>
+                </div>
               </div>
 
               <button
@@ -463,60 +640,132 @@ export default function MisCompras() {
               </button>
             </div>
 
-            <div className="mis-compra-modal-info">
-              <div>
-                <small>Estado</small>
-                <strong>{normalizarEstado(compraSeleccionada.estado)}</strong>
+            <div className="mis-compra-modal-info premium">
+              <div className="info-card estado-card">
+                <span className="info-icon success">✓</span>
+                <div>
+                  <small>Estado</small>
+                  <strong>{normalizarEstado(compraSeleccionada.estado)}</strong>
+                </div>
               </div>
 
-              <div>
-                <small>Fecha</small>
-                <strong>
-                  {formatearFecha(
-                    compraSeleccionada.createdAt ||
-                      compraSeleccionada.fechaCompra,
-                    true,
-                  )}
-                </strong>
+              <div className="info-card">
+                <span className="info-icon">📅</span>
+                <div>
+                  <small>Fecha</small>
+                  <strong>
+                    {formatearFecha(
+                      compraSeleccionada.createdAt ||
+                        compraSeleccionada.fechaCompra,
+                      true,
+                    )}
+                  </strong>
+                </div>
               </div>
 
-              <div>
-                <small>Total</small>
-                <strong>{formatearPrecio(compraSeleccionada.total)}</strong>
+              <div className="info-card">
+                <span className="info-icon">💲</span>
+                <div>
+                  <small>Total</small>
+                  <strong>{formatearPrecio(compraSeleccionada.total)}</strong>
+                </div>
               </div>
             </div>
 
-            <div className="mis-compra-modal-cursos">
-              <h3>Cursos incluidos</h3>
+            <div className="mis-compra-modal-actions premium">
+              <button
+                type="button"
+                className="btn-imprimir-comprobante"
+                onClick={() => imprimirComprobante(compraSeleccionada)}
+              >
+                <span>🧾</span>
+                Descargar / imprimir comprobante
+              </button>
 
-              {obtenerCursosCompra(compraSeleccionada).map((detalle) => (
-                <div
-                  key={detalle._id || detalle.id}
-                  className="mis-compra-modal-curso"
+              {compraHabilitada(compraSeleccionada.estado) && (
+                <button
+                  type="button"
+                  className="btn-ir-mis-cursos"
+                  onClick={() => navigate("/mis-cursos")}
                 >
-                  <span className="curso-mini-icon">
-                    {obtenerIconoCurso(detalle?.curso?.titulo)}
-                  </span>
+                  <span>🎓</span>
+                  Ir a mis cursos
+                  <strong>→</strong>
+                </button>
+              )}
+            </div>
 
-                  <div>
-                    <strong>
-                      {detalle?.curso?.titulo || "Curso sin título"}
-                    </strong>
+            {!compraHabilitada(compraSeleccionada.estado) && (
+              <div className="mis-compra-modal-aviso">
+                Tu compra todavía no está aprobada. El acceso al curso se
+                habilitará cuando el pago sea confirmado.
+              </div>
+            )}
 
-                    <p>
-                      {detalle?.curso?.descripcion ||
-                        detalle?.curso?.categoria?.nombre ||
-                        "Curso online"}
-                    </p>
+            <div className="mis-compra-modal-section-title">
+              <span>📖</span>
+              <h3>Cursos incluidos</h3>
+            </div>
 
-                    <small>
-                      {formatearPrecio(
-                        detalle?.precioUnitario || detalle?.subtotal,
+            <div className="mis-compra-modal-cursos premium">
+              {obtenerCursosCompra(compraSeleccionada).map((detalle) => {
+                const cursoId = detalle?.curso?._id || detalle?.curso?.id;
+
+                return (
+                  <div
+                    key={detalle._id || detalle.id}
+                    className="mis-compra-modal-curso premium"
+                  >
+                    <div className="curso-modal-icon-wrap">
+                      <span className="curso-mini-icon">
+                        {obtenerIconoCurso(detalle?.curso?.titulo)}
+                      </span>
+
+                      {compraHabilitada(compraSeleccionada.estado) && (
+                        <small className="curso-check">✓</small>
                       )}
-                    </small>
+                    </div>
+
+                    <div className="curso-modal-content">
+                      <strong>
+                        {detalle?.curso?.titulo || "Curso sin título"}
+                      </strong>
+
+                      <p>
+                        {detalle?.curso?.descripcion ||
+                          detalle?.curso?.categoria?.nombre ||
+                          "Curso online"}
+                      </p>
+
+                      <div className="curso-modal-footer">
+                        <small>
+                          {formatearPrecio(
+                            detalle?.precioUnitario || detalle?.subtotal,
+                          )}
+                        </small>
+                      </div>
+                    </div>
+
+                    <div className="curso-modal-action-panel">
+                      <div className="curso-modal-decoration">{"</>"}</div>
+
+                      {compraHabilitada(compraSeleccionada.estado) &&
+                        cursoId && (
+                          <button
+                            type="button"
+                            className="btn-ir-curso"
+                            onClick={() =>
+                              navigate(`/curso/${cursoId}/aprender`)
+                            }
+                          >
+                            Comenzar curso
+                            <span>→</span>
+                          </button>
+                        )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>
