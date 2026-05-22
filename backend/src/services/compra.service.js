@@ -5,6 +5,15 @@ const EstadoCompra = require("../enums/estadoCompra");
 
 const ESTADOS_COMPRA_PENDIENTES = [EstadoCompra.PENDIENTE, "EN_PROCESO"];
 
+const populateCompra = (query) => {
+  return query.populate("usuario").populate({
+    path: "detalles",
+    populate: {
+      path: "curso",
+    },
+  });
+};
+
 const validarCompraPendiente = async (usuarioId, cursoId) => {
   const detallesDelCurso = await DetalleCompra.find({
     curso: cursoId,
@@ -102,14 +111,60 @@ const generarCompraDesdeCarrito = async (carrito, usuarioId) => {
 
   await carrito.save();
 
-  return await Compra.findById(compra._id)
-    .populate("usuario")
-    .populate({
-      path: "detalles",
-      populate: {
-        path: "curso",
-      },
-    });
+  return await populateCompra(Compra.findById(compra._id));
+};
+
+const obtenerComprasPorUsuario = async (usuarioId) => {
+  if (!usuarioId) {
+    throw new Error("El usuario es obligatorio");
+  }
+
+  return await populateCompra(
+    Compra.find({ usuario: usuarioId }).sort({ createdAt: -1 }),
+  );
+};
+
+const obtenerCompraPorIdYUsuario = async (compraId, usuarioId) => {
+  if (!compraId) {
+    throw new Error("El id de la compra es obligatorio");
+  }
+
+  if (!usuarioId) {
+    throw new Error("El usuario es obligatorio");
+  }
+
+  const compra = await populateCompra(Compra.findById(compraId));
+
+  if (!compra) {
+    throw new Error("Compra no encontrada");
+  }
+
+  if (
+    !compra.usuario ||
+    compra.usuario._id.toString() !== usuarioId.toString()
+  ) {
+    throw new Error("No tenés permiso para ver esta compra");
+  }
+
+  return compra;
+};
+
+const obtenerTodasLasCompras = async () => {
+  return await populateCompra(Compra.find().sort({ createdAt: -1 }));
+};
+
+const obtenerCompraPorIdAdmin = async (compraId) => {
+  if (!compraId) {
+    throw new Error("El id de la compra es obligatorio");
+  }
+
+  const compra = await populateCompra(Compra.findById(compraId));
+
+  if (!compra) {
+    throw new Error("Compra no encontrada");
+  }
+
+  return compra;
 };
 
 const eliminarCompra = async (compraId) => {
@@ -124,5 +179,9 @@ const eliminarCompra = async (compraId) => {
 
 module.exports = {
   generarCompraDesdeCarrito,
+  obtenerComprasPorUsuario,
+  obtenerCompraPorIdYUsuario,
+  obtenerTodasLasCompras,
+  obtenerCompraPorIdAdmin,
   eliminarCompra,
 };

@@ -8,6 +8,9 @@ import Admin from "../pages/Admin";
 import Home from "../pages/Home";
 import Login from "../pages/Login";
 import Registro from "../pages/Registro";
+import RecuperarContrasenia from "../pages/RecuperarContrasenia";
+import RestablecerContrasenia from "../pages/RestablecerContrasenia";
+
 import Cursos from "../pages/Cursos";
 import DetalleCurso from "../pages/DetalleCurso";
 import Blog from "../pages/Blog";
@@ -28,6 +31,7 @@ import AdminUsuarios from "../pages/AdminUsuarios";
 import PagoExitoso from "../pages/PagoExitoso";
 import PagoPendiente from "../pages/PagoPendiente";
 import PagoFallido from "../pages/PagoFallido";
+import MisCompras from "../pages/MisCompras";
 
 function AppRouter() {
   return (
@@ -47,6 +51,14 @@ function AppRouter() {
       <Route element={<AuthLayout />}>
         <Route path="/login" element={<Login />} />
         <Route path="/registro" element={<Registro />} />
+        <Route
+          path="/recuperar-contrasenia"
+          element={<RecuperarContrasenia />}
+        />
+        <Route
+          path="/restablecer-contrasenia/:token"
+          element={<RestablecerContrasenia />}
+        />
       </Route>
 
       {/* RUTAS PRIVADAS */}
@@ -77,7 +89,14 @@ function AppRouter() {
             </ProtectedRoute>
           }
         />
-
+        <Route
+          path="/mis-compras"
+          element={
+            <ProtectedRoute>
+              <MisCompras />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/curso/:id/aprender"
           element={

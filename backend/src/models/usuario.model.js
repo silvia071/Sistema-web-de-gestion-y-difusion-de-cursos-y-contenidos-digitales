@@ -14,6 +14,17 @@ const UsuarioSchema = new mongoose.Schema(
       trim: true,
     },
     contrasenia: { type: String, required: true },
+
+    tokenRecuperacionContrasenia: {
+      type: String,
+      default: null,
+    },
+
+    expiracionTokenRecuperacion: {
+      type: Date,
+      default: null,
+    },
+
     direccion: { type: String },
     telefono: { type: String },
     fechaRegistro: { type: Date, default: Date.now },
@@ -63,6 +74,8 @@ UsuarioSchema.set("toJSON", {
     delete ret._id;
     delete ret.__v;
     delete ret.contrasenia;
+    delete ret.tokenRecuperacionContrasenia;
+    delete ret.expiracionTokenRecuperacion;
     return ret;
   },
 });

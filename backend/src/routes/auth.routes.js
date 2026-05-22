@@ -4,6 +4,8 @@ const router = express.Router();
 const {
   iniciarSesion,
   registrarUsuario,
+  solicitarRecuperacionContrasenia,
+  restablecerContrasenia,
 } = require("../controllers/auth.controller");
 
 const {
@@ -13,5 +15,8 @@ const {
 
 router.post("/login", validarLogin, iniciarSesion);
 router.post("/register", validarRegistroPublico, registrarUsuario);
+
+router.post("/recuperar-contrasenia", solicitarRecuperacionContrasenia);
+router.post("/restablecer-contrasenia/:token", restablecerContrasenia);
 
 module.exports = router;

@@ -208,6 +208,10 @@ function Login() {
                 {showPassword ? "Ocultar" : "Mostrar"}
               </button>
             </div>
+
+            <Link className="login-forgot-link" to="/recuperar-contrasenia">
+              ¿Olvidaste tu contraseña?
+            </Link>
           </div>
 
           <button className="login-btn" type="submit" disabled={submitting}>

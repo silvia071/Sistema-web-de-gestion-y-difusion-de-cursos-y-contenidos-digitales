@@ -61,6 +61,122 @@ const generarCompra = async (req, res) => {
   }
 };
 
+const obtenerMisCompras = async (req, res) => {
+  try {
+    const usuarioId = req.usuario?._id;
+
+    if (!usuarioId) {
+      return res.status(401).json({
+        mensaje: "Usuario no autenticado",
+      });
+    }
+
+    const compras = await compraService.obtenerComprasPorUsuario(usuarioId);
+
+    return res.status(200).json({
+      mensaje: "Compras del usuario obtenidas correctamente",
+      datos: compras,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      mensaje: "Error al obtener las compras del usuario",
+      error: error.message,
+    });
+  }
+};
+
+const obtenerMiCompraPorId = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const usuarioId = req.usuario?._id;
+
+    if (!id) {
+      return res.status(400).json({
+        mensaje: "Falta id de la compra",
+      });
+    }
+
+    if (!usuarioId) {
+      return res.status(401).json({
+        mensaje: "Usuario no autenticado",
+      });
+    }
+
+    const compra = await compraService.obtenerCompraPorIdYUsuario(
+      id,
+      usuarioId,
+    );
+
+    return res.status(200).json({
+      mensaje: "Compra obtenida correctamente",
+      datos: compra,
+    });
+  } catch (error) {
+    if (error.message.includes("no encontrada")) {
+      return res.status(404).json({
+        mensaje: error.message,
+      });
+    }
+
+    if (error.message.includes("permiso")) {
+      return res.status(403).json({
+        mensaje: error.message,
+      });
+    }
+
+    return res.status(500).json({
+      mensaje: "Error al obtener la compra",
+      error: error.message,
+    });
+  }
+};
+
+const obtenerTodasLasCompras = async (req, res) => {
+  try {
+    const compras = await compraService.obtenerTodasLasCompras();
+
+    return res.status(200).json({
+      mensaje: "Compras obtenidas correctamente",
+      datos: compras,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      mensaje: "Error al obtener las compras",
+      error: error.message,
+    });
+  }
+};
+
+const obtenerCompraPorIdAdmin = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({
+        mensaje: "Falta id de la compra",
+      });
+    }
+
+    const compra = await compraService.obtenerCompraPorIdAdmin(id);
+
+    return res.status(200).json({
+      mensaje: "Compra obtenida correctamente",
+      datos: compra,
+    });
+  } catch (error) {
+    if (error.message.includes("no encontrada")) {
+      return res.status(404).json({
+        mensaje: error.message,
+      });
+    }
+
+    return res.status(500).json({
+      mensaje: "Error al obtener la compra",
+      error: error.message,
+    });
+  }
+};
+
 const eliminarCompra = async (req, res) => {
   try {
     const { id } = req.params;
@@ -92,5 +208,9 @@ const eliminarCompra = async (req, res) => {
 
 module.exports = {
   generarCompra,
+  obtenerMisCompras,
+  obtenerMiCompraPorId,
+  obtenerTodasLasCompras,
+  obtenerCompraPorIdAdmin,
   eliminarCompra,
 };
