@@ -127,6 +127,18 @@ function AdminPagos() {
     abrirModalConfirmacion(pagoId, "rechazar");
   };
 
+  const aplicarFiltroEstado = (estado) => {
+    const estadoNormalizado = normalizarFiltroEstado(estado);
+
+    setFiltroEstado(estadoNormalizado);
+
+    if (estadoNormalizado) {
+      navigate(`/admin/pagos?estado=${estadoNormalizado}`, { replace: true });
+    } else {
+      navigate("/admin/pagos", { replace: true });
+    }
+  };
+
   const limpiarFiltros = () => {
     setBusqueda("");
     setFiltroMetodo("");
@@ -249,6 +261,12 @@ function AdminPagos() {
     return total + Number(pago.monto || 0);
   }, 0);
 
+  const montoAprobado = pagos.reduce((total, pago) => {
+    if (pago.estado !== "APROBADO") return total;
+
+    return total + Number(pago.monto || 0);
+  }, 0);
+
   const metodosDisponibles = useMemo(() => {
     const metodos = pagos
       .map((pago) => obtenerMetodoPago(pago.metodoPago))
@@ -263,8 +281,11 @@ function AdminPagos() {
     return (
       <section className="admin-pagos-page">
         <div className="admin-pagos-shell admin-pagos-loading">
-          <h1>Gestión de pagos</h1>
-          <p>Cargando pagos...</p>
+          <div className="admin-pagos-loading-card">
+            <span>💳</span>
+            <h1>Gestión de pagos</h1>
+            <p>Cargando pagos registrados...</p>
+          </div>
         </div>
       </section>
     );
@@ -294,6 +315,31 @@ function AdminPagos() {
             </button>
           </div>
         </header>
+
+        <section className="admin-pagos-review-banner">
+          <div className="admin-pagos-review-icon">⏳</div>
+
+          <div>
+            <span>Pagos pendientes de revisión</span>
+            <strong>
+              {totalPendientes === 1
+                ? "Tenés 1 pago pendiente para revisar"
+                : `Tenés ${totalPendientes} pagos pendientes para revisar`}
+            </strong>
+            <p>
+              Desde esta pantalla podés aprobar pagos manuales y habilitar el
+              acceso a los cursos comprados.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => aplicarFiltroEstado("PENDIENTE")}
+            disabled={totalPendientes === 0}
+          >
+            Ver pendientes
+          </button>
+        </section>
 
         {(mensaje || error) && (
           <div className="admin-pagos-feedback">
@@ -325,7 +371,7 @@ function AdminPagos() {
             <div>
               <span>Aprobados</span>
               <strong>{totalAprobados}</strong>
-              <p>Accesos habilitados</p>
+              <p>{formatearPrecio(montoAprobado)}</p>
             </div>
           </article>
 
@@ -346,6 +392,40 @@ function AdminPagos() {
               <p>{totalRechazados} rechazados</p>
             </div>
           </article>
+        </section>
+
+        <section className="admin-pagos-quick-filters">
+          <button
+            type="button"
+            className={!filtroEstado ? "active" : ""}
+            onClick={() => aplicarFiltroEstado("")}
+          >
+            Todos
+          </button>
+
+          <button
+            type="button"
+            className={filtroEstado === "PENDIENTE" ? "active pending" : ""}
+            onClick={() => aplicarFiltroEstado("PENDIENTE")}
+          >
+            Pendientes
+          </button>
+
+          <button
+            type="button"
+            className={filtroEstado === "APROBADO" ? "active approved" : ""}
+            onClick={() => aplicarFiltroEstado("APROBADO")}
+          >
+            Aprobados
+          </button>
+
+          <button
+            type="button"
+            className={filtroEstado === "RECHAZADO" ? "active rejected" : ""}
+            onClick={() => aplicarFiltroEstado("RECHAZADO")}
+          >
+            Rechazados
+          </button>
         </section>
 
         <div className="admin-pagos-toolbar">
@@ -379,7 +459,7 @@ function AdminPagos() {
             <span>Estado</span>
             <select
               value={filtroEstado}
-              onChange={(e) => setFiltroEstado(e.target.value)}
+              onChange={(e) => aplicarFiltroEstado(e.target.value)}
             >
               <option value="">Todos los estados</option>
               <option value="PENDIENTE">Pendiente</option>
@@ -420,7 +500,24 @@ function AdminPagos() {
           <div className="admin-pagos-list">
             {pagosFiltrados.length === 0 ? (
               <div className="admin-pagos-empty">
-                No hay pagos para mostrar.
+                <div className="admin-pagos-empty-icon">🔎</div>
+                <h3>No hay pagos para mostrar</h3>
+                <p>
+                  Probá cambiar los filtros, limpiar la búsqueda o recargar la
+                  información.
+                </p>
+
+                <div className="admin-pagos-empty-actions">
+                  {hayFiltrosActivos && (
+                    <button type="button" onClick={limpiarFiltros}>
+                      Limpiar filtros
+                    </button>
+                  )}
+
+                  <button type="button" onClick={obtenerPagos}>
+                    Recargar pagos
+                  </button>
+                </div>
               </div>
             ) : (
               pagosFiltrados.map((pago) => {

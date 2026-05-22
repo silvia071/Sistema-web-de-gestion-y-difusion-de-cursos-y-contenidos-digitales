@@ -3,8 +3,16 @@
   padding: 28px 4.2% 40px;
   color: #ffffff;
   background:
-    radial-gradient(circle at 12% 12%, rgba(75, 102, 255, 0.22), transparent 30%),
-    radial-gradient(circle at 90% 8%, rgba(165, 64, 255, 0.22), transparent 32%),
+    radial-gradient(
+      circle at 12% 12%,
+      rgba(75, 102, 255, 0.22),
+      transparent 30%
+    ),
+    radial-gradient(
+      circle at 90% 8%,
+      rgba(165, 64, 255, 0.22),
+      transparent 32%
+    ),
     linear-gradient(135deg, #07113e 0%, #11176a 48%, #15145c 100%);
 }
 
@@ -14,7 +22,9 @@
 
 .admin-compras-header,
 .admin-compras-stats,
+.admin-compras-quick-filters,
 .admin-compras-toolbar,
+.admin-compras-filter-info,
 .admin-compras-table-card {
   max-width: 1450px;
   margin-left: auto;
@@ -30,7 +40,11 @@
   gap: 24px;
   border-radius: 26px;
   background:
-    radial-gradient(circle at top right, rgba(174, 73, 255, 0.28), transparent 30%),
+    radial-gradient(
+      circle at top right,
+      rgba(174, 73, 255, 0.28),
+      transparent 30%
+    ),
     linear-gradient(135deg, rgba(15, 25, 85, 0.96), rgba(16, 24, 92, 0.9));
   border: 1px solid rgba(143, 163, 255, 0.2);
   box-shadow:
@@ -99,6 +113,8 @@
   box-shadow: 0 24px 44px rgba(115, 91, 255, 0.42);
 }
 
+/* STATS */
+
 .admin-compras-stats {
   margin-bottom: 14px;
   display: grid;
@@ -114,7 +130,11 @@
   gap: 16px;
   border-radius: 18px;
   background:
-    radial-gradient(circle at top right, rgba(108, 130, 255, 0.16), transparent 35%),
+    radial-gradient(
+      circle at top right,
+      rgba(108, 130, 255, 0.16),
+      transparent 35%
+    ),
     rgba(9, 17, 67, 0.76);
   border: 1px solid rgba(151, 170, 255, 0.16);
   box-shadow: 0 18px 44px rgba(0, 0, 0, 0.16);
@@ -158,11 +178,68 @@
   font-weight: 900;
 }
 
+/* FILTROS RÁPIDOS */
+
+.admin-compras-quick-filters {
+  margin-bottom: 14px;
+  padding: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  border-radius: 18px;
+  background: rgba(9, 17, 67, 0.58);
+  border: 1px solid rgba(151, 170, 255, 0.16);
+}
+
+.admin-compras-quick-filters button {
+  min-height: 36px;
+  padding: 0 15px;
+  border: 1px solid rgba(138, 158, 255, 0.24);
+  border-radius: 999px;
+  color: rgba(230, 235, 255, 0.84);
+  font-size: 0.84rem;
+  font-weight: 900;
+  cursor: pointer;
+  background: rgba(82, 127, 255, 0.11);
+  transition: 0.2s ease;
+}
+
+.admin-compras-quick-filters button:hover {
+  color: #ffffff;
+  transform: translateY(-1px);
+  background: rgba(82, 127, 255, 0.2);
+}
+
+.admin-compras-quick-filters button.active {
+  color: #ffffff;
+  background: linear-gradient(135deg, #31b8ff, #7c55ff);
+  border-color: rgba(190, 205, 255, 0.34);
+  box-shadow: 0 14px 28px rgba(91, 113, 255, 0.24);
+}
+
+.admin-compras-quick-filters button.active.pendiente {
+  background: linear-gradient(135deg, #d57917, #f3a13b);
+}
+
+.admin-compras-quick-filters button.active.aprobada,
+.admin-compras-quick-filters button.active.pagada {
+  background: linear-gradient(135deg, #1fbf72, #43df85);
+}
+
+.admin-compras-quick-filters button.active.rechazada,
+.admin-compras-quick-filters button.active.cancelada {
+  background: linear-gradient(135deg, #ef4444, #fb7185);
+}
+
+/* TOOLBAR */
+
 .admin-compras-toolbar {
   margin-bottom: 14px;
   padding: 14px;
   display: grid;
-  grid-template-columns: minmax(260px, 1fr) 320px 320px 130px;
+  grid-template-columns:
+    minmax(260px, 1fr) minmax(190px, 260px) minmax(190px, 260px)
+    auto;
   gap: 12px;
   align-items: end;
   border-radius: 18px;
@@ -209,19 +286,40 @@
   border: 1px solid rgba(138, 158, 255, 0.24);
 }
 
-.admin-compras-toolbar::after {
-  content: "↻ Recargar";
+.btn-limpiar-compras {
   min-height: 44px;
-  padding: 0 14px;
-  display: none;
-  align-items: center;
-  justify-content: center;
+  padding: 0 16px;
+  border: 1px solid rgba(138, 158, 255, 0.32);
   border-radius: 13px;
   color: #ffffff;
   font-weight: 950;
+  white-space: nowrap;
+  cursor: pointer;
   background: rgba(82, 127, 255, 0.16);
-  border: 1px solid rgba(138, 158, 255, 0.32);
+  transition: 0.2s ease;
 }
+
+.btn-limpiar-compras:hover {
+  transform: translateY(-1px);
+  background: rgba(82, 127, 255, 0.24);
+}
+
+.admin-compras-filter-info {
+  margin-bottom: 14px;
+  padding: 12px 16px;
+  border-radius: 15px;
+  color: #dbeafe;
+  font-size: 0.9rem;
+  font-weight: 800;
+  background: rgba(59, 130, 246, 0.14);
+  border: 1px solid rgba(96, 165, 250, 0.28);
+}
+
+.admin-compras-filter-info strong {
+  color: #ffffff;
+}
+
+/* TABLA */
 
 .admin-compras-table-card {
   overflow: hidden;
@@ -232,7 +330,7 @@
 }
 
 .admin-compras-table {
-  max-height: calc(100vh - 415px);
+  max-height: calc(100vh - 475px);
   min-height: 260px;
   overflow-y: auto;
   overflow-x: hidden;
@@ -243,9 +341,11 @@
 }
 
 .admin-compra-row {
-  min-height: 145px;
+  min-height: 118px;
   display: grid;
-  grid-template-columns: 130px minmax(190px, 1fr) minmax(220px, 1.15fr) 180px 220px;
+  grid-template-columns:
+    130px minmax(190px, 1fr) minmax(220px, 1.15fr)
+    180px 220px;
   border-bottom: 1px solid rgba(151, 170, 255, 0.12);
   background:
     linear-gradient(90deg, rgba(83, 112, 255, 0.045), transparent 42%),
@@ -265,7 +365,7 @@
 
 .admin-compra-col {
   min-width: 0;
-  padding: 22px 18px;
+  padding: 16px 18px;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -317,7 +417,6 @@
   padding-left: 18px;
   padding-right: 10px;
 }
-
 
 .admin-compra-estado {
   width: max-content;
@@ -388,31 +487,95 @@
   line-height: 1.35;
 }
 
+/* ESTADOS VACÍOS / ERROR */
+
 .admin-compras-empty {
   max-width: 760px;
   margin: 24px auto;
-  padding: 28px;
+  padding: 34px 28px;
   text-align: center;
-  border-radius: 22px;
-  background: rgba(10, 18, 70, 0.76);
-  border: 1px solid rgba(151, 170, 255, 0.16);
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at top, rgba(96, 165, 250, 0.14), transparent 34%),
+    radial-gradient(
+      circle at bottom right,
+      rgba(124, 58, 237, 0.16),
+      transparent 38%
+    ),
+    rgba(10, 18, 70, 0.76);
+  border: 1px solid rgba(151, 170, 255, 0.18);
+  box-shadow:
+    0 22px 58px rgba(0, 0, 0, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.055);
 }
 
 .admin-compras-empty.compact {
-  margin: 0;
+  min-height: 260px;
   max-width: none;
+  margin: 0;
+  padding: 42px 28px;
+  display: grid;
+  place-items: center;
+  align-content: center;
   border: 0;
-  background: transparent;
+  border-radius: 0;
+  background:
+    radial-gradient(circle at center, rgba(96, 165, 250, 0.1), transparent 36%),
+    transparent;
+  box-shadow: none;
+}
+
+.admin-compras-empty-error {
+  border-color: rgba(248, 113, 113, 0.28);
+  background:
+    radial-gradient(circle at top, rgba(248, 113, 113, 0.13), transparent 34%),
+    rgba(10, 18, 70, 0.76);
+}
+
+.admin-compras-empty-icon {
+  width: 66px;
+  height: 66px;
+  margin: 0 auto 16px;
+  display: grid;
+  place-items: center;
+  border-radius: 20px;
+  font-size: 1.9rem;
+  background: linear-gradient(
+    135deg,
+    rgba(59, 130, 246, 0.28),
+    rgba(124, 58, 237, 0.26)
+  );
+  border: 1px solid rgba(151, 170, 255, 0.22);
+  box-shadow: 0 18px 42px rgba(37, 99, 235, 0.18);
+}
+
+.admin-compras-empty-error .admin-compras-empty-icon {
+  background: linear-gradient(
+    135deg,
+    rgba(239, 68, 68, 0.3),
+    rgba(245, 158, 11, 0.24)
+  );
+  border-color: rgba(248, 113, 113, 0.26);
 }
 
 .admin-compras-empty h3 {
   margin: 0 0 8px;
-  font-size: 1.35rem;
+  color: #ffffff;
+  font-size: 1.4rem;
+  font-weight: 950;
+  letter-spacing: -0.035em;
+}
+
+.admin-compras-empty-error h3 {
+  color: #fecaca;
 }
 
 .admin-compras-empty p {
-  margin: 0 0 18px;
-  color: rgba(255, 255, 255, 0.68);
+  max-width: 480px;
+  margin: 0 auto 20px;
+  color: rgba(230, 235, 255, 0.68);
+  font-size: 0.94rem;
+  line-height: 1.5;
 }
 
 .admin-compras-empty button {
@@ -424,7 +587,20 @@
   font-weight: 900;
   cursor: pointer;
   background: linear-gradient(135deg, #527fff, #7a54ff);
+  box-shadow: 0 14px 30px rgba(82, 127, 255, 0.26);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    filter 0.2s ease;
 }
+
+.admin-compras-empty button:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.04);
+  box-shadow: 0 18px 38px rgba(82, 127, 255, 0.34);
+}
+
+/* SKELETON */
 
 .admin-compras-skeleton {
   height: 108px;
@@ -466,7 +642,11 @@
   border-radius: 26px;
   color: #ffffff;
   background:
-    radial-gradient(circle at top right, rgba(104, 130, 255, 0.18), transparent 34%),
+    radial-gradient(
+      circle at top right,
+      rgba(104, 130, 255, 0.18),
+      transparent 34%
+    ),
     linear-gradient(180deg, rgba(17, 28, 86, 0.98), rgba(8, 13, 48, 0.98));
   border: 1px solid rgba(150, 170, 255, 0.24);
   box-shadow: 0 34px 100px rgba(0, 0, 0, 0.42);
@@ -593,7 +773,9 @@
 
   .admin-compra-row {
     min-height: 150px;
-    grid-template-columns: 120px minmax(170px, 0.95fr) minmax(190px, 1.05fr) 165px 210px;
+    grid-template-columns:
+      120px minmax(170px, 0.95fr) minmax(190px, 1.05fr)
+      165px 210px;
   }
 
   .admin-compra-col {
@@ -613,6 +795,39 @@
   .admin-compra-col.total button {
     min-height: 42px;
     font-size: 0.86rem;
+  }
+}
+
+@media (max-width: 1180px) {
+  .admin-compras-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-compras-toolbar {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .admin-compras-search {
+    grid-column: 1 / -1;
+  }
+
+  .btn-limpiar-compras {
+    width: 100%;
+  }
+
+  .admin-compras-table {
+    max-height: none;
+    overflow: visible;
+  }
+
+  .admin-compra-row {
+    min-height: auto;
+    grid-template-columns: 1fr;
+  }
+
+  .admin-compra-col + .admin-compra-col {
+    border-left: 0;
+    border-top: 1px solid rgba(151, 170, 255, 0.1);
   }
 }
 
@@ -639,8 +854,21 @@
     grid-template-columns: 1fr;
   }
 
+  .admin-compras-quick-filters {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .admin-compras-quick-filters button {
+    width: 100%;
+  }
+
   .admin-compras-toolbar {
     grid-template-columns: 1fr;
+  }
+
+  .admin-compras-search {
+    grid-column: auto;
   }
 
   .admin-compras-table-card {
@@ -679,6 +907,15 @@
   .admin-compra-modal-grid {
     grid-template-columns: 1fr;
   }
+
+  .admin-compras-empty.compact {
+    min-height: 230px;
+    border-radius: 20px;
+    background:
+      radial-gradient(circle at top, rgba(96, 165, 250, 0.12), transparent 34%),
+      rgba(10, 18, 70, 0.62);
+    border: 1px solid rgba(151, 170, 255, 0.16);
+  }
 }
 
 @media (max-width: 520px) {
@@ -692,6 +929,10 @@
 
   .admin-compras-header-actions button {
     width: 100%;
+  }
+
+  .admin-compras-quick-filters {
+    grid-template-columns: 1fr;
   }
 
   .admin-stat-icon {
@@ -714,32 +955,15 @@
   .admin-compra-modal-curso {
     flex-direction: column;
   }
-}
-@media (max-width: 1180px) {
-  .admin-compras-stats {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+  .admin-compras-empty {
+    padding: 28px 20px;
   }
 
-  .admin-compras-toolbar {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .admin-compras-search {
-    grid-column: 1 / -1;
-  }
-
-  .admin-compras-table {
-    max-height: none;
-    overflow: visible;
-  }
-
-  .admin-compra-row {
-    min-height: auto;
-    grid-template-columns: 1fr;
-  }
-
-  .admin-compra-col + .admin-compra-col {
-    border-left: 0;
-    border-top: 1px solid rgba(151, 170, 255, 0.1);
+  .admin-compras-empty-icon {
+    width: 58px;
+    height: 58px;
+    font-size: 1.6rem;
+    border-radius: 18px;
   }
 }

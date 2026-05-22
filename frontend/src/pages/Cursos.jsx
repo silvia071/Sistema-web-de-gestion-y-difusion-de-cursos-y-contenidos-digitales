@@ -11,6 +11,12 @@ function tokenValido(token) {
   );
 }
 
+function normalizarTexto(valor) {
+  return String(valor || "")
+    .toLowerCase()
+    .trim();
+}
+
 function Cursos() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -25,6 +31,7 @@ function Cursos() {
     categoriaSeleccionada || null,
   );
   const [busqueda, setBusqueda] = useState("");
+  const [orden, setOrden] = useState("recientes");
   const [cursos, setCursos] = useState([]);
   const [misCursosIds, setMisCursosIds] = useState([]);
   const [favoritosIds, setFavoritosIds] = useState(() => {
@@ -125,7 +132,7 @@ function Cursos() {
       ...new Set(
         cursos.map((curso) => curso.categoria?.nombre).filter(Boolean),
       ),
-    ];
+    ].sort((a, b) => a.localeCompare(b));
   }, [cursos]);
 
   const cantidadPorCategoria = useMemo(() => {
@@ -143,23 +150,63 @@ function Cursos() {
   }, [cursos]);
 
   const cursosFiltrados = useMemo(() => {
-    const textoBusqueda = busqueda.trim().toLowerCase();
+    const textoBusqueda = normalizarTexto(busqueda);
 
-    return cursos.filter((curso) => {
+    let resultado = cursos.filter((curso) => {
       const coincideCategoria =
         !categoriaActiva ||
-        curso.categoria?.nombre?.toLowerCase() ===
-          categoriaActiva.toLowerCase();
+        normalizarTexto(curso.categoria?.nombre) ===
+          normalizarTexto(categoriaActiva);
 
       const coincideBusqueda =
         !textoBusqueda ||
-        curso.titulo?.toLowerCase().includes(textoBusqueda) ||
-        curso.descripcion?.toLowerCase().includes(textoBusqueda) ||
-        curso.categoria?.nombre?.toLowerCase().includes(textoBusqueda);
+        normalizarTexto(curso.titulo).includes(textoBusqueda) ||
+        normalizarTexto(curso.descripcion).includes(textoBusqueda) ||
+        normalizarTexto(curso.categoria?.nombre).includes(textoBusqueda) ||
+        normalizarTexto(curso.nivel).includes(textoBusqueda);
 
       return coincideCategoria && coincideBusqueda;
     });
-  }, [cursos, categoriaActiva, busqueda]);
+
+    if (orden === "recientes") {
+      resultado = [...resultado].sort(
+        (a, b) =>
+          new Date(b.createdAt || b.fechaCreacion || 0) -
+          new Date(a.createdAt || a.fechaCreacion || 0),
+      );
+    }
+
+    if (orden === "menor-precio") {
+      resultado = [...resultado].sort(
+        (a, b) => Number(a.precio || 0) - Number(b.precio || 0),
+      );
+    }
+
+    if (orden === "mayor-precio") {
+      resultado = [...resultado].sort(
+        (a, b) => Number(b.precio || 0) - Number(a.precio || 0),
+      );
+    }
+
+    if (orden === "az") {
+      resultado = [...resultado].sort((a, b) =>
+        String(a.titulo || "").localeCompare(String(b.titulo || "")),
+      );
+    }
+
+    return resultado;
+  }, [cursos, categoriaActiva, busqueda, orden]);
+
+  const hayFiltrosActivos = Boolean(
+    busqueda.trim() || categoriaActiva || orden !== "recientes",
+  );
+
+  const limpiarFiltros = () => {
+    setBusqueda("");
+    setCategoriaActiva(null);
+    setOrden("recientes");
+    navigate("/cursos", { replace: true });
+  };
 
   const obtenerImagenCurso = (curso) => {
     return (
@@ -291,35 +338,79 @@ function Cursos() {
       </section>
 
       <main className="cursos-container">
-        <div className="cursos-toolbar">
-          <div className="filtros-botones">
-            <button
-              className={!categoriaActiva ? "activo" : ""}
-              onClick={() => setCategoriaActiva(null)}
-            >
-              Todas
-            </button>
+        <section className="cursos-catalogo-panel">
+          <div className="cursos-catalogo-header">
+            <div>
+              <span>Explorá por categoría</span>
+              <h2>Catálogo disponible</h2>
+            </div>
 
-            {categorias.map((cat) => (
-              <button
-                key={cat}
-                className={categoriaActiva === cat ? "activo" : ""}
-                onClick={() => setCategoriaActiva(cat)}
-              >
-                {cat} ({cantidadPorCategoria[cat] || 0})
-              </button>
-            ))}
+            <strong>
+              {cursosFiltrados.length} de {cursos.length} cursos
+            </strong>
           </div>
-        </div>
+
+          <div className="cursos-toolbar">
+            <div className="filtros-botones">
+              <button
+                type="button"
+                className={!categoriaActiva ? "activo" : ""}
+                onClick={() => setCategoriaActiva(null)}
+              >
+                Todas <small>{cursos.length}</small>
+              </button>
+
+              {categorias.map((cat) => (
+                <button
+                  type="button"
+                  key={cat}
+                  className={categoriaActiva === cat ? "activo" : ""}
+                  onClick={() => setCategoriaActiva(cat)}
+                >
+                  {cat} <small>{cantidadPorCategoria[cat] || 0}</small>
+                </button>
+              ))}
+            </div>
+
+            <div className="cursos-orden">
+              <span>Ordenar por</span>
+
+              <select value={orden} onChange={(e) => setOrden(e.target.value)}>
+                <option value="recientes">Más recientes</option>
+                <option value="menor-precio">Menor precio</option>
+                <option value="mayor-precio">Mayor precio</option>
+                <option value="az">Nombre A-Z</option>
+              </select>
+            </div>
+
+            {hayFiltrosActivos && (
+              <button
+                type="button"
+                className="cursos-limpiar-filtros"
+                onClick={limpiarFiltros}
+              >
+                Limpiar filtros
+              </button>
+            )}
+          </div>
+        </section>
 
         {cursosFiltrados.length === 0 ? (
-          <p className="cursos-estado">
-            No se encontraron cursos con esos filtros.
-          </p>
+          <div className="cursos-estado cursos-estado--empty">
+            <span>🔎</span>
+            <h3>No se encontraron cursos</h3>
+            <p>Probá cambiando la búsqueda, la categoría o el ordenamiento.</p>
+
+            {hayFiltrosActivos && (
+              <button type="button" onClick={limpiarFiltros}>
+                Limpiar filtros
+              </button>
+            )}
+          </div>
         ) : (
           <div
             className="cursos-grid animar-grid"
-            key={`${categoriaActiva || "todas"}-${busqueda}`}
+            key={`${categoriaActiva || "todas"}-${busqueda}-${orden}`}
           >
             {cursosFiltrados.map((curso) => {
               const cursoId = String(curso?._id || curso?.id);

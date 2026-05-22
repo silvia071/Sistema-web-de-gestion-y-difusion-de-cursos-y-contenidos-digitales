@@ -858,3 +858,55 @@
   right: 12px;
   color: #ffffff;
 }
+
+.admin-summary-panel .admin-activity-list li {
+  padding: 0;
+}
+
+.admin-summary-link {
+  width: 100%;
+  min-height: 64px;
+  padding: 14px 16px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  border: 0;
+  border-bottom: 1px solid rgba(151, 170, 255, 0.12);
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  background: transparent;
+  font-family: inherit;
+  transition: 0.2s ease;
+}
+
+.admin-summary-link:hover {
+  background: rgba(82, 127, 255, 0.1);
+  transform: translateX(2px);
+}
+
+.admin-summary-link div {
+  min-width: 0;
+}
+
+.admin-summary-link strong {
+  display: block;
+  margin-bottom: 4px;
+  color: #ffffff;
+  font-size: 0.92rem;
+  font-weight: 950;
+}
+
+.admin-summary-link p {
+  margin: 0;
+  color: rgba(220, 230, 255, 0.72);
+  font-size: 0.9rem;
+  font-weight: 750;
+}
+
+.admin-summary-arrow {
+  color: rgba(210, 220, 255, 0.72);
+  font-size: 1.1rem;
+  font-weight: 900;
+}

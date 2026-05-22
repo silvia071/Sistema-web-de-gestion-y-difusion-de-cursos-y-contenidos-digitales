@@ -194,18 +194,22 @@ function Admin() {
       {
         label: "Compras realizadas",
         value: loadingResumen ? "..." : formatearNumero(resumen.totalCompras),
+        ruta: "/admin/compras",
       },
       {
         label: "Total vendido",
         value: loadingResumen ? "..." : formatearPrecio(resumen.totalVendido),
+        ruta: "/admin/compras?estado=APROBADA",
       },
       {
         label: "Cursos vendidos",
         value: loadingResumen ? "..." : formatearNumero(resumen.cursosVendidos),
+        ruta: "/admin/compras?estado=APROBADA",
       },
       {
         label: "Accesos activos",
         value: loadingResumen ? "..." : formatearNumero(resumen.accesosActivos),
+        ruta: "/admin/usuarios",
       },
     ],
     [loadingResumen, resumen],
@@ -222,68 +226,68 @@ function Admin() {
     });
   }, [busqueda]);
 
-const alertas = useMemo(
-  () => [
-    {
-      label: "Pagos pendientes",
-      value: formatearNumero(resumen.pagosPendientes),
-      descripcion:
-        resumen.pagosPendientes > 0
-          ? "Requieren revisión administrativa"
-          : "No hay pagos pendientes",
-      color: resumen.pagosPendientes > 0 ? "orange" : "green",
-      ruta: "/admin/pagos?estado=PENDIENTE",
-    },
-    {
-      label: "Compras registradas",
-      value: formatearNumero(resumen.totalCompras),
-      descripcion: "Órdenes dentro del período seleccionado",
-      color: "blue",
-      ruta: "/admin/compras",
-    },
-    {
-      label: "Accesos activos",
-      value: formatearNumero(resumen.accesosActivos),
-      descripcion: "Usuarios con cursos habilitados",
-      color: "cyan",
-      ruta: "/admin/usuarios",
-    },
-    {
-      label: "Total vendido",
-      value: formatearPrecio(resumen.totalVendido),
-      descripcion: "Ventas aprobadas del período",
-      color: "green",
-      ruta: "/admin/compras",
-    },
-  ],
-  [resumen],
-);
-  
+  const alertas = useMemo(
+    () => [
+      {
+        label: "Pagos pendientes",
+        value: formatearNumero(resumen.pagosPendientes),
+        descripcion:
+          resumen.pagosPendientes > 0
+            ? "Requieren revisión administrativa"
+            : "No hay pagos pendientes",
+        color: resumen.pagosPendientes > 0 ? "orange" : "green",
+        ruta: "/admin/pagos?estado=PENDIENTE",
+      },
+      {
+        label: "Compras registradas",
+        value: formatearNumero(resumen.totalCompras),
+        descripcion: "Órdenes dentro del período seleccionado",
+        color: "blue",
+        ruta: "/admin/compras",
+      },
+      {
+        label: "Accesos activos",
+        value: formatearNumero(resumen.accesosActivos),
+        descripcion: "Usuarios con cursos habilitados",
+        color: "cyan",
+        ruta: "/admin/usuarios",
+      },
+      {
+        label: "Total vendido",
+        value: formatearPrecio(resumen.totalVendido),
+        descripcion: "Ventas aprobadas del período",
+        color: "green",
+        ruta: "/admin/compras?estado=APROBADA",
+      },
+    ],
+    [resumen],
+  );
+
   const cambiarPeriodo = (nuevoPeriodo) => {
     setPeriodo(nuevoPeriodo);
   };
 
- const handleNavigate = (card) => {
-   if (card.proximamente) return;
-   if (card.ruta) navigate(card.ruta);
- };
-
- const navegarPrimerModulo = (e) => {
-   if (e.key !== "Enter") return;
-
-   const primerModuloDisponible = cardsFiltradas.find(
-     (card) => !card.proximamente && card.ruta,
-   );
-
-   if (primerModuloDisponible) {
-     navigate(primerModuloDisponible.ruta);
-   }
- };
-
- const navegarDesdeAlerta = (ruta) => {
-   if (ruta) navigate(ruta);
+  const handleNavigate = (card) => {
+    if (card.proximamente) return;
+    if (card.ruta) navigate(card.ruta);
   };
-  
+
+  const navegarPrimerModulo = (e) => {
+    if (e.key !== "Enter") return;
+
+    const primerModuloDisponible = cardsFiltradas.find(
+      (card) => !card.proximamente && card.ruta,
+    );
+
+    if (primerModuloDisponible) {
+      navigate(primerModuloDisponible.ruta);
+    }
+  };
+
+  const navegarDesdeAlerta = (ruta) => {
+    if (ruta) navigate(ruta);
+  };
+
   const obtenerRutaActividad = (tipo) => {
     const rutas = {
       usuario: "/admin/usuarios",
@@ -523,12 +527,20 @@ const alertas = useMemo(
               <ul className="admin-activity-list">
                 {extraStats.map((item) => (
                   <li key={item.label}>
-                    <span className="dot blue"></span>
+                    <button
+                      type="button"
+                      className="admin-summary-link"
+                      onClick={() => item.ruta && navigate(item.ruta)}
+                    >
+                      <span className="dot blue"></span>
 
-                    <div>
-                      <strong>{item.label}</strong>
-                      <p>{item.value}</p>
-                    </div>
+                      <div>
+                        <strong>{item.label}</strong>
+                        <p>{item.value}</p>
+                      </div>
+
+                      <span className="admin-summary-arrow">→</span>
+                    </button>
                   </li>
                 ))}
               </ul>

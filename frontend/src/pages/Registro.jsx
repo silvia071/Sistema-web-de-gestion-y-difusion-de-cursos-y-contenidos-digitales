@@ -14,6 +14,7 @@ function Registro() {
     password: "",
   });
 
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -25,6 +26,9 @@ function Registro() {
       ...prev,
       [name]: value,
     }));
+
+    if (error) setError("");
+    if (success) setSuccess("");
   };
 
   const irALogin = (email) => {
@@ -162,15 +166,26 @@ function Registro() {
 
           <div className="registro-group">
             <label htmlFor="password">Contraseña</label>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              placeholder="Ingresá una contraseña"
-              value={form.password}
-              onChange={handleChange}
-              required
-            />
+
+            <div className="registro-password-wrap">
+              <input
+                id="password"
+                name="password"
+                type={showPassword ? "text" : "password"}
+                placeholder="Ingresá una contraseña"
+                value={form.password}
+                onChange={handleChange}
+                required
+              />
+
+              <button
+                type="button"
+                className="registro-password-toggle"
+                onClick={() => setShowPassword((prev) => !prev)}
+              >
+                {showPassword ? "Ocultar" : "Mostrar"}
+              </button>
+            </div>
           </div>
 
           <button className="registro-btn" type="submit" disabled={submitting}>

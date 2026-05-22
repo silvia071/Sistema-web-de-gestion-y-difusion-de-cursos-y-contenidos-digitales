@@ -4,7 +4,7 @@
 
 .mis-cursos-page {
   min-height: calc(100vh - 90px);
-  padding: 6px clamp(18px, 4.5vw, 70px) 36px;
+  padding: 10px clamp(18px, 4.5vw, 70px) 40px;
   color: white;
   background:
     radial-gradient(
@@ -21,15 +21,19 @@
   overflow-x: hidden;
 }
 
+.mis-cursos-page * {
+  box-sizing: border-box;
+}
+
 /* =========================
    HERO
 ========================= */
 
 .mis-cursos-hero {
   width: min(1420px, 100%);
-  margin: 0 auto 4px;
+  margin: 0 auto 10px;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 140px;
+  grid-template-columns: minmax(0, 1fr) 150px;
   align-items: center;
   gap: 18px;
 }
@@ -38,36 +42,36 @@
   display: inline-flex;
   align-items: center;
   width: fit-content;
-  margin-bottom: 4px;
+  margin-bottom: 5px;
   padding: 4px 10px;
   border-radius: 999px;
   background: linear-gradient(135deg, #7c3aed, #2563eb);
   color: #dbeafe;
-  font-size: 0.58rem;
+  font-size: 0.6rem;
   font-weight: 900;
   letter-spacing: 0.08em;
   box-shadow: 0 14px 30px rgba(124, 58, 237, 0.28);
 }
 
 .mis-cursos-hero h1 {
-  margin: 0 0 2px;
+  margin: 0 0 4px;
   color: white;
-  font-size: clamp(1.8rem, 2.45vw, 2.45rem);
+  font-size: clamp(1.9rem, 2.55vw, 2.6rem);
   line-height: 0.95;
   font-weight: 900;
   letter-spacing: -0.06em;
 }
 
 .mis-cursos-hero p {
-  max-width: 620px;
+  max-width: 650px;
   margin: 0;
   color: rgba(226, 232, 240, 0.78);
-  font-size: 0.78rem;
-  line-height: 1.3;
+  font-size: 0.82rem;
+  line-height: 1.35;
 }
 
 .mis-cursos-hero-visual {
-  min-height: 58px;
+  min-height: 64px;
   display: grid;
   place-items: center;
   border-radius: 18px;
@@ -83,7 +87,7 @@
 }
 
 .mis-cursos-hero-visual span {
-  font-size: 2.1rem;
+  font-size: 2.2rem;
   filter: drop-shadow(0 18px 26px rgba(34, 211, 238, 0.18));
 }
 
@@ -93,7 +97,7 @@
 
 .mis-cursos-section-title {
   width: min(1420px, 100%);
-  margin: 0 auto 4px;
+  margin: 0 auto 6px;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -120,7 +124,7 @@
 }
 
 .mis-cursos-section-title h2 {
-  font-size: 1.05rem;
+  font-size: 1.08rem;
 }
 
 .mis-cursos-listado-header h2 {
@@ -133,16 +137,16 @@
 
 .mis-cursos-featured {
   width: min(1420px, 100%);
-  margin: 0 auto 7px;
+  margin: 0 auto 10px;
 }
 
 .featured-card {
   display: grid;
-  grid-template-columns: 175px minmax(0, 1fr) 125px;
+  grid-template-columns: 190px minmax(0, 1fr) 150px;
   align-items: center;
-  gap: 10px;
-  padding: 8px 10px;
-  border-radius: 17px;
+  gap: 14px;
+  padding: 10px 12px;
+  border-radius: 18px;
   background:
     radial-gradient(
       circle at 76% 42%,
@@ -152,18 +156,18 @@
     rgba(8, 20, 66, 0.68);
   border: 1px solid rgba(96, 165, 250, 0.22);
   box-shadow:
-    0 26px 70px rgba(0, 0, 0, 0.28),
+    0 24px 64px rgba(0, 0, 0, 0.26),
     inset 0 1px 0 rgba(255, 255, 255, 0.06);
   backdrop-filter: blur(16px);
 }
 
 .featured-card img {
   width: 100%;
-  height: 82px;
+  height: 88px;
   object-fit: cover;
-  object-position: center 40%;
+  object-position: center 50%;
   display: block;
-  border-radius: 12px;
+  border-radius: 13px;
   box-shadow: 0 18px 42px rgba(0, 0, 0, 0.28);
 }
 
@@ -173,32 +177,36 @@
 
 .featured-badge {
   display: inline-flex;
-  margin-bottom: 3px;
+  margin-bottom: 4px;
   padding: 3px 8px;
   border-radius: 999px;
   background: rgba(124, 58, 237, 0.32);
   color: #c4b5fd;
-  font-size: 0.54rem;
+  font-size: 0.56rem;
   font-weight: 900;
   letter-spacing: 0.04em;
 }
 
 .featured-content h3 {
-  margin: 0 0 2px;
+  margin: 0 0 3px;
   color: white;
-  font-size: 0.95rem;
+  font-size: 1rem;
   font-weight: 900;
   letter-spacing: -0.035em;
 }
 
 .featured-content p {
-  margin: 0 0 3px;
+  margin: 0 0 5px;
   color: rgba(226, 232, 240, 0.78);
-  font-size: 0.7rem;
+  font-size: 0.74rem;
 }
 
 .featured-content small {
-  display: none;
+  display: block;
+  margin-top: 4px;
+  color: rgba(226, 232, 240, 0.58);
+  font-size: 0.66rem;
+  line-height: 1.25;
 }
 
 .featured-progress-row {
@@ -215,13 +223,13 @@
 }
 
 .btn-continuar-grande {
-  min-height: 30px;
-  padding: 6px 10px;
+  min-height: 40px;
+  padding: 0px 18px;
   border: none;
-  border-radius: 10px;
+  border-radius: 11px;
   background: linear-gradient(135deg, #6366f1, #7c3aed, #2563eb);
   color: white;
-  font-size: 0.7rem;
+  font-size: 0.76rem;
   font-weight: 900;
   cursor: pointer;
   white-space: nowrap;
@@ -240,10 +248,10 @@
 
 .mis-cursos-stats {
   width: min(1420px, 100%);
-  margin: 0 auto 8px;
+  margin: 0 auto 10px;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  border-radius: 22px;
+  border-radius: 20px;
   background:
     radial-gradient(
       circle at center,
@@ -253,7 +261,7 @@
     rgba(8, 20, 66, 0.58);
   border: 1px solid rgba(148, 163, 184, 0.18);
   box-shadow:
-    0 22px 58px rgba(0, 0, 0, 0.22),
+    0 20px 52px rgba(0, 0, 0, 0.2),
     inset 0 1px 0 rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(16px);
 }
@@ -261,8 +269,8 @@
 .mis-stat-card {
   display: flex;
   align-items: center;
-  gap: 9px;
-  padding: 6px 14px;
+  gap: 10px;
+  padding: 9px 14px;
   border-right: 1px solid rgba(148, 163, 184, 0.16);
 }
 
@@ -271,21 +279,21 @@
 }
 
 .mis-stat-card span {
-  width: 30px;
-  height: 30px;
-  flex: 0 0 30px;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
   display: grid;
   place-items: center;
-  border-radius: 11px;
+  border-radius: 12px;
   background: rgba(124, 58, 237, 0.16);
   border: 1px solid rgba(167, 139, 250, 0.26);
-  font-size: 0.85rem;
+  font-size: 0.95rem;
 }
 
 .mis-stat-card strong {
   display: block;
   color: white;
-  font-size: 0.98rem;
+  font-size: 1.05rem;
   line-height: 1;
   font-weight: 900;
 }
@@ -293,7 +301,7 @@
 .mis-stat-card p {
   margin: 4px 0 0;
   color: rgba(226, 232, 240, 0.72);
-  font-size: 0.68rem;
+  font-size: 0.7rem;
 }
 
 /* =========================
@@ -320,8 +328,8 @@
 }
 
 .mis-cursos-search {
-  height: 34px;
-  min-width: 260px;
+  height: 36px;
+  min-width: 280px;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -349,7 +357,7 @@
 }
 
 .mis-cursos-select {
-  height: 34px;
+  height: 36px;
   padding: 0 14px;
   border-radius: 13px;
   background: rgba(255, 255, 255, 0.045);
@@ -407,15 +415,16 @@
 
 .mis-curso-img {
   position: relative;
-  height: 105px;
+  height: 100px;
   overflow: hidden;
+  background: #07124a;
 }
 
 .mis-curso-img img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center 40%;
+  object-position: center 55%;
   display: block;
   transition: transform 0.35s ease;
 }
@@ -451,7 +460,7 @@
 }
 
 .mis-curso-content {
-  padding: 9px 10px 12px;
+  padding: 10px 11px 12px;
 }
 
 .mis-curso-content h3 {
@@ -463,6 +472,7 @@
 }
 
 .mis-curso-content p {
+  min-height: 34px;
   margin: 0 0 8px;
   color: rgba(226, 232, 240, 0.68);
   font-size: 0.72rem;
@@ -529,8 +539,8 @@
 
 .btn-entrar {
   width: 100%;
-  min-height: 30px;
-  font-size: 0.72rem;
+  min-height: 32px;
+  font-size: 0.74rem;
   border-radius: 9px;
 }
 
@@ -602,7 +612,7 @@
   }
 
   .featured-card {
-    grid-template-columns: 165px minmax(0, 1fr) 120px;
+    grid-template-columns: 170px minmax(0, 1fr) 135px;
   }
 
   .mis-cursos-stats {

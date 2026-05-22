@@ -17,6 +17,10 @@
     linear-gradient(180deg, #020817 0%, #071133 34%, #07164b 68%, #030712 100%);
 }
 
+.home-page * {
+  box-sizing: border-box;
+}
+
 /* =========================
    HERO
 ========================= */
@@ -24,25 +28,25 @@
 .hero-home {
   position: relative;
   overflow: hidden;
-  padding: clamp(24px, 3vw, 42px) 0 clamp(54px, 5vw, 78px);
+  padding: 44px 0 76px;
   color: white;
   background:
     radial-gradient(
-      circle at 18% 24%,
-      rgba(34, 211, 238, 0.16),
+      circle at 14% 22%,
+      rgba(34, 211, 238, 0.12),
       transparent 28%
     ),
     radial-gradient(
-      circle at 80% 16%,
-      rgba(168, 85, 247, 0.26),
-      transparent 34%
+      circle at 72% 22%,
+      rgba(168, 85, 247, 0.24),
+      transparent 32%
     ),
     radial-gradient(
-      circle at 72% 84%,
-      rgba(37, 99, 235, 0.24),
-      transparent 34%
+      circle at 82% 74%,
+      rgba(37, 99, 235, 0.28),
+      transparent 36%
     ),
-    linear-gradient(135deg, #061333 0%, #10195f 48%, #3324b8 100%);
+    linear-gradient(135deg, #041226 0%, #071133 48%, #211b86 100%);
 }
 
 .hero-home::before {
@@ -50,9 +54,9 @@
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
-  background-size: 48px 48px;
+    linear-gradient(rgba(255, 255, 255, 0.028) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.028) 1px, transparent 1px);
+  background-size: 44px 44px;
   mask-image: linear-gradient(to bottom, black, transparent 92%);
   pointer-events: none;
 }
@@ -85,38 +89,38 @@
 .hero-home__content {
   position: relative;
   z-index: 2;
-  width: min(1160px, calc(100% - 48px));
+  width: min(1180px, calc(100% - 64px));
   margin: 0 auto;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(340px, 540px);
-  gap: clamp(28px, 4vw, 56px);
+  grid-template-columns: minmax(0, 0.94fr) minmax(440px, 560px);
+  gap: 64px;
   align-items: center;
 }
 
 .hero-home__left {
-  max-width: 650px;
+  max-width: 580px;
 }
 
 .hero-home__eyebrow {
   display: inline-flex;
   align-items: center;
-  margin-bottom: 16px;
-  padding: 9px 16px;
+  margin-bottom: 14px;
+  padding: 8px 15px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.09);
   border: 1px solid rgba(255, 255, 255, 0.16);
   color: #dbeafe;
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   font-weight: 900;
-  letter-spacing: 0.09em;
+  letter-spacing: 0.08em;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(12px);
 }
 
 .hero-home__title {
   margin: 0 0 16px;
-  font-size: clamp(2.65rem, 4.4vw, 4.25rem);
-  line-height: 0.94;
+  font-size: clamp(3rem, 4.25vw, 4.45rem);
+  line-height: 0.92;
   font-weight: 950;
   letter-spacing: -0.075em;
 }
@@ -128,10 +132,10 @@
 }
 
 .hero-home__text {
-  max-width: 520px;
+  max-width: 535px;
   margin: 0 0 24px;
   color: rgba(226, 232, 240, 0.92);
-  font-size: clamp(0.98rem, 1.2vw, 1.12rem);
+  font-size: 1.02rem;
   line-height: 1.58;
 }
 
@@ -139,7 +143,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 14px;
-  margin-bottom: 30px;
+  margin-bottom: 26px;
 }
 
 .hero-home__btn {
@@ -149,7 +153,8 @@
   min-height: 46px;
   min-width: 150px;
   padding: 11px 20px;
-  border-radius: 15px;
+  border-radius: 14px;
+  font-size: 0.92rem;
   font-weight: 900;
   text-decoration: none;
   transition:
@@ -190,21 +195,21 @@
 .hero-home__stats {
   display: grid;
   grid-template-columns: repeat(3, max-content);
-  gap: clamp(18px, 2.4vw, 30px);
+  gap: 32px;
 }
 
 .hero-home__stat strong {
   display: block;
   margin-bottom: 5px;
   color: white;
-  font-size: clamp(1.45rem, 2vw, 1.9rem);
+  font-size: 1.78rem;
   line-height: 1;
   letter-spacing: -0.04em;
 }
 
 .hero-home__stat span {
   color: rgba(226, 232, 240, 0.78);
-  font-size: 0.92rem;
+  font-size: 0.82rem;
 }
 
 /* =========================
@@ -219,8 +224,8 @@
 
 .hero-home__visual {
   position: relative;
-  width: min(100%, 590px);
-  height: 340px;
+  width: 610px;
+  height: 370px;
 }
 
 .hero-home__visual::before {
@@ -235,6 +240,35 @@
   filter: blur(28px);
   opacity: 0.75;
   animation: shadowPulse 4.8s ease-in-out infinite;
+}
+
+.hero-home__visual::after {
+  content: "";
+  position: absolute;
+  inset: -70px -100px -40px -80px;
+  background:
+    radial-gradient(
+      circle at 78% 4%,
+      rgba(34, 211, 238, 0.9) 0 7px,
+      transparent 8px
+    ),
+    radial-gradient(
+      circle at 98% 18%,
+      rgba(124, 58, 237, 0.9) 0 9px,
+      transparent 10px
+    ),
+    radial-gradient(
+      circle at 12% 92%,
+      rgba(34, 211, 238, 0.8) 0 7px,
+      transparent 8px
+    ),
+    radial-gradient(
+      circle at 92% 94%,
+      rgba(248, 113, 113, 0.8) 0 7px,
+      transparent 8px
+    );
+  opacity: 0.8;
+  pointer-events: none;
 }
 
 @keyframes shadowPulse {
@@ -253,11 +287,11 @@
 .hero-card {
   position: absolute;
   left: 0;
-  top: 18px;
-  width: 470px;
-  min-height: 290px;
+  top: 32px;
+  width: 500px;
+  min-height: 300px;
   padding: 26px;
-  border-radius: 26px;
+  border-radius: 28px;
   background:
     radial-gradient(
       circle at 74% 46%,
@@ -331,12 +365,12 @@
   position: relative;
   z-index: 2;
   display: inline-flex;
-  margin-bottom: 22px;
+  margin-bottom: 18px;
   padding: 7px 14px;
   border-radius: 999px;
   background: linear-gradient(135deg, #7c3aed, #a855f7);
   color: white;
-  font-size: 0.72rem;
+  font-size: 0.66rem;
   font-weight: 950;
   letter-spacing: 0.05em;
   box-shadow: 0 10px 24px rgba(124, 58, 237, 0.28);
@@ -346,8 +380,8 @@
   position: relative;
   z-index: 2;
   display: grid;
-  grid-template-columns: 0.85fr 1.15fr;
-  gap: 24px;
+  grid-template-columns: 0.82fr 1.18fr;
+  gap: 26px;
   align-items: center;
 }
 
@@ -358,7 +392,7 @@
 .hero-card__left h3 {
   margin: 0 0 12px;
   color: white;
-  font-size: clamp(1.55rem, 2.1vw, 2rem);
+  font-size: 1.92rem;
   line-height: 1.02;
   letter-spacing: -0.045em;
 }
@@ -374,11 +408,12 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 44px;
-  padding: 11px 18px;
+  min-height: 42px;
+  padding: 10px 18px;
   border-radius: 13px;
   background: linear-gradient(135deg, #7c3aed, #2563eb);
   color: white;
+  font-size: 0.86rem;
   font-weight: 900;
   text-decoration: none;
   box-shadow: 0 16px 30px rgba(37, 99, 235, 0.32);
@@ -394,11 +429,11 @@
 
 .hero-card__right {
   position: relative;
-  width: 215px;
-  height: 178px;
+  width: 220px;
+  height: 184px;
   justify-self: end;
-  margin-right: 24px;
-  border-radius: 22px;
+  margin-right: 20px;
+  border-radius: 24px;
   display: grid;
   place-items: center;
   overflow: hidden;
@@ -484,7 +519,7 @@
 .hero-course-card {
   position: absolute;
   width: 190px;
-  min-height: 104px;
+  min-height: 108px;
   padding: 16px;
   border-radius: 22px;
   color: white;
@@ -507,13 +542,13 @@
 }
 
 .hero-course-card--top {
-  top: 62px;
+  top: 74px;
   right: -96px;
   z-index: 20;
 }
 
 .hero-course-card--bottom {
-  bottom: 42px;
+  bottom: 54px;
   right: -96px;
   z-index: 20;
   animation-delay: 0.8s;
@@ -537,7 +572,7 @@
   margin-bottom: 10px;
   padding: 5px 10px;
   border-radius: 999px;
-  font-size: 0.66rem;
+  font-size: 0.6rem;
   font-weight: 950;
   letter-spacing: 0.04em;
 }
@@ -559,21 +594,21 @@
 
 .hero-course-card__small-text h4 {
   margin: 0;
-  font-size: 0.92rem;
+  font-size: 0.86rem;
   line-height: 1.18;
 }
 
 .hero-course-card__small-media {
-  width: 54px;
-  height: 54px;
-  flex: 0 0 54px;
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
   display: grid;
   place-items: center;
 }
 
 .hero-course-card__small-media img {
-  max-width: 48px;
-  max-height: 48px;
+  max-width: 42px;
+  max-height: 42px;
   object-fit: contain;
 }
 
@@ -584,18 +619,18 @@
 .benefits-strip {
   position: relative;
   z-index: 8;
-  margin-top: -44px;
-  padding: 0 20px;
+  margin-top: -54px;
+  padding: 0 32px;
   background: transparent;
 }
 
 .benefits-strip__grid {
-  width: min(1220px, 100%);
+  width: min(1180px, 100%);
   margin: 0 auto;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   overflow: hidden;
-  border-radius: 26px;
+  border-radius: 22px;
   background: rgba(255, 255, 255, 0.96);
   border: 1px solid rgba(226, 232, 240, 0.94);
   box-shadow:
@@ -608,7 +643,7 @@
   position: relative;
   display: flex;
   gap: 16px;
-  padding: 26px 24px;
+  padding: 22px 24px;
   transition:
     transform 0.24s ease,
     background 0.24s ease;
@@ -630,30 +665,30 @@
 }
 
 .benefit-item__icon {
-  width: 50px;
-  height: 50px;
-  flex: 0 0 50px;
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
   display: grid;
   place-items: center;
-  border-radius: 16px;
+  border-radius: 15px;
   background: linear-gradient(135deg, #eef2ff, #e0f2fe);
   color: #4f46e5;
-  font-size: 1.23rem;
+  font-size: 1.1rem;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
 }
 
 .benefit-item h3 {
   margin: 0 0 6px;
   color: #0f172a;
-  font-size: 1.03rem;
+  font-size: 0.94rem;
   line-height: 1.2;
 }
 
 .benefit-item p {
   margin: 0;
   color: #64748b;
-  font-size: 0.9rem;
-  line-height: 1.45;
+  font-size: 0.8rem;
+  line-height: 1.4;
 }
 
 /* =========================
@@ -662,7 +697,7 @@
 
 .section-eyebrow {
   display: inline-flex;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
   padding: 7px 12px;
   border-radius: 999px;
   background: rgba(124, 58, 237, 0.18);
@@ -678,7 +713,7 @@
 
 .featured-courses {
   position: relative;
-  padding: 78px 0 78px;
+  padding: 42px 0 34px;
   background:
     radial-gradient(
       circle at 14% 18%,
@@ -708,7 +743,7 @@
 .featured-courses .container {
   position: relative;
   z-index: 2;
-  width: min(1120px, calc(100% - 40px));
+  width: min(1180px, calc(100% - 64px));
   margin: 0 auto;
 }
 
@@ -717,13 +752,13 @@
   justify-content: space-between;
   align-items: flex-end;
   gap: 22px;
-  margin-bottom: 28px;
+  margin-bottom: 20px;
 }
 
 .featured-courses__header h2 {
-  margin: 0 0 10px;
+  margin: 0 0 8px;
   color: #ffffff;
-  font-size: clamp(2.1rem, 3.2vw, 2.65rem);
+  font-size: 2.28rem;
   line-height: 1.04;
   letter-spacing: -0.045em;
 }
@@ -731,7 +766,7 @@
 .featured-courses__header p {
   margin: 0;
   color: rgba(203, 213, 225, 0.82);
-  font-size: 1.02rem;
+  font-size: 0.98rem;
 }
 
 .featured-courses__btn {
@@ -763,7 +798,7 @@
 .featured-courses__grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 22px;
+  gap: 20px;
 }
 
 .home-loading {
@@ -779,7 +814,7 @@
 .course-card {
   position: relative;
   overflow: hidden;
-  border-radius: 22px;
+  border-radius: 18px;
   background:
     radial-gradient(
       circle at 80% 0%,
@@ -815,7 +850,7 @@
 }
 
 .course-card:hover {
-  transform: translateY(-9px);
+  transform: translateY(-7px);
   border-color: rgba(34, 211, 238, 0.34);
   box-shadow:
     0 30px 70px rgba(0, 0, 0, 0.34),
@@ -828,7 +863,7 @@
 
 .course-card__cover {
   position: relative;
-  height: 158px;
+  height: 150px;
   overflow: hidden;
   background: #0f172a;
 }
@@ -837,6 +872,7 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center 55%;
   display: block;
   transition:
     transform 0.45s ease,
@@ -844,7 +880,7 @@
 }
 
 .course-card:hover .course-card__cover-image {
-  transform: scale(1.07);
+  transform: scale(1.05);
   filter: brightness(1.08) saturate(1.1);
 }
 
@@ -891,12 +927,13 @@
 .course-card__content {
   position: relative;
   z-index: 2;
-  padding: 18px 18px 20px;
+  padding: 16px 16px 18px;
 }
 
 .course-card__content h3 {
-  margin: 0 0 14px;
-  font-size: 1.1rem;
+  min-height: 38px;
+  margin: 0 0 12px;
+  font-size: 1.04rem;
   line-height: 1.18;
   color: white;
 }
@@ -906,7 +943,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
 }
 
 .course-card__teacher {
@@ -921,9 +958,9 @@
 }
 
 .course-card__price {
-  margin-bottom: 16px;
+  margin-bottom: 14px;
   color: white;
-  font-size: 1.55rem;
+  font-size: 1.38rem;
   font-weight: 950;
   letter-spacing: -0.04em;
 }
@@ -932,12 +969,12 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 40px;
+  min-height: 38px;
   padding: 9px 16px;
   border-radius: 12px;
   background: linear-gradient(135deg, #7c3aed, #06b6d4);
   color: white;
-  font-size: 0.88rem;
+  font-size: 0.86rem;
   font-weight: 900;
   text-decoration: none;
   transition:
@@ -991,7 +1028,7 @@
 
 .how-home {
   position: relative;
-  padding: 74px 20px 86px;
+  padding: 34px 0 54px;
   background:
     radial-gradient(
       circle at 16% 18%,
@@ -1007,18 +1044,18 @@
 }
 
 .how-home__container {
-  width: min(1120px, 100%);
+  width: min(1180px, calc(100% - 96px));
   margin: 0 auto;
 }
 
 .how-home__header {
-  margin-bottom: 34px;
+  margin-bottom: 28px;
 }
 
 .how-home__header h2 {
   margin: 0 0 10px;
   color: white;
-  font-size: clamp(2rem, 3vw, 2.7rem);
+  font-size: 2.28rem;
   line-height: 1.04;
   letter-spacing: -0.045em;
 }
@@ -1027,13 +1064,13 @@
   margin: 0;
   max-width: 520px;
   color: rgba(203, 213, 225, 0.82);
-  font-size: 1rem;
+  font-size: 0.98rem;
 }
 
 .how-home__steps {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 34px;
+  gap: 44px;
   align-items: stretch;
 }
 
@@ -1043,9 +1080,9 @@
   grid-template-columns: auto 1fr;
   gap: 18px;
   align-items: center;
-  min-height: 138px;
-  padding: 26px;
-  border-radius: 24px;
+  min-height: 118px;
+  padding: 22px 24px;
+  border-radius: 20px;
   background:
     radial-gradient(
       circle at 20% 20%,
@@ -1075,8 +1112,8 @@
   content: "";
   position: absolute;
   top: 50%;
-  right: -35px;
-  width: 35px;
+  right: -44px;
+  width: 44px;
   height: 2px;
   background: linear-gradient(90deg, #7c3aed, #22d3ee);
   opacity: 0.65;
@@ -1100,27 +1137,27 @@
 }
 
 .how-step__icon {
-  width: 62px;
-  height: 62px;
+  width: 56px;
+  height: 56px;
   display: grid;
   place-items: center;
   border-radius: 50%;
   background: linear-gradient(135deg, #312e81, #4f46e5);
-  font-size: 1.5rem;
+  font-size: 1.35rem;
   box-shadow: 0 16px 34px rgba(79, 70, 229, 0.25);
 }
 
 .how-step h3 {
-  margin: 0 0 7px;
+  margin: 0 0 6px;
   color: white;
-  font-size: 1rem;
+  font-size: 0.96rem;
 }
 
 .how-step p {
   margin: 0;
   color: rgba(203, 213, 225, 0.82);
-  font-size: 0.86rem;
-  line-height: 1.48;
+  font-size: 0.8rem;
+  line-height: 1.42;
 }
 
 /* =========================
@@ -1129,11 +1166,11 @@
 
 .mobile-preview {
   position: relative;
-  padding: 84px 20px 96px;
+  padding: 68px calc((100% - 1180px) / 2) 70px;
   background:
     radial-gradient(
-      circle at 66% 58%,
-      rgba(124, 58, 237, 0.24),
+      circle at 67% 58%,
+      rgba(124, 58, 237, 0.28),
       transparent 34%
     ),
     radial-gradient(
@@ -1143,8 +1180,8 @@
     ),
     linear-gradient(180deg, #071133 0%, #030712 100%);
   display: grid;
-  grid-template-columns: minmax(280px, 0.9fr) minmax(0, 1.4fr);
-  gap: clamp(32px, 5vw, 70px);
+  grid-template-columns: minmax(300px, 0.82fr) minmax(0, 1.25fr);
+  gap: 64px;
   align-items: center;
 }
 
@@ -1166,13 +1203,13 @@
   z-index: 2;
   width: 100%;
   max-width: 440px;
-  justify-self: end;
+  justify-self: start;
 }
 
 .mobile-preview__intro h2 {
   margin: 0 0 18px;
   color: #ffffff;
-  font-size: clamp(2.1rem, 3.4vw, 3rem);
+  font-size: 2.7rem;
   line-height: 1.02;
   letter-spacing: -0.055em;
 }
@@ -1181,12 +1218,12 @@
   margin: 0 0 24px;
   color: rgba(203, 213, 225, 0.84);
   font-size: 1rem;
-  line-height: 1.65;
+  line-height: 1.6;
 }
 
 .mobile-preview__features {
   display: grid;
-  gap: 13px;
+  gap: 14px;
 }
 
 .mobile-preview__features span {
@@ -1194,7 +1231,7 @@
   align-items: center;
   gap: 10px;
   color: #dbeafe;
-  font-size: 0.94rem;
+  font-size: 0.92rem;
 }
 
 .mobile-preview__features span::first-letter {
@@ -1205,8 +1242,8 @@
   position: relative;
   z-index: 2;
   width: 100%;
-  max-width: 700px;
-  justify-self: start;
+  max-width: 720px;
+  justify-self: end;
   display: grid;
   grid-template-columns: 0.86fr 1fr 0.86fr;
   gap: 18px;
@@ -1216,7 +1253,7 @@
 .phone-mockup {
   width: 100%;
   max-width: 245px;
-  height: 414px;
+  height: 410px;
   margin: 0 auto;
   padding: 19px;
   border-radius: 30px;
@@ -1386,7 +1423,7 @@
 
 .phone-course img {
   width: 100%;
-  height: 128px;
+  height: 126px;
   object-fit: cover;
   border-radius: 14px;
   margin-bottom: 12px;
@@ -1429,7 +1466,7 @@
 ========================= */
 
 .home-cta {
-  padding: 0 20px 76px;
+  padding: 0 0 76px;
   background:
     radial-gradient(
       circle at 86% 0%,
@@ -1440,13 +1477,13 @@
 }
 
 .home-cta__content {
-  width: min(1120px, 100%);
+  width: min(1180px, calc(100% - 96px));
   margin: 0 auto;
   display: grid;
   grid-template-columns: auto 1fr auto;
   align-items: center;
   gap: 22px;
-  padding: 30px 40px;
+  padding: 32px 42px;
   border-radius: 24px;
   background:
     radial-gradient(
@@ -1511,6 +1548,84 @@
 .home-cta__btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 20px 42px rgba(34, 211, 238, 0.26);
+}
+
+/* =========================
+   ESCRITORIO BAJO
+========================= */
+
+@media (min-width: 1000px) and (max-height: 820px) {
+  .hero-home {
+    padding-top: 34px;
+    padding-bottom: 66px;
+  }
+
+  .hero-home__title {
+    font-size: clamp(2.75rem, 4vw, 4.05rem);
+  }
+
+  .hero-home__text {
+    margin-bottom: 20px;
+    font-size: 0.98rem;
+  }
+
+  .hero-home__visual {
+    width: 560px;
+    height: 340px;
+  }
+
+  .hero-card {
+    width: 460px;
+    min-height: 282px;
+    padding: 24px;
+  }
+
+  .hero-card__right {
+    width: 205px;
+    height: 168px;
+  }
+
+  .hero-card__right img {
+    width: 155px;
+  }
+
+  .hero-course-card {
+    width: 176px;
+    min-height: 102px;
+  }
+
+  .benefits-strip {
+    margin-top: -48px;
+  }
+
+  .featured-courses {
+    padding-top: 38px;
+    padding-bottom: 30px;
+  }
+
+  .how-home {
+    padding-top: 28px;
+    padding-bottom: 46px;
+  }
+
+  .mobile-preview {
+    padding-top: 52px;
+    padding-bottom: 58px;
+  }
+
+  .phone-mockup {
+    max-width: 218px;
+    height: 360px;
+  }
+
+  .phone-mockup--main {
+    max-width: 238px;
+    height: 392px;
+  }
+
+  .home-cta {
+    padding-bottom: 48px;
+  }
 }
 
 /* =========================
@@ -1580,30 +1695,6 @@
     display: none;
   }
 
-  .mobile-preview {
-    grid-template-columns: 1fr;
-  }
-
-  .mobile-preview__intro {
-    max-width: 720px;
-    justify-self: center;
-    text-align: center;
-  }
-
-  .mobile-preview__features {
-    justify-content: center;
-  }
-
-  .mobile-preview__features span {
-    justify-content: center;
-  }
-
-  .mobile-preview__grid {
-    justify-self: center;
-  }
-}
-
-@media (max-width: 1100px) {
   .featured-courses__grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -1626,6 +1717,26 @@
   .how-step {
     padding-top: 42px;
   }
+
+  .mobile-preview {
+    grid-template-columns: 1fr;
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+
+  .mobile-preview__intro {
+    max-width: 720px;
+    justify-self: center;
+    text-align: center;
+  }
+
+  .mobile-preview__features span {
+    justify-content: center;
+  }
+
+  .mobile-preview__grid {
+    justify-self: center;
+  }
 }
 
 @media (max-width: 820px) {
@@ -1634,7 +1745,9 @@
   }
 
   .hero-home__content,
-  .featured-courses .container {
+  .featured-courses .container,
+  .how-home__container,
+  .home-cta__content {
     width: min(100% - 28px, 1180px);
   }
 
@@ -1801,6 +1914,10 @@
   }
 }
 
+/* =========================
+   REDUCIR MOVIMIENTO
+========================= */
+
 @media (prefers-reduced-motion: reduce) {
   .hero-home::after,
   .hero-home__visual::before,
@@ -1823,832 +1940,150 @@
   }
 }
 
-/* =========================================================
-   HOME FINAL - AJUSTES DEFINITIVOS DESKTOP
-   Mantiene el último diseño que funcionó y compacta espacios
-========================================================= */
+/* =========================
+   AJUSTE COMPACTO HOME 100%
+========================= */
 
 @media (min-width: 1000px) {
-  .home-page {
-    background:
-      radial-gradient(
-        circle at 15% 5%,
-        rgba(34, 211, 238, 0.12),
-        transparent 24%
-      ),
-      radial-gradient(
-        circle at 85% 10%,
-        rgba(124, 58, 237, 0.22),
-        transparent 30%
-      ),
-      linear-gradient(180deg, #020817 0%, #06102d 38%, #030712 100%) !important;
-  }
-
-  /* HERO */
   .hero-home {
-    min-height: auto !important;
-    padding: 48px 0 80px !important;
-    background:
-      radial-gradient(
-        circle at 14% 22%,
-        rgba(34, 211, 238, 0.12),
-        transparent 28%
-      ),
-      radial-gradient(
-        circle at 72% 22%,
-        rgba(168, 85, 247, 0.24),
-        transparent 32%
-      ),
-      radial-gradient(
-        circle at 82% 74%,
-        rgba(37, 99, 235, 0.28),
-        transparent 36%
-      ),
-      linear-gradient(135deg, #041226 0%, #071133 48%, #211b86 100%) !important;
-  }
-
-  .hero-home::before {
-    background:
-      linear-gradient(rgba(255, 255, 255, 0.028) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255, 255, 255, 0.028) 1px, transparent 1px) !important;
-    background-size: 44px 44px !important;
-  }
-
-  .hero-home__content {
-    width: min(1180px, calc(100% - 64px)) !important;
-    grid-template-columns: minmax(0, 0.94fr) minmax(440px, 560px) !important;
-    gap: 64px !important;
-    align-items: center !important;
-  }
-
-  .hero-home__left {
-    max-width: 580px !important;
-  }
-
-  .hero-home__eyebrow {
-    margin-bottom: 16px !important;
-    padding: 8px 15px !important;
-    border-radius: 999px !important;
-    font-size: 0.72rem !important;
-    letter-spacing: 0.08em !important;
-    background: rgba(255, 255, 255, 0.09) !important;
+    padding-top: 34px;
+    padding-bottom: 58px;
   }
 
   .hero-home__title {
-    margin-bottom: 18px !important;
-    font-size: clamp(3.15rem, 4.55vw, 4.7rem) !important;
-    line-height: 0.92 !important;
-    letter-spacing: -0.075em !important;
+    font-size: clamp(2.75rem, 3.85vw, 4rem);
   }
 
   .hero-home__text {
-    max-width: 535px !important;
-    margin-bottom: 26px !important;
-    font-size: 1.05rem !important;
-    line-height: 1.6 !important;
+    max-width: 500px;
+    margin-bottom: 20px;
+    font-size: 0.95rem;
+    line-height: 1.5;
   }
 
   .hero-home__actions {
-    gap: 16px !important;
-    margin-bottom: 26px !important;
+    margin-bottom: 22px;
   }
 
-  .hero-home__btn {
-    min-height: 48px !important;
-    min-width: 150px !important;
-    padding: 12px 22px !important;
-    border-radius: 14px !important;
-    font-size: 0.94rem !important;
-  }
-
-  .hero-home__stats {
-    gap: 34px !important;
-  }
-
-  .hero-home__stat {
-    position: relative !important;
-    padding-left: 0 !important;
-  }
-
-  .hero-home__stat strong {
-    font-size: 1.85rem !important;
-    line-height: 1 !important;
-  }
-
-  .hero-home__stat span {
-    font-size: 0.82rem !important;
-  }
-
-  /* VISUAL HERO */
   .hero-home__visual {
-    width: 610px !important;
-    height: 380px !important;
-  }
-
-  .hero-home__visual::after {
-    content: "";
-    position: absolute;
-    inset: -70px -100px -40px -80px;
-    background:
-      radial-gradient(
-        circle at 78% 4%,
-        rgba(34, 211, 238, 0.9) 0 7px,
-        transparent 8px
-      ),
-      radial-gradient(
-        circle at 98% 18%,
-        rgba(124, 58, 237, 0.9) 0 9px,
-        transparent 10px
-      ),
-      radial-gradient(
-        circle at 12% 92%,
-        rgba(34, 211, 238, 0.8) 0 7px,
-        transparent 8px
-      ),
-      radial-gradient(
-        circle at 92% 94%,
-        rgba(248, 113, 113, 0.8) 0 7px,
-        transparent 8px
-      );
-    opacity: 0.8;
-    pointer-events: none;
+    width: 560px;
+    height: 330px;
   }
 
   .hero-card {
-    top: 34px !important;
-    left: 0 !important;
-    width: 500px !important;
-    min-height: 310px !important;
-    padding: 28px !important;
-    border-radius: 28px !important;
-  }
-
-  .hero-card__badge {
-    margin-bottom: 20px !important;
-    padding: 7px 14px !important;
-    font-size: 0.66rem !important;
-  }
-
-  .hero-card__content {
-    grid-template-columns: 0.82fr 1.18fr !important;
-    gap: 28px !important;
+    width: 455px;
+    min-height: 270px;
+    padding: 22px;
   }
 
   .hero-card__left h3 {
-    font-size: 2rem !important;
-    margin-bottom: 13px !important;
+    font-size: 1.72rem;
   }
 
   .hero-card__left p {
-    font-size: 0.86rem !important;
-    line-height: 1.55 !important;
-    margin-bottom: 20px !important;
-  }
-
-  .hero-card__btn {
-    min-height: 42px !important;
-    padding: 10px 18px !important;
-    border-radius: 13px !important;
-    font-size: 0.86rem !important;
+    font-size: 0.78rem;
+    margin-bottom: 14px;
   }
 
   .hero-card__right {
-    width: 225px !important;
-    height: 190px !important;
-    margin-right: 20px !important;
-    border-radius: 24px !important;
+    width: 200px;
+    height: 158px;
   }
 
   .hero-card__right img {
-    width: 175px !important;
+    width: 148px;
   }
 
   .hero-course-card {
-    width: 194px !important;
-    min-height: 112px !important;
-    padding: 17px !important;
-    border-radius: 22px !important;
+    width: 168px;
+    min-height: 94px;
+    padding: 14px;
   }
 
   .hero-course-card--top {
-    top: 78px !important;
-    right: -100px !important;
+    top: 66px;
+    right: -78px;
   }
 
   .hero-course-card--bottom {
-    bottom: 58px !important;
-    right: -100px !important;
+    bottom: 48px;
+    right: -78px;
   }
 
-  .hero-course-card__tag {
-    font-size: 0.6rem !important;
-    padding: 5px 10px !important;
-  }
-
-  .hero-course-card__small-text h4 {
-    font-size: 0.86rem !important;
-  }
-
-  .hero-course-card__small-media {
-    width: 48px !important;
-    height: 48px !important;
-    flex: 0 0 48px !important;
-  }
-
-  .hero-course-card__small-media img {
-    max-width: 42px !important;
-    max-height: 42px !important;
-  }
-
-  /* BENEFICIOS */
   .benefits-strip {
-    margin-top: -56px !important;
-    padding: 0 32px !important;
-  }
-
-  .benefits-strip__grid {
-    width: min(1180px, 100%) !important;
-    border-radius: 22px !important;
+    margin-top: -42px;
   }
 
   .benefit-item {
-    padding: 22px 24px !important;
-    gap: 16px !important;
+    padding: 18px 22px;
   }
 
   .benefit-item__icon {
-    width: 48px !important;
-    height: 48px !important;
-    flex: 0 0 48px !important;
-    border-radius: 15px !important;
-    font-size: 1.1rem !important;
+    width: 42px;
+    height: 42px;
+    flex-basis: 42px;
   }
 
-  .benefit-item h3 {
-    font-size: 0.94rem !important;
-    margin-bottom: 6px !important;
-  }
-
-  .benefit-item p {
-    font-size: 0.8rem !important;
-    line-height: 1.4 !important;
-  }
-
-  /* CURSOS DESTACADOS */
   .featured-courses {
-    padding-top: 46px !important;
-    padding-bottom: 46px !important;
-  }
-
-  .featured-courses .container {
-    width: min(1180px, calc(100% - 64px)) !important;
-  }
-
-  .featured-courses__header {
-    margin-bottom: 24px !important;
-  }
-
-  .featured-courses__header h2 {
-    font-size: 2.35rem !important;
-  }
-
-  .featured-courses__grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
-    gap: 22px !important;
-  }
-
-  .course-card {
-    border-radius: 18px !important;
+    padding-top: 34px;
+    padding-bottom: 28px;
   }
 
   .course-card__cover {
-    height: 150px !important;
+    height: 138px;
   }
 
   .course-card__content {
-    padding: 18px 18px 20px !important;
-  }
-
-  .course-card__content h3 {
-    font-size: 1.08rem !important;
-    min-height: 38px !important;
+    padding: 14px 16px 16px;
   }
 
   .course-card__price {
-    font-size: 1.45rem !important;
+    font-size: 1.28rem;
   }
 
-  .course-card__link {
-    min-height: 38px !important;
-    padding: 9px 16px !important;
-  }
-
-  /* CÓMO FUNCIONA */
   .how-home {
-    padding-top: 42px !important;
-    padding-bottom: 48px !important;
-  }
-
-  .how-home__container {
-    width: min(1180px, calc(100% - 64px)) !important;
+    padding-top: 28px;
+    padding-bottom: 42px;
   }
 
   .how-home__header {
-    margin-bottom: 24px !important;
-  }
-
-  .how-home__header h2 {
-    font-size: 2.25rem !important;
-  }
-
-  .how-home__steps {
-    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-    gap: 38px !important;
+    margin-bottom: 22px;
   }
 
   .how-step {
-    min-height: 126px !important;
-    padding: 22px 24px !important;
-    border-radius: 20px !important;
+    min-height: 104px;
+    padding: 18px 22px;
   }
 
-  .how-step__icon {
-    width: 56px !important;
-    height: 56px !important;
-  }
-
-  .how-step h3 {
-    font-size: 0.96rem !important;
-  }
-
-  .how-step p {
-    font-size: 0.8rem !important;
-  }
-
-  /* PLATAFORMA / CELULARES */
   .mobile-preview {
-    padding-top: 48px !important;
-    padding-bottom: 58px !important;
-    grid-template-columns: minmax(300px, 0.82fr) minmax(0, 1.25fr) !important;
-    gap: 50px !important;
-  }
-
-  .mobile-preview__intro {
-    max-width: 430px !important;
+    padding-top: 48px;
+    padding-bottom: 52px;
   }
 
   .mobile-preview__intro h2 {
-    font-size: 2.55rem !important;
+    font-size: 2.35rem;
   }
 
   .mobile-preview__intro p {
-    margin-bottom: 20px !important;
-    font-size: 0.96rem !important;
-    line-height: 1.58 !important;
-  }
-
-  .mobile-preview__features {
-    gap: 11px !important;
-  }
-
-  .mobile-preview__features span {
-    font-size: 0.9rem !important;
-  }
-
-  .mobile-preview__grid {
-    max-width: 680px !important;
-    gap: 18px !important;
+    font-size: 0.92rem;
+    line-height: 1.5;
   }
 
   .phone-mockup {
-    max-width: 232px !important;
-    height: 382px !important;
+    max-width: 218px;
+    height: 360px;
   }
 
   .phone-mockup--main {
-    max-width: 255px !important;
-    height: 418px !important;
+    max-width: 238px;
+    height: 395px;
   }
 
   .phone-course img {
-    height: 112px !important;
-  }
-
-  /* CTA FINAL */
-  .home-cta {
-    padding: 32px 20px 56px !important;
-  }
-
-  .home-cta__content {
-    width: min(1180px, calc(100% - 64px)) !important;
-  }
-}
-
-/* =========================================================
-   AJUSTE EXTRA PARA PANTALLAS BAJAS DE ESCRITORIO
-   Útil cuando se ve grande al 100%
-========================================================= */
-
-@media (min-width: 1000px) and (max-height: 820px) {
-  .hero-home {
-    padding-top: 36px !important;
-    padding-bottom: 68px !important;
-  }
-
-  .hero-home__title {
-    font-size: clamp(2.85rem, 4.15vw, 4.15rem) !important;
-  }
-
-  .hero-home__text {
-    margin-bottom: 20px !important;
-    font-size: 0.98rem !important;
-  }
-
-  .hero-home__visual {
-    width: 560px !important;
-    height: 350px !important;
-  }
-
-  .hero-card {
-    width: 460px !important;
-    min-height: 285px !important;
-    padding: 24px !important;
-  }
-
-  .hero-card__right {
-    width: 205px !important;
-    height: 170px !important;
-  }
-
-  .hero-card__right img {
-    width: 155px !important;
-  }
-
-  .hero-course-card {
-    width: 176px !important;
-    min-height: 102px !important;
-  }
-
-  .benefits-strip {
-    margin-top: -50px !important;
-  }
-
-  .featured-courses {
-    padding-top: 40px !important;
-    padding-bottom: 40px !important;
-  }
-
-  .how-home {
-    padding-top: 36px !important;
-    padding-bottom: 40px !important;
-  }
-
-  .mobile-preview {
-    padding-top: 40px !important;
-    padding-bottom: 50px !important;
-  }
-
-  .phone-mockup {
-    max-width: 218px !important;
-    height: 360px !important;
-  }
-
-  .phone-mockup--main {
-    max-width: 238px !important;
-    height: 392px !important;
+    height: 108px;
   }
 
   .home-cta {
-    padding-top: 24px !important;
-    padding-bottom: 48px !important;
-  }
-}
-
-/* =========================
-   AJUSTE FINAL DE ESPACIADOS HOME
-   Reduce espacio entre secciones
-========================= */
-
-@media (min-width: 1000px) {
-  .featured-courses {
-    padding-top: 42px !important;
-    padding-bottom: 18px !important;
-  }
-
-  .featured-courses__header {
-    margin-bottom: 20px !important;
-  }
-
-  .featured-courses__grid {
-    gap: 20px !important;
-  }
-
-  .how-home {
-    padding-top: 20px !important;
-    padding-bottom: 34px !important;
-  }
-
-  .how-home__header {
-    margin-bottom: 18px !important;
-  }
-
-  .how-home__steps {
-    gap: 28px !important;
-  }
-
-  .how-step {
-    min-height: 108px !important;
-    padding: 18px 22px !important;
-  }
-
-  .how-step__icon {
-    width: 48px !important;
-    height: 48px !important;
-    font-size: 1.15rem !important;
-  }
-
-  .how-step h3 {
-    font-size: 0.88rem !important;
-    margin-bottom: 5px !important;
-  }
-
-  .how-step p {
-    font-size: 0.72rem !important;
-    line-height: 1.35 !important;
-  }
-}
-
-/* =========================
-   AJUSTE ALINEACIÓN HOME
-   Corrige desfase entre Cómo funciona y Mobile preview
-========================= */
-
-@media (min-width: 1000px) {
-  .how-home {
-    padding-top: 22px !important;
-    padding-bottom: 26px !important;
-  }
-
-  .how-home__container {
-    width: min(1180px, calc(100% - 96px)) !important;
-    margin: 0 auto !important;
-  }
-
-  .how-home__header {
-    margin-bottom: 18px !important;
-  }
-
-  .how-home__steps {
-    width: 100% !important;
-    display: grid !important;
-    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-    gap: 32px !important;
-  }
-
-  .how-step {
-    width: 100% !important;
-    min-height: 104px !important;
-    padding: 18px 22px !important;
-  }
-
-  .how-step:not(:last-child)::after {
-    right: -32px !important;
-    width: 32px !important;
-  }
-
-  .mobile-preview {
-    padding-top: 42px !important;
-    padding-bottom: 46px !important;
-    grid-template-columns: minmax(300px, 0.8fr) minmax(0, 1.2fr) !important;
-    gap: 48px !important;
-  }
-
-  .mobile-preview__intro {
-    justify-self: end !important;
-    max-width: 430px !important;
-  }
-
-  .mobile-preview__grid {
-    justify-self: start !important;
-    max-width: 640px !important;
-  }
-
-  .home-cta {
-    padding-top: 0 !important;
-    padding-bottom: 48px !important;
-  }
-}
-/* =========================
-   AJUSTE DEFINITIVO ALINEACIÓN HOME
-   Alinea "Cómo funciona" con la sección mobile
-========================= */
-
-@media (min-width: 1000px) {
-  .how-home {
-    padding-top: 22px !important;
-    padding-bottom: 22px !important;
-  }
-
-  .how-home__container {
-    width: calc(100% - 200px) !important;
-    max-width: 1180px !important;
-    margin-left: auto !important;
-    margin-right: auto !important;
-  }
-
-  .how-home__header {
-    margin-bottom: 18px !important;
-    text-align: left !important;
-  }
-
-  .how-home__steps {
-    width: 100% !important;
-    display: grid !important;
-    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-    gap: 28px !important;
-    align-items: stretch !important;
-  }
-
-  .how-step {
-    min-height: 104px !important;
-    padding: 18px 22px !important;
-    border-radius: 18px !important;
-  }
-
-  .how-step:not(:last-child)::after {
-    right: -28px !important;
-    width: 28px !important;
-  }
-
-  .how-step__number {
-    left: -10px !important;
-  }
-
-  .mobile-preview {
-    padding-top: 34px !important;
-    padding-bottom: 40px !important;
-  }
-
-  .home-cta {
-    padding-top: 0 !important;
-    padding-bottom: 44px !important;
-  }
-}
-/* =========================
-   AJUSTE ALINEACIÓN MOBILE PREVIEW
-   Alinea "Tu plataforma" con el resto de la home
-========================= */
-
-@media (min-width: 1000px) {
-  .mobile-preview {
-    padding-left: 0 !important;
-    padding-right: 0 !important;
-    padding-top: 34px !important;
-    padding-bottom: 40px !important;
-
-    display: grid !important;
-    grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr) !important;
-    gap: 48px !important;
-
-    width: calc(100% - 200px) !important;
-    max-width: 1180px !important;
-    margin-left: auto !important;
-    margin-right: auto !important;
-  }
-
-  .mobile-preview__intro {
-    justify-self: start !important;
-    max-width: 430px !important;
-    text-align: left !important;
-  }
-
-  .mobile-preview__grid {
-    justify-self: end !important;
-    max-width: 640px !important;
-  }
-
-  .home-cta__content {
-    width: calc(100% - 200px) !important;
-    max-width: 1180px !important;
-    margin-left: auto !important;
-    margin-right: auto !important;
-  }
-}
-/* =========================
-   AJUSTE FINAL HOME REFERENCIA
-   Fondo full width + contenido alineado
-========================= */
-
-@media (min-width: 1000px) {
-  .how-home {
-    padding-top: 34px !important;
-    padding-bottom: 58px !important;
-  }
-
-  .how-home__container {
-    width: min(1180px, calc(100% - 96px)) !important;
-    margin: 0 auto !important;
-  }
-
-  .how-home__header {
-    margin-bottom: 30px !important;
-  }
-
-  .how-home__steps {
-    gap: 44px !important;
-  }
-
-  .how-step {
-    min-height: 122px !important;
-    padding: 24px 26px !important;
-  }
-
-  .mobile-preview {
-    width: 100% !important;
-    max-width: none !important;
-    margin: 0 !important;
-
-    padding: 70px calc((100% - 1180px) / 2) 72px !important;
-
-    display: grid !important;
-    grid-template-columns: minmax(300px, 0.82fr) minmax(0, 1.25fr) !important;
-    gap: 64px !important;
-    align-items: center !important;
-
-    background:
-      radial-gradient(
-        circle at 67% 58%,
-        rgba(124, 58, 237, 0.28),
-        transparent 34%
-      ),
-      radial-gradient(
-        circle at 82% 30%,
-        rgba(34, 211, 238, 0.1),
-        transparent 24%
-      ),
-      linear-gradient(180deg, #071133 0%, #030712 100%) !important;
-  }
-
-  .mobile-preview__intro {
-    justify-self: start !important;
-    max-width: 440px !important;
-    text-align: left !important;
-  }
-
-  .mobile-preview__intro h2 {
-    font-size: 2.75rem !important;
-    line-height: 1.02 !important;
-  }
-
-  .mobile-preview__intro p {
-    font-size: 1rem !important;
-    line-height: 1.6 !important;
-    margin-bottom: 24px !important;
-  }
-
-  .mobile-preview__features {
-    gap: 14px !important;
-  }
-
-  .mobile-preview__features span {
-    font-size: 0.92rem !important;
-  }
-
-  .mobile-preview__grid {
-    justify-self: end !important;
-    max-width: 720px !important;
-    gap: 18px !important;
-  }
-
-  .phone-mockup {
-    max-width: 245px !important;
-    height: 410px !important;
-  }
-
-  .phone-mockup--main {
-    max-width: 270px !important;
-    height: 450px !important;
-  }
-
-  .phone-course img {
-    height: 126px !important;
-  }
-
-  .home-cta {
-    padding: 0 0 76px !important;
-    background:
-      radial-gradient(
-        circle at 86% 0%,
-        rgba(124, 58, 237, 0.18),
-        transparent 30%
-      ),
-      linear-gradient(180deg, #030712 0%, #071133 100%) !important;
-  }
-
-  .home-cta__content {
-    width: min(1180px, calc(100% - 96px)) !important;
-    max-width: 1180px !important;
-    margin: 0 auto !important;
-    padding: 32px 42px !important;
+    padding-bottom: 48px;
   }
 }

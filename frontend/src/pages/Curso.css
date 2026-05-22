@@ -19,7 +19,7 @@
 
 .cursos-container,
 .cursos-hero,
-.cursos-toolbar,
+.cursos-catalogo-panel,
 .cursos-grid {
   width: min(1680px, calc(100% - 80px));
   margin-left: auto;
@@ -32,8 +32,8 @@
 
 .cursos-hero {
   position: relative;
-  margin-bottom: 10px;
-  padding: 12px 0 6px;
+  margin-bottom: 8px;
+  padding: 10px 0 4px;
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(300px, 420px);
   align-items: center;
@@ -61,12 +61,13 @@
 
 .cursos-hero__text {
   max-width: 840px;
-  padding-left:35px}
+  padding-left: 35px;
+}
 
 .cursos-hero__badge {
   display: inline-flex;
   align-items: center;
-  margin-bottom: 8px;
+  margin-bottom: 7px;
   padding: 5px 12px;
   border-radius: 999px;
   background: linear-gradient(
@@ -86,9 +87,9 @@
 
 .cursos-hero h1 {
   max-width: 840px;
-  margin: 0 0 6px;
+  margin: 0 0 5px;
   color: white;
-  font-size: clamp(1.9rem, 2.65vw, 2.85rem);
+  font-size: clamp(1.75rem, 2.35vw, 2.55rem);
   line-height: 1;
   font-weight: 900;
   letter-spacing: -0.045em;
@@ -144,19 +145,74 @@
 }
 
 /* =========================
-   FILTROS
+   PANEL CATÁLOGO / FILTROS
 ========================= */
 
-.cursos-toolbar {
-  margin-bottom: 12px;
-  padding: 9px 12px;
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.055);
+.cursos-catalogo-panel {
+  margin-bottom: 14px;
+  padding: 12px;
+  border-radius: 22px;
+  background:
+    radial-gradient(
+      circle at top right,
+      rgba(124, 58, 237, 0.14),
+      transparent 34%
+    ),
+    rgba(255, 255, 255, 0.055);
   border: 1px solid rgba(148, 163, 184, 0.18);
   box-shadow:
     0 18px 44px rgba(0, 0, 0, 0.18),
     inset 0 1px 0 rgba(255, 255, 255, 0.04);
   backdrop-filter: blur(16px);
+}
+
+.cursos-catalogo-header {
+  margin-bottom: 10px;
+  padding: 0 2px 10px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+}
+
+.cursos-catalogo-header span {
+  display: inline-flex;
+  margin-bottom: 4px;
+  color: rgba(219, 234, 254, 0.7);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.cursos-catalogo-header h2 {
+  margin: 0;
+  color: #ffffff;
+  font-size: 1.18rem;
+  letter-spacing: -0.03em;
+}
+
+.cursos-catalogo-header > strong {
+  min-height: 32px;
+  padding: 0 13px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  color: #dbeafe;
+  font-size: 0.82rem;
+  font-weight: 900;
+  white-space: nowrap;
+  background: rgba(37, 99, 235, 0.16);
+  border: 1px solid rgba(96, 165, 250, 0.24);
+}
+
+.cursos-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 220px auto;
+  gap: 12px;
+  align-items: end;
 }
 
 .filtros-botones {
@@ -167,7 +223,7 @@
 
 .filtros-botones button {
   min-height: 36px;
-  padding: 8px 16px;
+  padding: 8px 14px;
   border-radius: 999px;
   border: 1px solid rgba(148, 163, 184, 0.28);
   background: rgba(255, 255, 255, 0.045);
@@ -176,6 +232,15 @@
   font-weight: 800;
   cursor: pointer;
   transition: all 0.22s ease;
+}
+
+.filtros-botones button small {
+  margin-left: 6px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.68rem;
+  background: rgba(255, 255, 255, 0.12);
 }
 
 .filtros-botones button:hover,
@@ -187,6 +252,51 @@
   transform: translateY(-1px);
 }
 
+.cursos-orden {
+  display: grid;
+  gap: 6px;
+}
+
+.cursos-orden span {
+  color: rgba(219, 234, 254, 0.78);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.cursos-orden select {
+  width: 100%;
+  min-height: 38px;
+  padding: 0 12px;
+  border-radius: 12px;
+  color: #ffffff;
+  font-size: 0.82rem;
+  font-weight: 850;
+  outline: none;
+  background: rgba(3, 8, 36, 0.58);
+  border: 1px solid rgba(138, 158, 255, 0.24);
+}
+
+.cursos-limpiar-filtros {
+  min-height: 38px;
+  padding: 0 14px;
+  border: 1px solid rgba(138, 158, 255, 0.28);
+  border-radius: 12px;
+  color: #ffffff;
+  font-size: 0.82rem;
+  font-weight: 900;
+  white-space: nowrap;
+  cursor: pointer;
+  background: rgba(82, 127, 255, 0.16);
+  transition: 0.2s ease;
+}
+
+.cursos-limpiar-filtros:hover {
+  transform: translateY(-1px);
+  background: rgba(82, 127, 255, 0.24);
+}
+
 /* =========================
    GRID
 ========================= */
@@ -194,7 +304,7 @@
 .cursos-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 18px;
+  gap: 16px;
   align-items: stretch;
 }
 
@@ -256,22 +366,28 @@
 
 .curso-card__imagen {
   position: relative;
-  height: 145px;
+  height: 140px;
   overflow: hidden;
-  background: #07124a;
+  background:
+    radial-gradient(
+      circle at center,
+      rgba(96, 165, 250, 0.18),
+      transparent 52%
+    ),
+    linear-gradient(135deg, #07124a, #0b1a58);
 }
 
 .curso-card__imagen img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center center;
+  object-position: center 35%;
   display: block;
   transition: transform 0.35s ease;
 }
 
 .curso-card:hover .curso-card__imagen img {
-  transform: scale(1.04);
+  transform: scale(1.03);
 }
 
 .curso-card__imagen::after {
@@ -370,14 +486,14 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 10px 12px 14px;
+  padding: 8px 11px 11px;
 }
 
 .curso-card__body h3 {
   margin: 0 0 5px;
   min-height: auto;
   color: white;
-  font-size: 0.9rem;
+  font-size: 0.84rem;
   line-height: 1.12;
   font-weight: 850;
 }
@@ -386,7 +502,7 @@
   min-height: 22px;
   margin: 0 0 7px;
   color: rgba(226, 232, 240, 0.76);
-  font-size: 0.7rem;
+  font-size: 0.66rem;
   line-height: 1.25;
 }
 
@@ -409,7 +525,7 @@
   margin-top: auto;
   margin-bottom: 6px;
   color: white;
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 900;
   letter-spacing: -0.03em;
 }
@@ -421,7 +537,7 @@
 }
 
 .curso-card__btn {
-  min-height: 29px;
+  min-height: 28px;
   border: none;
   border-radius: 8px;
   display: inline-flex;
@@ -429,7 +545,7 @@
   justify-content: center;
   color: white;
   text-decoration: none;
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   font-weight: 850;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -460,32 +576,26 @@
   right: 24px !important;
   left: auto !important;
   z-index: 99999 !important;
-
   display: flex !important;
   align-items: center;
   justify-content: center;
   gap: 10px;
-
   min-height: 48px;
   padding: 0 18px;
   border-radius: 14px;
-
   color: #ffffff;
   font-size: 0.9rem;
   font-weight: 900;
-
   background: linear-gradient(
     180deg,
     rgba(8, 22, 76, 0.96),
     rgba(5, 15, 56, 0.96)
   );
   border: 1px solid rgba(100, 160, 255, 0.38);
-
   box-shadow:
     0 18px 45px rgba(0, 0, 0, 0.34),
     0 0 30px rgba(80, 130, 255, 0.2),
     inset 0 1px 0 rgba(255, 255, 255, 0.08);
-
   backdrop-filter: blur(14px);
   animation: toastCarritoEntrada 0.25s ease;
 }
@@ -562,14 +672,79 @@
   color: #fecaca;
 }
 
+.cursos-estado--empty {
+  max-width: 620px;
+  margin: 26px auto 0;
+  padding: 34px 24px;
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at top, rgba(96, 165, 250, 0.14), transparent 34%),
+    rgba(8, 20, 66, 0.78);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.2);
+}
+
+.cursos-estado--empty span {
+  width: 58px;
+  height: 58px;
+  margin: 0 auto 14px;
+  display: grid;
+  place-items: center;
+  border-radius: 18px;
+  font-size: 1.7rem;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.cursos-estado--empty h3 {
+  margin: 0 0 8px;
+  color: #ffffff;
+  font-size: 1.35rem;
+}
+
+.cursos-estado--empty p {
+  max-width: 420px;
+  margin: 0 auto 18px;
+  color: rgba(226, 232, 240, 0.72);
+}
+
+.cursos-estado--empty button {
+  min-height: 40px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 13px;
+  color: white;
+  font-weight: 900;
+  cursor: pointer;
+  background: linear-gradient(135deg, #7c3aed, #2563eb, #06b6d4);
+}
+
 /* =========================
    RESPONSIVE
 ========================= */
 
+@media (max-width: 1400px) {
+  .cursos-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .cursos-orden {
+    max-width: 320px;
+  }
+
+  .cursos-limpiar-filtros {
+    width: fit-content;
+  }
+
+  .cursos-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+  }
+}
+
 @media (max-width: 980px) {
   .cursos-container,
   .cursos-hero,
-  .cursos-toolbar,
+  .cursos-catalogo-panel,
   .cursos-grid {
     width: min(1180px, calc(100% - 48px));
   }
@@ -577,12 +752,16 @@
   .cursos-hero__text {
     padding-left: 0;
   }
+
+  .cursos-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 760px) {
   .cursos-container,
   .cursos-hero,
-  .cursos-toolbar,
+  .cursos-catalogo-panel,
   .cursos-grid {
     width: min(100% - 36px, 1180px);
   }
@@ -603,6 +782,19 @@
     max-width: 480px;
   }
 
+  .cursos-catalogo-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .cursos-orden {
+    max-width: none;
+  }
+
+  .cursos-limpiar-filtros {
+    width: 100%;
+  }
+
   .cursos-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -611,7 +803,7 @@
 @media (max-width: 560px) {
   .cursos-container,
   .cursos-hero,
-  .cursos-toolbar,
+  .cursos-catalogo-panel,
   .cursos-grid {
     width: min(100% - 28px, 1180px);
   }
@@ -635,7 +827,7 @@
     max-width: 100%;
   }
 
-  .cursos-toolbar {
+  .cursos-catalogo-panel {
     padding: 12px;
   }
 

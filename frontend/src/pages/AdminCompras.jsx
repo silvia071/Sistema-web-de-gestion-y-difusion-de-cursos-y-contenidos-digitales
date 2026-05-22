@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import api from "../services/api";
 import "./AdminCompras.css";
 
@@ -32,13 +33,37 @@ function normalizarEstado(estado) {
   return String(estado || "PENDIENTE").toUpperCase();
 }
 
+function normalizarFiltroEstado(valor) {
+  const estado = String(valor || "").toUpperCase();
+
+  const equivalencias = {
+    TODOS: "todos",
+    PENDIENTE: "pendiente",
+    EN_PROCESO: "pendiente",
+    APROBADA: "aprobada",
+    APROBADO: "aprobada",
+    PAGADA: "pagada",
+    PAGADO: "pagada",
+    COMPLETADA: "aprobada",
+    COMPLETADO: "aprobada",
+    RECHAZADA: "rechazada",
+    RECHAZADO: "rechazada",
+    CANCELADA: "cancelada",
+    CANCELADO: "cancelada",
+  };
+
+  return equivalencias[estado] || "todos";
+}
+
 function claseEstado(estado) {
   const estadoNormalizado = normalizarEstado(estado);
 
   if (
     estadoNormalizado === "PAGADA" ||
     estadoNormalizado === "APROBADA" ||
-    estadoNormalizado === "COMPLETADA"
+    estadoNormalizado === "COMPLETADA" ||
+    estadoNormalizado === "APROBADO" ||
+    estadoNormalizado === "PAGADO"
   ) {
     return "aprobada";
   }
@@ -47,11 +72,49 @@ function claseEstado(estado) {
     return "pendiente";
   }
 
-  if (estadoNormalizado === "CANCELADA" || estadoNormalizado === "RECHAZADA") {
+  if (
+    estadoNormalizado === "CANCELADA" ||
+    estadoNormalizado === "RECHAZADA" ||
+    estadoNormalizado === "CANCELADO" ||
+    estadoNormalizado === "RECHAZADO"
+  ) {
     return "rechazada";
   }
 
   return "";
+}
+
+function coincideEstadoCompra(estadoCompra, filtro) {
+  const estado = normalizarEstado(estadoCompra);
+
+  if (filtro === "todos") return true;
+
+  if (filtro === "pendiente") {
+    return estado === "PENDIENTE" || estado === "EN_PROCESO";
+  }
+
+  if (filtro === "aprobada") {
+    return (
+      estado === "APROBADA" ||
+      estado === "APROBADO" ||
+      estado === "COMPLETADA" ||
+      estado === "COMPLETADO"
+    );
+  }
+
+  if (filtro === "pagada") {
+    return estado === "PAGADA" || estado === "PAGADO";
+  }
+
+  if (filtro === "rechazada") {
+    return estado === "RECHAZADA" || estado === "RECHAZADO";
+  }
+
+  if (filtro === "cancelada") {
+    return estado === "CANCELADA" || estado === "CANCELADO";
+  }
+
+  return true;
 }
 
 function obtenerNombreUsuario(usuario) {
@@ -64,11 +127,16 @@ function obtenerNombreUsuario(usuario) {
 }
 
 export default function AdminCompras() {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  const estadoInicial = normalizarFiltroEstado(searchParams.get("estado"));
+
   const [compras, setCompras] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [busqueda, setBusqueda] = useState("");
-  const [estadoFiltro, setEstadoFiltro] = useState("todos");
+  const [estadoFiltro, setEstadoFiltro] = useState(estadoInicial);
   const [orden, setOrden] = useState("recientes");
   const [compraSeleccionada, setCompraSeleccionada] = useState(null);
 
@@ -103,6 +171,32 @@ export default function AdminCompras() {
     obtenerCompras();
   }, []);
 
+  useEffect(() => {
+    const estadoUrl = normalizarFiltroEstado(searchParams.get("estado"));
+    setEstadoFiltro(estadoUrl);
+  }, [searchParams]);
+
+  const aplicarFiltroEstado = (estado) => {
+    const estadoNormalizado = normalizarFiltroEstado(estado);
+
+    setEstadoFiltro(estadoNormalizado);
+
+    if (estadoNormalizado === "todos") {
+      navigate("/admin/compras", { replace: true });
+      return;
+    }
+
+    const estadoUrl = estadoNormalizado.toUpperCase();
+    navigate(`/admin/compras?estado=${estadoUrl}`, { replace: true });
+  };
+
+  const limpiarFiltros = () => {
+    setBusqueda("");
+    setEstadoFiltro("todos");
+    setOrden("recientes");
+    navigate("/admin/compras", { replace: true });
+  };
+
   const resumen = useMemo(() => {
     const totalFacturado = compras.reduce(
       (total, compra) => total + Number(compra.total || 0),
@@ -113,6 +207,14 @@ export default function AdminCompras() {
       const estado = normalizarEstado(compra.estado);
       return estado === "PENDIENTE" || estado === "EN_PROCESO";
     }).length;
+
+    const aprobadas = compras.filter((compra) =>
+      coincideEstadoCompra(compra.estado, "aprobada"),
+    ).length;
+
+    const pagadas = compras.filter((compra) =>
+      coincideEstadoCompra(compra.estado, "pagada"),
+    ).length;
 
     const cursosVendidos = compras.reduce(
       (total, compra) => total + obtenerDetalles(compra).length,
@@ -128,6 +230,8 @@ export default function AdminCompras() {
     return {
       totalFacturado,
       pendientes,
+      aprobadas,
+      pagadas,
       cursosVendidos,
       usuariosUnicos,
     };
@@ -158,8 +262,7 @@ export default function AdminCompras() {
         cursos.includes(texto) ||
         idCompra.includes(texto);
 
-      const coincideEstado =
-        estadoFiltro === "todos" || estadoTexto === estadoFiltro.toLowerCase();
+      const coincideEstado = coincideEstadoCompra(compra.estado, estadoFiltro);
 
       return coincideTexto && coincideEstado;
     });
@@ -188,6 +291,11 @@ export default function AdminCompras() {
 
     return resultado;
   }, [compras, busqueda, estadoFiltro, orden]);
+
+  const hayFiltrosActivos =
+    Boolean(busqueda.trim()) ||
+    estadoFiltro !== "todos" ||
+    orden !== "recientes";
 
   if (loading) {
     return (
@@ -220,9 +328,13 @@ export default function AdminCompras() {
           </div>
         </section>
 
-        <div className="admin-compras-empty">
+        <div className="admin-compras-empty admin-compras-empty-error">
+          <span className="admin-compras-empty-icon">⚠️</span>
+
           <h3>No se pudieron cargar las compras</h3>
+
           <p>{error}</p>
+
           <button type="button" onClick={obtenerCompras}>
             Reintentar
           </button>
@@ -251,7 +363,7 @@ export default function AdminCompras() {
           <button
             type="button"
             className="btn-volver-admin"
-            onClick={() => window.history.back()}
+            onClick={() => navigate("/admin")}
           >
             ← Volver al panel
           </button>
@@ -300,6 +412,56 @@ export default function AdminCompras() {
         </article>
       </section>
 
+      <section className="admin-compras-quick-filters">
+        <button
+          type="button"
+          className={estadoFiltro === "todos" ? "active" : ""}
+          onClick={() => aplicarFiltroEstado("todos")}
+        >
+          Todas
+        </button>
+
+        <button
+          type="button"
+          className={estadoFiltro === "pendiente" ? "active pendiente" : ""}
+          onClick={() => aplicarFiltroEstado("PENDIENTE")}
+        >
+          Pendientes
+        </button>
+
+        <button
+          type="button"
+          className={estadoFiltro === "aprobada" ? "active aprobada" : ""}
+          onClick={() => aplicarFiltroEstado("APROBADA")}
+        >
+          Aprobadas
+        </button>
+
+        <button
+          type="button"
+          className={estadoFiltro === "pagada" ? "active pagada" : ""}
+          onClick={() => aplicarFiltroEstado("PAGADA")}
+        >
+          Pagadas
+        </button>
+
+        <button
+          type="button"
+          className={estadoFiltro === "rechazada" ? "active rechazada" : ""}
+          onClick={() => aplicarFiltroEstado("RECHAZADA")}
+        >
+          Rechazadas
+        </button>
+
+        <button
+          type="button"
+          className={estadoFiltro === "cancelada" ? "active cancelada" : ""}
+          onClick={() => aplicarFiltroEstado("CANCELADA")}
+        >
+          Canceladas
+        </button>
+      </section>
+
       <section className="admin-compras-toolbar">
         <div className="admin-compras-search">
           <span>⌕</span>
@@ -313,7 +475,7 @@ export default function AdminCompras() {
 
         <select
           value={estadoFiltro}
-          onChange={(e) => setEstadoFiltro(e.target.value)}
+          onChange={(e) => aplicarFiltroEstado(e.target.value)}
         >
           <option value="todos">Estado: Todos</option>
           <option value="pendiente">Pendientes</option>
@@ -328,13 +490,42 @@ export default function AdminCompras() {
           <option value="antiguas">Más antiguas</option>
           <option value="mayor-total">Mayor total</option>
         </select>
+
+        {hayFiltrosActivos && (
+          <button
+            type="button"
+            className="btn-limpiar-compras"
+            onClick={limpiarFiltros}
+          >
+            Limpiar filtros
+          </button>
+        )}
       </section>
+
+      {estadoFiltro !== "todos" && (
+        <div className="admin-compras-filter-info">
+          Mostrando compras filtradas por estado:{" "}
+          <strong>{estadoFiltro.toUpperCase()}</strong>
+        </div>
+      )}
 
       <section className="admin-compras-table-card">
         {comprasFiltradas.length === 0 ? (
           <div className="admin-compras-empty compact">
+            <span className="admin-compras-empty-icon">🔎</span>
+
             <h3>No encontramos órdenes</h3>
-            <p>Probá cambiando la búsqueda o los filtros.</p>
+
+            <p>
+              No hay compras que coincidan con la búsqueda, el estado
+              seleccionado o el orden aplicado.
+            </p>
+
+            {hayFiltrosActivos && (
+              <button type="button" onClick={limpiarFiltros}>
+                Limpiar filtros
+              </button>
+            )}
           </div>
         ) : (
           <div className="admin-compras-table">
