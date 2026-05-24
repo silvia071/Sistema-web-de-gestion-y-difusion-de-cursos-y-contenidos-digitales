@@ -38,6 +38,16 @@ const accesoCursoSchema = new mongoose.Schema(
       max: 100,
     },
 
+    certificadoEmitido: {
+      type: Boolean,
+      default: false,
+    },
+
+    fechaFinalizacion: {
+      type: Date,
+      default: null,
+    },
+
     ultimaLeccion: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Leccion",

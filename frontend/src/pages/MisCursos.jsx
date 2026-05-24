@@ -110,6 +110,24 @@ export default function MisCursos() {
     );
   };
 
+  const formatearFecha = (fecha) => {
+    if (!fecha) return null;
+
+    return new Date(fecha).toLocaleDateString("es-AR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  };
+
+  const cursoEstaFinalizado = (acceso) => {
+    return Number(acceso?.progreso || 0) >= 100;
+  };
+
+  const tieneCertificadoDisponible = (acceso) => {
+    return acceso?.certificadoEmitido || cursoEstaFinalizado(acceso);
+  };
+
   const cursoPrincipal =
     accesos.find((a) => (a.progreso || 0) > 0 && (a.progreso || 0) < 100) ||
     accesos.find((a) => (a.progreso || 0) < 100);
@@ -339,8 +357,12 @@ export default function MisCursos() {
                 {accesosFiltrados.map((acceso) => {
                   const curso = acceso.curso;
                   const progreso = acceso.progreso || 0;
-                  const completado = progreso >= 100;
-
+                  const completado = cursoEstaFinalizado(acceso);
+                  const certificadoDisponible =
+                    tieneCertificadoDisponible(acceso);
+                  const fechaFinalizacion = formatearFecha(
+                    acceso.fechaFinalizacion,
+                  );
                   return (
                     <article key={acceso._id} className="mis-curso-card">
                       <div className="mis-curso-img">
@@ -368,6 +390,14 @@ export default function MisCursos() {
                           {completado ? "Finalizado" : "Aprendizaje activo"}
                         </p>
 
+                        {completado && (
+                          <p className="mis-curso-certificado-info">
+                            {fechaFinalizacion
+                              ? `Finalizado el ${fechaFinalizacion}`
+                              : "Certificado disponible"}
+                          </p>
+                        )}
+
                         <div className="mis-curso-progress-row">
                           <div className="mis-curso-progress">
                             <div
@@ -387,7 +417,7 @@ export default function MisCursos() {
                             {completado ? "Ver curso" : "Continuar"} →
                           </button>
 
-                          {completado && (
+                          {certificadoDisponible && (
                             <button
                               type="button"
                               className="btn-certificado"

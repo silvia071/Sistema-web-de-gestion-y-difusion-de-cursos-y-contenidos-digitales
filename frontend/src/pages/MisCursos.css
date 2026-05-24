@@ -214,6 +214,7 @@
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   gap: 10px;
+  margin: 12px 0 10px;
 }
 
 .featured-progress-row strong {
@@ -391,6 +392,11 @@
   position: relative;
   overflow: hidden;
   border-radius: 20px;
+  min-height: 280px;
+
+  display: flex;
+  flex-direction: column;
+
   background:
     radial-gradient(
       circle at 82% 0%,
@@ -415,7 +421,8 @@
 
 .mis-curso-img {
   position: relative;
-  height: 100px;
+  height: 145px;
+  min-height: 92px;
   overflow: hidden;
   background: #07124a;
 }
@@ -424,9 +431,8 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center 55%;
+  object-position: center 20%;
   display: block;
-  transition: transform 0.35s ease;
 }
 
 .mis-curso-card:hover .mis-curso-img img {
@@ -460,7 +466,10 @@
 }
 
 .mis-curso-content {
-  padding: 10px 11px 12px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 16px 12px 12px;
 }
 
 .mis-curso-content h3 {
@@ -788,9 +797,10 @@
 ========================= */
 
 .mis-curso-card-actions {
-  display: grid;
-  gap: 9px;
-  margin-top: 12px;
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .btn-certificado {
@@ -834,4 +844,12 @@
     min-height: 38px;
     font-size: 0.82rem;
   }
+}
+
+.mis-curso-certificado-info {
+  margin: 8px 0 10px;
+  color: #86efac;
+  font-size: 0.76rem;
+  font-weight: 800;
+  line-height: 1.25;
 }

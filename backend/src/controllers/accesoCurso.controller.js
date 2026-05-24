@@ -202,6 +202,19 @@ const actualizarProgreso = async (req, res) => {
       (acceso.leccionesCompletadas.length / totalLecciones) * 100,
     );
 
+    if (acceso.progreso >= 100) {
+      acceso.progreso = 100;
+
+      if (!acceso.fechaFinalizacion) {
+        acceso.fechaFinalizacion = new Date();
+      }
+
+      acceso.certificadoEmitido = true;
+    } else {
+      acceso.certificadoEmitido = false;
+      acceso.fechaFinalizacion = null;
+    }
+
     await acceso.save();
 
     return res.status(200).json({
