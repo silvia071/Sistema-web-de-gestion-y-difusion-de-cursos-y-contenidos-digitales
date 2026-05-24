@@ -1,0 +1,29 @@
+const express = require("express");
+const reseniaController = require("../controllers/resenia.controller");
+const { verificarToken } = require("../middlewares/verificarToken.middleware");
+
+const router = express.Router();
+
+/*
+  Rutas públicas
+  Permiten ver reseñas y resumen de un curso
+*/
+router.get("/curso/:cursoId", reseniaController.listarPorCurso);
+
+/*
+  Rutas privadas
+  Requieren usuario logueado
+*/
+router.get(
+  "/curso/:cursoId/mi-resenia",
+  verificarToken,
+  reseniaController.obtenerMiResenia,
+);
+
+router.post("/", verificarToken, reseniaController.crearResenia);
+
+router.patch("/:id", verificarToken, reseniaController.editarResenia);
+
+router.delete("/:id", verificarToken, reseniaController.eliminarResenia);
+
+module.exports = router;

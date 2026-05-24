@@ -44,6 +44,7 @@ const compraRoutes = require("./routes/compra.route");
 const accesoCursoRoutes = require("./routes/accesoCurso.route");
 const adminRoutes = require("./routes/admin.route");
 const favoritoRoutes = require("./routes/favorito.route");
+const reseniaRoutes = require("./routes/resenia.route");
 
 app.use("/api/auth", authRoutes);
 app.use("/api/usuarios", usuarioRoutes);
@@ -52,6 +53,7 @@ app.use("/api/lecciones", leccionRoutes);
 app.use("/api/publicaciones", publicacionRoutes);
 app.use("/api/categorias", categoriaRoutes);
 app.use("/api/mensajes", mensajeRoutes);
+app.use("/api/resenias", reseniaRoutes);
 app.use("/api/metodos-pago", metodoPagoRoutes);
 app.use("/api/datos-facturacion", datosFacturacionRoutes);
 app.use("/api/pagos", pagoRoutes);
@@ -69,10 +71,12 @@ app.get("/", (req, res) => {
 });
 
 app.use((err, req, res, next) => {
-  console.error(err.stack);
+  console.error(err);
 
-  res.status(500).json({
-    error: "Error interno del servidor",
+  const statusCode = err.statusCode || 500;
+
+  res.status(statusCode).json({
+    mensaje: err.message || "Error interno del servidor",
   });
 });
 

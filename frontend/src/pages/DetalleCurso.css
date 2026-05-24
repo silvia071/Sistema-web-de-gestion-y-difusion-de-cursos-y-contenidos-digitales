@@ -955,3 +955,181 @@
     padding-bottom: 8px;
   }
 }
+
+.detalle-curso-resenias {
+  width: min(1320px, 100%);
+  margin: 22px auto 0;
+
+  display: grid;
+  grid-template-columns: 0.9fr 1.8fr;
+  gap: 16px;
+}
+
+.resenia-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.resenia-estrellas {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.resenia-estrellas button {
+  border: 0;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.28);
+  font-size: 1.45rem;
+  cursor: pointer;
+  transition:
+    transform 0.16s ease,
+    color 0.16s ease;
+}
+
+.resenia-estrellas button:hover {
+  transform: translateY(-1px) scale(1.08);
+}
+
+.resenia-estrellas button.activa {
+  color: #fbbf24;
+}
+
+.resenia-form textarea {
+  width: 100%;
+  min-height: 110px;
+  resize: vertical;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 12px 14px;
+
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.055);
+  outline: none;
+
+  font-family: inherit;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.resenia-form textarea::placeholder {
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.resenia-form textarea:focus {
+  border-color: rgba(55, 196, 255, 0.35);
+  box-shadow: 0 0 0 3px rgba(55, 196, 255, 0.08);
+}
+
+.resenia-form-acciones {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.resenia-form-acciones button {
+  min-height: 38px;
+  border: 0;
+  border-radius: 13px;
+  padding: 0 14px;
+
+  color: #ffffff;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  font-weight: 800;
+  cursor: pointer;
+
+  box-shadow: 0 14px 28px rgba(99, 102, 241, 0.22);
+  font-size: 0.88rem;
+}
+
+.resenia-form-acciones button.ghost {
+  border: 1px solid rgba(255, 77, 109, 0.35);
+  color: #ff8aa0;
+  background: rgba(255, 77, 109, 0.08);
+  box-shadow: none;
+}
+
+.resenia-form-acciones button:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.resenias-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 330px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.resenia-card {
+  padding: 14px;
+  border-radius: 16px;
+
+  background: rgba(255, 255, 255, 0.055);
+  border: 1px solid rgba(255, 255, 255, 0.075);
+}
+
+.resenia-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.resenia-card-header strong {
+  display: block;
+  color: #ffffff;
+  font-size: 0.92rem;
+}
+
+.resenia-card-header span {
+  display: block;
+  margin-top: 3px;
+  color: #aeb9d4;
+  font-size: 0.78rem;
+}
+
+.resenia-card-estrellas {
+  flex: 0 0 auto;
+  color: #fbbf24;
+  font-size: 0.95rem;
+  letter-spacing: 0.04em;
+}
+
+.resenia-card p {
+  margin: 0;
+  color: #cbd5e1;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+@media (max-width: 1450px) {
+  .detalle-curso-resenias {
+    width: min(1180px, 100%);
+  }
+}
+
+@media (max-width: 900px) {
+  .detalle-curso-resenias {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
+
+@media (max-width: 560px) {
+  .detalle-curso-resenias {
+    margin-top: 14px;
+  }
+
+  .resenia-card-header {
+    flex-direction: column;
+  }
+
+  .resenia-form-acciones button {
+    width: 100%;
+  }
+}
