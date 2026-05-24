@@ -22,6 +22,9 @@ function DetalleCurso() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [yaComprado, setYaComprado] = useState(false);
+  const [esFavorito, setEsFavorito] = useState(false);
+  const [favoritoCargando, setFavoritoCargando] = useState(false);
+  const [mensajeFavorito, setMensajeFavorito] = useState("");
 
   const token = localStorage.getItem("token");
   const haySesion = tokenValido(token);
@@ -79,6 +82,32 @@ function DetalleCurso() {
     verificarCompra();
   }, [id, haySesion, esAdmin]);
 
+  useEffect(() => {
+    const verificarFavorito = async () => {
+      try {
+        if (!haySesion) {
+          setEsFavorito(false);
+          return;
+        }
+
+        const response = await api.get("/api/favoritos/ids");
+
+        const ids = Array.isArray(response.data?.cursosFavoritosIds)
+          ? response.data.cursosFavoritosIds
+          : [];
+
+        setEsFavorito(
+          ids.map((cursoId) => String(cursoId)).includes(String(id)),
+        );
+      } catch (error) {
+        console.error("Error al verificar favorito:", error);
+        setEsFavorito(false);
+      }
+    };
+
+    verificarFavorito();
+  }, [id, haySesion]);
+
   const precioFormateado = useMemo(() => {
     if (!curso?.precio) return "$0";
     return `$${curso.precio.toLocaleString("es-AR")}`;
@@ -90,6 +119,50 @@ function DetalleCurso() {
       getImageUrl(cursoActual?.imagen) ||
       "/placeholder-curso.png"
     );
+  };
+
+  const mostrarMensajeFavorito = (texto) => {
+    setMensajeFavorito(texto);
+
+    setTimeout(() => {
+      setMensajeFavorito("");
+    }, 2500);
+  };
+
+  const handleToggleFavorito = async () => {
+    if (!haySesion) {
+      navigate("/login", {
+        state: { from: location.pathname },
+        replace: true,
+      });
+      return;
+    }
+
+    if (favoritoCargando) return;
+
+    try {
+      setFavoritoCargando(true);
+
+      const response = await api.patch(`/api/favoritos/${id}/toggle`);
+
+      const nuevoEstado = Boolean(response.data?.esFavorito);
+      const mensaje =
+        response.data?.mensaje ||
+        (nuevoEstado
+          ? "Curso agregado a favoritos"
+          : "Curso quitado de favoritos");
+
+      setEsFavorito(nuevoEstado);
+      mostrarMensajeFavorito(mensaje);
+    } catch (error) {
+      console.error("Error al actualizar favorito:", error);
+
+      mostrarMensajeFavorito(
+        error.response?.data?.mensaje || "No se pudo actualizar el favorito",
+      );
+    } finally {
+      setFavoritoCargando(false);
+    }
   };
 
   const handleEntrarAlCurso = () => {
@@ -145,13 +218,19 @@ function DetalleCurso() {
         </div>
 
         <div className="detalle-curso-info">
-          <span className="detalle-curso-categoria">
-            {curso.categoria?.nombre || "Curso"}
-          </span>
+          <div className="detalle-curso-header-line">
+            <span className="detalle-curso-categoria">
+              {curso.categoria?.nombre || "Curso"}
+            </span>
+          </div>
 
           <h1>{curso.titulo}</h1>
 
           <p className="detalle-curso-descripcion">{curso.descripcion}</p>
+
+          {mensajeFavorito && (
+            <p className="detalle-curso-mensaje-favorito">{mensajeFavorito}</p>
+          )}
 
           <div className="detalle-curso-meta">
             <span>📘 Nivel: {curso.nivel}</span>
@@ -163,21 +242,43 @@ function DetalleCurso() {
           )}
 
           <div className="detalle-curso-acciones">
-            {puedeEntrarAlCurso ? (
-              <button
-                className="detalle-curso-btn"
-                onClick={handleEntrarAlCurso}
-              >
-                ▶ Comenzar curso
-              </button>
-            ) : (
-              <button
-                className="detalle-curso-btn"
-                onClick={handleAgregarAlCarrito}
-              >
-                🛒 Agregar al carrito
-              </button>
-            )}
+            <div className="detalle-curso-acciones-principales">
+              {puedeEntrarAlCurso ? (
+                <button
+                  className="detalle-curso-btn"
+                  onClick={handleEntrarAlCurso}
+                >
+                  ▶ Comenzar curso
+                </button>
+              ) : (
+                <button
+                  className="detalle-curso-btn"
+                  onClick={handleAgregarAlCarrito}
+                >
+                  🛒 Agregar al carrito
+                </button>
+              )}
+
+              {!esAdmin && (
+                <button
+                  type="button"
+                  className={`detalle-curso-favorito ${
+                    esFavorito ? "detalle-curso-favorito--activo" : ""
+                  }`}
+                  onClick={handleToggleFavorito}
+                  disabled={favoritoCargando}
+                  title={
+                    esFavorito ? "Quitar de favoritos" : "Guardar en favoritos"
+                  }
+                  aria-label={
+                    esFavorito ? "Quitar de favoritos" : "Guardar en favoritos"
+                  }
+                >
+                  <span>{esFavorito ? "♥" : "♡"}</span>
+                  {esFavorito ? "Guardado" : "Guardar"}
+                </button>
+              )}
+            </div>
 
             {mensajeCarrito && (
               <p className="detalle-curso-mensaje-carrito">{mensajeCarrito}</p>

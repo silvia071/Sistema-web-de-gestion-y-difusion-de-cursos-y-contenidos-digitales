@@ -1,7 +1,12 @@
 import { Link } from "react-router-dom";
 import "./CourseCard.css";
 
-function CourseCard({ curso }) {
+function CourseCard({
+  curso,
+  esFavorito = false,
+  onToggleFavorito,
+  favoritoCargando = false,
+}) {
   const estado = curso.estado;
   const categoria = curso.categoria?.nombre || "Programación";
 
@@ -12,6 +17,15 @@ function CourseCard({ curso }) {
       : "/placeholder-curso.png";
 
   const titulo = curso.titulo || "Curso sin título";
+
+  const handleFavoritoClick = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (favoritoCargando || !onToggleFavorito) return;
+
+    onToggleFavorito(curso._id);
+  };
 
   return (
     <article className="course-card">
@@ -33,11 +47,18 @@ function CourseCard({ curso }) {
         </div>
 
         <button
-          className="course-card__favorite"
+          className={`course-card__favorite ${
+            esFavorito ? "course-card__favorite--active" : ""
+          }`}
           type="button"
-          aria-label="Agregar a favoritos"
+          aria-label={
+            esFavorito ? "Quitar de favoritos" : "Agregar a favoritos"
+          }
+          title={esFavorito ? "Quitar de favoritos" : "Agregar a favoritos"}
+          onClick={handleFavoritoClick}
+          disabled={favoritoCargando}
         >
-          ♡
+          {esFavorito ? "♥" : "♡"}
         </button>
       </div>
 

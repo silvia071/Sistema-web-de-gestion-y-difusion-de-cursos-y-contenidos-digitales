@@ -21,6 +21,7 @@ import Nosotros from "../pages/Nosotros";
 import Contactos from "../pages/Contactos";
 import MisCursos from "../pages/MisCursos";
 import AprenderCurso from "../pages/AprenderCurso";
+import MisFavoritos from "../pages/MisFavoritos";
 
 import AdminCursos from "../pages/AdminCursos";
 import AdminLecciones from "../pages/AdminLecciones";
@@ -90,6 +91,16 @@ function AppRouter() {
             </ProtectedRoute>
           }
         />
+
+        <Route
+          path="/mis-favoritos"
+          element={
+            <ProtectedRoute>
+              <MisFavoritos />
+            </ProtectedRoute>
+          }
+        />
+
         <Route
           path="/mis-compras"
           element={

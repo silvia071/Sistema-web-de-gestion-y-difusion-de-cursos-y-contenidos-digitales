@@ -32,21 +32,11 @@ function Cursos() {
   );
   const [busqueda, setBusqueda] = useState("");
   const [orden, setOrden] = useState("recientes");
+  const [soloFavoritos, setSoloFavoritos] = useState(false);
   const [cursos, setCursos] = useState([]);
   const [misCursosIds, setMisCursosIds] = useState([]);
-  const [favoritosIds, setFavoritosIds] = useState(() => {
-    const favoritosGuardados = localStorage.getItem("favoritosCursos");
-
-    if (!favoritosGuardados) return [];
-
-    try {
-      const favoritosParseados = JSON.parse(favoritosGuardados);
-      return Array.isArray(favoritosParseados) ? favoritosParseados : [];
-    } catch (error) {
-      console.error("Error leyendo favoritos:", error);
-      return [];
-    }
-  });
+  const [favoritosIds, setFavoritosIds] = useState([]);
+  const [favoritoProcesandoId, setFavoritoProcesandoId] = useState(null);
   const [cursoAvisoId, setCursoAvisoId] = useState(null);
   const [cursoAvisoTexto, setCursoAvisoTexto] = useState("");
   const [loading, setLoading] = useState(true);
@@ -58,10 +48,6 @@ function Cursos() {
   useEffect(() => {
     setCategoriaActiva(categoriaSeleccionada || null);
   }, [categoriaSeleccionada]);
-
-  useEffect(() => {
-    localStorage.setItem("favoritosCursos", JSON.stringify(favoritosIds));
-  }, [favoritosIds]);
 
   const cargarCursos = useCallback(async () => {
     try {
@@ -91,9 +77,35 @@ function Cursos() {
     }
   }, []);
 
+  const cargarFavoritos = useCallback(async () => {
+    try {
+      const token = localStorage.getItem("token");
+
+      if (!tokenValido(token)) {
+        setFavoritosIds([]);
+        return;
+      }
+
+      const response = await api.get("/api/favoritos/ids");
+
+      const ids = Array.isArray(response.data?.cursosFavoritosIds)
+        ? response.data.cursosFavoritosIds
+        : [];
+
+      setFavoritosIds(ids.map((id) => String(id)));
+    } catch (error) {
+      console.error("Error al obtener favoritos:", error);
+      setFavoritosIds([]);
+    }
+  }, []);
+
   useEffect(() => {
     cargarCursos();
   }, [cargarCursos]);
+
+  useEffect(() => {
+    cargarFavoritos();
+  }, [cargarFavoritos]);
 
   useEffect(() => {
     const obtenerMisCursos = async () => {
@@ -158,6 +170,8 @@ function Cursos() {
     const textoBusqueda = normalizarTexto(busqueda);
 
     let resultado = cursos.filter((curso) => {
+      const cursoId = String(curso?._id || curso?.id);
+
       const coincideCategoria =
         !categoriaActiva ||
         normalizarTexto(curso.categoria?.nombre) ===
@@ -170,7 +184,9 @@ function Cursos() {
         normalizarTexto(curso.categoria?.nombre).includes(textoBusqueda) ||
         normalizarTexto(curso.nivel).includes(textoBusqueda);
 
-      return coincideCategoria && coincideBusqueda;
+      const coincideFavorito = !soloFavoritos || favoritosIds.includes(cursoId);
+
+      return coincideCategoria && coincideBusqueda && coincideFavorito;
     });
 
     if (orden === "recientes") {
@@ -200,16 +216,20 @@ function Cursos() {
     }
 
     return resultado;
-  }, [cursos, categoriaActiva, busqueda, orden]);
+  }, [cursos, categoriaActiva, busqueda, orden, soloFavoritos, favoritosIds]);
 
   const hayFiltrosActivos = Boolean(
-    busqueda.trim() || categoriaActiva || orden !== "recientes",
+    busqueda.trim() ||
+    categoriaActiva ||
+    orden !== "recientes" ||
+    soloFavoritos,
   );
 
   const limpiarFiltros = () => {
     setBusqueda("");
     setCategoriaActiva(null);
     setOrden("recientes");
+    setSoloFavoritos(false);
     navigate("/cursos", { replace: true });
   };
 
@@ -231,20 +251,57 @@ function Cursos() {
     }, 2500);
   };
 
-  const handleToggleFavorito = (e, cursoId) => {
+  const handleToggleFavorito = async (e, cursoId) => {
     e.stopPropagation();
 
-    setFavoritosIds((prev) => {
-      const yaEsFavorito = prev.includes(cursoId);
+    const token = localStorage.getItem("token");
 
-      if (yaEsFavorito) {
-        mostrarAvisoCurso(cursoId, "Curso quitado de favoritos");
-        return prev.filter((id) => id !== cursoId);
-      }
+    if (!tokenValido(token)) {
+      navigate("/login", {
+        state: { from: location.pathname + location.search },
+      });
+      return;
+    }
 
-      mostrarAvisoCurso(cursoId, "Curso agregado a favoritos");
-      return [...prev, cursoId];
-    });
+    if (favoritoProcesandoId === cursoId) return;
+
+    try {
+      setFavoritoProcesandoId(cursoId);
+
+      const response = await api.patch(`/api/favoritos/${cursoId}/toggle`);
+
+      const esFavorito = Boolean(response.data?.esFavorito);
+      const mensaje =
+        response.data?.mensaje ||
+        (esFavorito
+          ? "Curso agregado a favoritos"
+          : "Curso quitado de favoritos");
+
+      setFavoritosIds((prev) => {
+        const yaExiste = prev.includes(cursoId);
+
+        if (esFavorito && !yaExiste) {
+          return [...prev, cursoId];
+        }
+
+        if (!esFavorito) {
+          return prev.filter((id) => id !== cursoId);
+        }
+
+        return prev;
+      });
+
+      mostrarAvisoCurso(cursoId, mensaje);
+    } catch (error) {
+      console.error("Error al actualizar favorito:", error);
+
+      mostrarAvisoCurso(
+        cursoId,
+        error.response?.data?.mensaje || "No se pudo actualizar el favorito",
+      );
+    } finally {
+      setFavoritoProcesandoId(null);
+    }
   };
 
   const handleAgregarAlCarrito = (e, curso) => {
@@ -371,10 +428,24 @@ function Cursos() {
             <div className="filtros-botones">
               <button
                 type="button"
-                className={!categoriaActiva ? "activo" : ""}
-                onClick={() => setCategoriaActiva(null)}
+                className={!categoriaActiva && !soloFavoritos ? "activo" : ""}
+                onClick={() => {
+                  setCategoriaActiva(null);
+                  setSoloFavoritos(false);
+                }}
               >
                 Todas <small>{cursos.length}</small>
+              </button>
+
+              <button
+                type="button"
+                className={soloFavoritos ? "activo" : ""}
+                onClick={() => {
+                  setSoloFavoritos((prev) => !prev);
+                  setCategoriaActiva(null);
+                }}
+              >
+                Favoritos <small>{favoritosIds.length}</small>
               </button>
 
               {categorias.map((cat) => (
@@ -382,7 +453,10 @@ function Cursos() {
                   type="button"
                   key={cat}
                   className={categoriaActiva === cat ? "activo" : ""}
-                  onClick={() => setCategoriaActiva(cat)}
+                  onClick={() => {
+                    setCategoriaActiva(cat);
+                    setSoloFavoritos(false);
+                  }}
                 >
                   {cat} <small>{cantidadPorCategoria[cat] || 0}</small>
                 </button>
@@ -425,13 +499,17 @@ function Cursos() {
             <h2>
               {cursos.length === 0
                 ? "No hay cursos disponibles"
-                : "No se encontraron cursos"}
+                : soloFavoritos
+                  ? "Todavía no tenés cursos favoritos"
+                  : "No se encontraron cursos"}
             </h2>
 
             <p>
               {cursos.length === 0
                 ? "Todavía no hay cursos publicados en la plataforma. Cuando se carguen nuevos cursos, van a aparecer en este catálogo."
-                : "No encontramos cursos que coincidan con la búsqueda o los filtros aplicados."}
+                : soloFavoritos
+                  ? "Marcá cursos con el corazón para guardarlos en tu lista de favoritos."
+                  : "No encontramos cursos que coincidan con la búsqueda o los filtros aplicados."}
             </p>
 
             <div className="cursos-estado-actions">
@@ -449,13 +527,14 @@ function Cursos() {
         ) : (
           <div
             className="cursos-grid animar-grid"
-            key={`${categoriaActiva || "todas"}-${busqueda}-${orden}`}
+            key={`${categoriaActiva || "todas"}-${busqueda}-${orden}-${soloFavoritos}`}
           >
             {cursosFiltrados.map((curso) => {
               const cursoId = String(curso?._id || curso?.id);
               const cursoComprado = misCursosIds.includes(cursoId);
               const mostrarAviso = cursoAvisoId === cursoId;
               const esFavorito = favoritosIds.includes(cursoId);
+              const favoritoCargando = favoritoProcesandoId === cursoId;
 
               return (
                 <article
@@ -478,7 +557,13 @@ function Cursos() {
                       }`}
                       type="button"
                       onClick={(e) => handleToggleFavorito(e, cursoId)}
+                      disabled={favoritoCargando}
                       aria-label={
+                        esFavorito
+                          ? "Quitar de favoritos"
+                          : "Agregar a favoritos"
+                      }
+                      title={
                         esFavorito
                           ? "Quitar de favoritos"
                           : "Agregar a favoritos"

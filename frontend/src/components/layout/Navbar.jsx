@@ -219,6 +219,14 @@ function Navbar() {
                       <button
                         type="button"
                         className="navbar__dropdown-item"
+                        onClick={() => navegarYCerrarMenu("/mis-favoritos")}
+                      >
+                        Mis favoritos
+                      </button>
+
+                      <button
+                        type="button"
+                        className="navbar__dropdown-item"
                         onClick={() => navegarYCerrarMenu("/mis-compras")}
                       >
                         Mis compras

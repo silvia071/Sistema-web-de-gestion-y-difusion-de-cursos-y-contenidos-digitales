@@ -43,6 +43,7 @@ const carritoRoutes = require("./routes/carrito.route");
 const compraRoutes = require("./routes/compra.route");
 const accesoCursoRoutes = require("./routes/accesoCurso.route");
 const adminRoutes = require("./routes/admin.route");
+const favoritoRoutes = require("./routes/favorito.route");
 
 app.use("/api/auth", authRoutes);
 app.use("/api/usuarios", usuarioRoutes);
@@ -58,7 +59,7 @@ app.use("/api/carrito", carritoRoutes);
 app.use("/api/compra", compraRoutes);
 app.use("/api/accesos", accesoCursoRoutes);
 app.use("/api/admin", adminRoutes);
-
+app.use("/api/favoritos", favoritoRoutes);
 app.get("/api/publicaciones/prueba-app", (req, res) => {
   res.json({ mensaje: "PRUEBA DIRECTA EN APP OK" });
 });
