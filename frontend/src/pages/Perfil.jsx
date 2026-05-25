@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { USE_MOCK_API } from "../config/api";
 import api from "../services/api";
 import { readMockPerfil, writeMockPerfil } from "../services/mockPerfil";
@@ -25,7 +25,9 @@ function Perfil() {
   const [loadError, setLoadError] = useState("");
   const [loading, setLoading] = useState(true);
 
-  const [editando, setEditando] = useState(false);
+  const [editandoPerfil, setEditandoPerfil] = useState(false);
+  const [editandoPassword, setEditandoPassword] = useState(false);
+
   const [nombre, setNombre] = useState("");
   const [apellido, setApellido] = useState("");
   const [direccion, setDireccion] = useState("");
@@ -146,24 +148,37 @@ function Perfil() {
     clearSessionAndRedirect();
   };
 
-  const abrirEdicion = () => {
+  const abrirEdicionPerfil = () => {
     setSaveError("");
 
     if (usuario) {
       syncFormFromUsuario(usuario);
     }
 
-    setEditando(true);
+    setEditandoPerfil(true);
   };
 
-  const cancelarEdicion = () => {
+  const cancelarEdicionPerfil = () => {
     setSaveError("");
 
     if (usuario) {
       syncFormFromUsuario(usuario);
     }
 
-    setEditando(false);
+    setEditandoPerfil(false);
+  };
+
+  const abrirEdicionPassword = () => {
+    setPasswordError("");
+    setPasswordSuccess("");
+    setEditandoPassword(true);
+  };
+
+  const cancelarEdicionPassword = () => {
+    limpiarFormularioPassword();
+    setPasswordError("");
+    setPasswordSuccess("");
+    setEditandoPassword(false);
   };
 
   const guardarPerfil = async (e) => {
@@ -215,7 +230,7 @@ function Perfil() {
       writeMockPerfil(actualizado);
       setUsuario(actualizado);
       syncFormFromUsuario(actualizado);
-      setEditando(false);
+      setEditandoPerfil(false);
       return;
     }
 
@@ -226,7 +241,7 @@ function Perfil() {
 
       setUsuario(data.datos);
       syncFormFromUsuario(data.datos);
-      setEditando(false);
+      setEditandoPerfil(false);
 
       localStorage.setItem("nombre", data.datos?.nombre || nombreLimpio);
       localStorage.setItem("apellido", data.datos?.apellido || apellidoLimpio);
@@ -301,6 +316,7 @@ function Perfil() {
     if (USE_MOCK_API) {
       setPasswordSuccess("Contraseña actualizada correctamente.");
       limpiarFormularioPassword();
+      setEditandoPassword(false);
       return;
     }
 
@@ -317,6 +333,7 @@ function Perfil() {
       );
 
       limpiarFormularioPassword();
+      setEditandoPassword(false);
     } catch (error) {
       if (error.response?.status === 401) {
         clearSessionAndRedirect();
@@ -343,13 +360,26 @@ function Perfil() {
 
   const emailMostrado = usuario?.email ?? localStorage.getItem("email") ?? "-";
 
+  const certificadosObtenidos = useMemo(() => {
+    return misCursos.filter(
+      (acceso) =>
+        Number(acceso?.progreso || 0) >= 100 && acceso?.certificadoEmitido,
+    ).length;
+  }, [misCursos]);
+
+  const cursosPreview = useMemo(() => {
+    return [...misCursos]
+      .sort((a, b) => Number(b?.progreso || 0) - Number(a?.progreso || 0))
+      .slice(0, 3);
+  }, [misCursos]);
+
   return (
     <section className="perfil-page">
       <div className="perfil-shell">
         <aside className="perfil-sidebar">
           <div className="perfil-user">
             <div className="perfil-avatar">
-              <img src={logo} alt="Logo" />
+              <img src={logo} alt="Logo Mundo Dev" />
             </div>
 
             <div>
@@ -374,9 +404,40 @@ function Perfil() {
               Mis cursos
             </button>
 
-            <button type="button" className="perfil-menu-item">
+            <button
+              type="button"
+              className="perfil-menu-item"
+              onClick={() => navigate("/mis-certificados")}
+            >
               <span>🧾</span>
-              Facturación
+              Mis certificados
+            </button>
+
+            <button
+              type="button"
+              className="perfil-menu-item"
+              onClick={() => navigate("/mis-favoritos")}
+            >
+              <span>💜</span>
+              Mis favoritos
+            </button>
+
+            <button
+              type="button"
+              className="perfil-menu-item"
+              onClick={() => navigate("/mis-compras")}
+            >
+              <span>🛒</span>
+              Mis compras
+            </button>
+
+            <button
+              type="button"
+              className="perfil-menu-item"
+              onClick={() => navigate("/carrito")}
+            >
+              <span>🛍️</span>
+              Mi carrito
             </button>
 
             <button type="button" className="perfil-menu-item">
@@ -400,7 +461,7 @@ function Perfil() {
             <p>Nuestro equipo está para ayudarte.</p>
 
             <button type="button" onClick={() => navigate("/contactos")}>
-              Contactar soporte
+              Contactar soporte →
             </button>
           </div>
         </aside>
@@ -411,11 +472,79 @@ function Perfil() {
               <span className="perfil-eyebrow">Panel de usuario</span>
               <h1>Mi perfil</h1>
               <p>
-                Gestioná tu información personal, tus datos de facturación y tus
-                cursos.
+                Gestioná tu información personal, tus preferencias y tu
+                actividad en Mundo Dev.
               </p>
             </div>
+
+            {!editandoPerfil && usuario && (
+              <button
+                type="button"
+                className="perfil-btn perfil-btn-primary"
+                onClick={abrirEdicionPerfil}
+              >
+                ✎ Editar perfil
+              </button>
+            )}
           </header>
+
+          <section className="perfil-resumen-grid">
+            <button
+              type="button"
+              className="perfil-resumen-card"
+              onClick={() => navigate("/mis-cursos")}
+            >
+              <span className="perfil-resumen-icon azul">🎓</span>
+
+              <div>
+                <p>Cursos comprados</p>
+                <strong>{misCursos.length}</strong>
+                <small>Ver mis cursos →</small>
+              </div>
+            </button>
+
+            <button
+              type="button"
+              className="perfil-resumen-card"
+              onClick={() => navigate("/mis-certificados")}
+            >
+              <span className="perfil-resumen-icon violeta">🧾</span>
+
+              <div>
+                <p>Certificados</p>
+                <strong>{certificadosObtenidos}</strong>
+                <small>Ver certificados →</small>
+              </div>
+            </button>
+
+            <button
+              type="button"
+              className="perfil-resumen-card"
+              onClick={() => navigate("/mis-favoritos")}
+            >
+              <span className="perfil-resumen-icon rosa">💜</span>
+
+              <div>
+                <p>Favoritos</p>
+                <strong>—</strong>
+                <small>Ver favoritos →</small>
+              </div>
+            </button>
+
+            <button
+              type="button"
+              className="perfil-resumen-card"
+              onClick={() => navigate("/mis-compras")}
+            >
+              <span className="perfil-resumen-icon verde">💼</span>
+
+              <div>
+                <p>Mis compras</p>
+                <strong>Ver</strong>
+                <small>Historial de compras →</small>
+              </div>
+            </button>
+          </section>
 
           {loading && (
             <p className="perfil-status" role="status">
@@ -430,246 +559,417 @@ function Perfil() {
           )}
 
           {!loading && usuario && (
-            <article className="perfil-section-card">
-              <div className="perfil-section-header">
-                <div className="perfil-section-title">
-                  <span className="perfil-section-icon">👤</span>
-                  <div>
-                    <h2>Información personal</h2>
-                    <p>Datos principales de tu cuenta.</p>
+            <section className="perfil-dashboard-grid">
+              <article className="perfil-section-card perfil-info-card">
+                <div className="perfil-section-header">
+                  <div className="perfil-section-title">
+                    <span className="perfil-section-icon">👤</span>
+
+                    <div>
+                      <h2>Información personal</h2>
+                      <p>Datos principales de tu cuenta.</p>
+                    </div>
                   </div>
                 </div>
 
-                {!editando && (
-                  <button
-                    type="button"
-                    className="perfil-btn perfil-btn-primary"
-                    onClick={abrirEdicion}
-                  >
-                    Editar perfil
-                  </button>
+                {!editandoPerfil && (
+                  <div className="perfil-info-list">
+                    <div className="perfil-info-row">
+                      <span className="perfil-info-row-icon">👤</span>
+
+                      <div>
+                        <span>Nombre completo</span>
+                        <strong>{nombreCompleto || "-"}</strong>
+                      </div>
+
+                      <button
+                        type="button"
+                        className="perfil-info-edit-btn"
+                        onClick={abrirEdicionPerfil}
+                        title="Editar nombre"
+                      >
+                        ✎
+                      </button>
+                    </div>
+
+                    <div className="perfil-info-row">
+                      <span className="perfil-info-row-icon">✉️</span>
+
+                      <div>
+                        <span>Email</span>
+                        <strong>{emailMostrado}</strong>
+                      </div>
+
+                      <button
+                        type="button"
+                        className="perfil-info-edit-btn"
+                        onClick={abrirEdicionPerfil}
+                        title="Editar email"
+                      >
+                        ✎
+                      </button>
+                    </div>
+
+                    <div className="perfil-info-row">
+                      <span className="perfil-info-row-icon">📞</span>
+
+                      <div>
+                        <span>Teléfono</span>
+                        <strong>
+                          {usuario.telefono?.trim() ? usuario.telefono : "-"}
+                        </strong>
+                      </div>
+
+                      <button
+                        type="button"
+                        className="perfil-info-edit-btn"
+                        onClick={abrirEdicionPerfil}
+                        title="Editar teléfono"
+                      >
+                        ✎
+                      </button>
+                    </div>
+
+                    <div className="perfil-info-row">
+                      <span className="perfil-info-row-icon">🏠</span>
+
+                      <div>
+                        <span>Dirección</span>
+                        <strong>
+                          {usuario.direccion?.trim() ? usuario.direccion : "-"}
+                        </strong>
+                      </div>
+
+                      <button
+                        type="button"
+                        className="perfil-info-edit-btn"
+                        onClick={abrirEdicionPerfil}
+                        title="Editar dirección"
+                      >
+                        ✎
+                      </button>
+                    </div>
+
+                    <div className="perfil-info-row">
+                      <span className="perfil-info-row-icon">▣</span>
+
+                      <div>
+                        <span>Estado de cuenta</span>
+                        <strong className="perfil-badge-active">
+                          {usuario.estadoCuenta || "ACTIVO"}
+                        </strong>
+                      </div>
+                    </div>
+                  </div>
                 )}
-              </div>
 
-              {!editando && (
-                <div className="perfil-info-grid">
-                  <div className="perfil-info-item">
-                    <span>Nombre completo</span>
-                    <strong>{nombreCompleto || "-"}</strong>
-                  </div>
+                {editandoPerfil && (
+                  <form className="perfil-edit-form" onSubmit={guardarPerfil}>
+                    {saveError && (
+                      <p className="perfil-form-error" role="alert">
+                        {saveError}
+                      </p>
+                    )}
 
-                  <div className="perfil-info-item">
-                    <span>Email</span>
-                    <strong>{emailMostrado}</strong>
-                  </div>
+                    <div className="perfil-info-grid">
+                      <div className="perfil-form-group">
+                        <label htmlFor="perfil-nombre">Nombre</label>
+                        <input
+                          id="perfil-nombre"
+                          value={nombre}
+                          onChange={(e) => setNombre(e.target.value)}
+                          autoComplete="given-name"
+                          required
+                          minLength={2}
+                        />
+                      </div>
 
-                  <div className="perfil-info-item">
-                    <span>Dirección</span>
-                    <strong>
-                      {usuario.direccion?.trim() ? usuario.direccion : "-"}
-                    </strong>
-                  </div>
+                      <div className="perfil-form-group">
+                        <label htmlFor="perfil-apellido">Apellido</label>
+                        <input
+                          id="perfil-apellido"
+                          value={apellido}
+                          onChange={(e) => setApellido(e.target.value)}
+                          autoComplete="family-name"
+                          required
+                        />
+                      </div>
 
-                  <div className="perfil-info-item">
-                    <span>Teléfono</span>
-                    <strong>
-                      {usuario.telefono?.trim() ? usuario.telefono : "-"}
-                    </strong>
-                  </div>
+                      <div className="perfil-form-group">
+                        <label htmlFor="perfil-email">Email</label>
+                        <input
+                          id="perfil-email"
+                          value={usuario.email ?? ""}
+                          readOnly
+                        />
+                      </div>
 
-                  <div className="perfil-info-item">
-                    <span>Estado de cuenta</span>
-                    <strong className="perfil-badge-active">
-                      {usuario.estadoCuenta || "ACTIVO"}
-                    </strong>
-                  </div>
+                      <div className="perfil-form-group">
+                        <label htmlFor="perfil-telefono">Teléfono</label>
+                        <input
+                          id="perfil-telefono"
+                          value={telefono}
+                          onChange={(e) => setTelefono(e.target.value)}
+                          autoComplete="tel"
+                          placeholder="Opcional"
+                        />
+                      </div>
 
-                  <div className="perfil-info-item">
-                    <span>Cursos comprados</span>
-                    <strong>{misCursos.length} cursos</strong>
-                  </div>
-                </div>
-              )}
-
-              {editando && (
-                <form className="perfil-edit-form" onSubmit={guardarPerfil}>
-                  {saveError && (
-                    <p className="perfil-form-error" role="alert">
-                      {saveError}
-                    </p>
-                  )}
-
-                  <div className="perfil-info-grid">
-                    <div className="perfil-form-group">
-                      <label htmlFor="perfil-nombre">Nombre</label>
-                      <input
-                        id="perfil-nombre"
-                        value={nombre}
-                        onChange={(e) => setNombre(e.target.value)}
-                        autoComplete="given-name"
-                        required
-                        minLength={2}
-                      />
+                      <div className="perfil-form-group perfil-form-group-full">
+                        <label htmlFor="perfil-direccion">Dirección</label>
+                        <input
+                          id="perfil-direccion"
+                          value={direccion}
+                          onChange={(e) => setDireccion(e.target.value)}
+                          autoComplete="street-address"
+                          placeholder="Opcional"
+                        />
+                      </div>
                     </div>
 
-                    <div className="perfil-form-group">
-                      <label htmlFor="perfil-apellido">Apellido</label>
-                      <input
-                        id="perfil-apellido"
-                        value={apellido}
-                        onChange={(e) => setApellido(e.target.value)}
-                        autoComplete="family-name"
-                        required
-                      />
-                    </div>
+                    <div className="perfil-form-actions">
+                      <button
+                        type="button"
+                        className="perfil-btn perfil-btn-secondary"
+                        onClick={cancelarEdicionPerfil}
+                        disabled={saving}
+                      >
+                        Cancelar
+                      </button>
 
-                    <div className="perfil-form-group">
-                      <label htmlFor="perfil-email">Email</label>
-                      <input
-                        id="perfil-email"
-                        value={usuario.email ?? ""}
-                        readOnly
-                      />
+                      <button
+                        type="submit"
+                        className="perfil-btn perfil-btn-primary"
+                        disabled={saving}
+                      >
+                        {saving ? "Guardando…" : "Guardar cambios"}
+                      </button>
                     </div>
+                  </form>
+                )}
+              </article>
 
-                    <div className="perfil-form-group">
-                      <label htmlFor="perfil-telefono">Teléfono</label>
-                      <input
-                        id="perfil-telefono"
-                        value={telefono}
-                        onChange={(e) => setTelefono(e.target.value)}
-                        autoComplete="tel"
-                        placeholder="Opcional"
-                      />
-                    </div>
-
-                    <div className="perfil-form-group perfil-form-group-full">
-                      <label htmlFor="perfil-direccion">Dirección</label>
-                      <input
-                        id="perfil-direccion"
-                        value={direccion}
-                        onChange={(e) => setDireccion(e.target.value)}
-                        autoComplete="street-address"
-                        placeholder="Opcional"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="perfil-form-actions">
-                    <button
-                      type="button"
-                      className="perfil-btn perfil-btn-secondary"
-                      onClick={cancelarEdicion}
-                      disabled={saving}
+              <article className="perfil-section-card perfil-security-card">
+                <div className="perfil-section-header perfil-security-header">
+                  <div className="perfil-section-title">
+                    <span
+                      className="perfil-section-icon perfil-security-main-icon"
+                      aria-hidden="true"
                     >
-                      Cancelar
-                    </button>
+                      <svg
+                        className="perfil-security-main-svg"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <rect
+                          x="6.5"
+                          y="10"
+                          width="11"
+                          height="9"
+                          rx="2"
+                          fill="#FACC15"
+                        />
 
-                    <button
-                      type="submit"
-                      className="perfil-btn perfil-btn-primary"
-                      disabled={saving}
+                        <path
+                          d="M8.5 10V7.8C8.5 5.7 9.9 4.2 12 4.2C14.1 4.2 15.5 5.7 15.5 7.8V10"
+                          stroke="#FACC15"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                        />
+
+                        <circle cx="12" cy="14.2" r="1" fill="#7C3AED" />
+                      </svg>
+                    </span>
+                    <div>
+                      <h2>Seguridad</h2>
+                      <p>Mantené tu cuenta protegida.</p>
+                    </div>
+                  </div>
+
+                  <div className="perfil-security-visual" aria-hidden="true">
+                    <svg
+                      className="perfil-security-svg"
+                      viewBox="0 0 120 130"
+                      xmlns="http://www.w3.org/2000/svg"
                     >
-                      {saving ? "Guardando…" : "Guardar cambios"}
-                    </button>
-                  </div>
-                </form>
-              )}
-            </article>
-          )}
+                      <path
+                        className="security-shield-fill"
+                        d="M60 12 L99 27 V62 C99 89 82 111 60 123 C38 111 21 89 21 62 V27 Z"
+                      />
 
-          {!loading && usuario && (
-            <article className="perfil-section-card">
-              <div className="perfil-section-header">
-                <div className="perfil-section-title">
-                  <span className="perfil-section-icon">🔒</span>
-                  <div>
-                    <h2>Cambiar contraseña</h2>
-                    <p>
-                      Para modificar tu contraseña, ingresá primero la actual.
-                    </p>
+                      <path
+                        className="security-shield-stroke"
+                        d="M60 12 L99 27 V62 C99 89 82 111 60 123 C38 111 21 89 21 62 V27 Z"
+                      />
+
+                      <path
+                        className="security-lock-arc"
+                        d="M49 68 V58 C49 51 53 46 60 46 C67 46 71 51 71 58 V68"
+                      />
+
+                      <rect
+                        className="security-lock-body"
+                        x="48"
+                        y="66"
+                        width="24"
+                        height="21"
+                        rx="4"
+                      />
+
+                      <circle
+                        className="security-lock-dot"
+                        cx="60"
+                        cy="77"
+                        r="2.2"
+                      />
+                    </svg>
+
+                    <span className="security-star security-star-1">+</span>
+                    <span className="security-star security-star-2">+</span>
+                    <span className="security-star security-star-3">+</span>
+                    <span className="security-star security-star-4">+</span>
                   </div>
                 </div>
+
+                {!editandoPassword && (
+                  <>
+                    <div className="perfil-security-list">
+                      <div className="perfil-security-row perfil-security-row-password">
+                        <span>Contraseña</span>
+
+                        <div className="perfil-security-row-content">
+                          <strong>••••••••••</strong>
+
+                          <button
+                            type="button"
+                            className="perfil-security-change-btn"
+                            onClick={abrirEdicionPassword}
+                          >
+                            Cambiar
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="perfil-security-row">
+                        <span>Último cambio</span>
+                        <strong>12 mar 2024</strong>
+                      </div>
+
+                      <div className="perfil-security-row perfil-security-row-clickable">
+                        <span>Autenticación</span>
+
+                        <div className="perfil-security-row-content">
+                          <strong>Email y contraseña</strong>
+                          <small>›</small>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="perfil-security-tip perfil-security-tip-compact">
+                      <span className="perfil-security-tip-icon">🔐</span>
+
+                      <div>
+                        <h3>Consejo de seguridad</h3>
+                        <p>
+                          Usá una contraseña segura y única para proteger tu
+                          cuenta.
+                        </p>
+                      </div>
+
+                      <small>›</small>
+                    </div>
+                  </>
+                )}
+
+                {editandoPassword && (
+                  <form className="perfil-edit-form" onSubmit={cambiarPassword}>
+                    {passwordError && (
+                      <p className="perfil-form-error" role="alert">
+                        {passwordError}
+                      </p>
+                    )}
+
+                    {passwordSuccess && (
+                      <p className="perfil-form-success" role="status">
+                        {passwordSuccess}
+                      </p>
+                    )}
+
+                    <div className="perfil-security-grid">
+                      <div className="perfil-form-group">
+                        <label htmlFor="perfil-password-actual">
+                          Contraseña actual
+                        </label>
+                        <input
+                          id="perfil-password-actual"
+                          type="password"
+                          value={contraseniaActual}
+                          onChange={(e) => setContraseniaActual(e.target.value)}
+                          autoComplete="current-password"
+                          placeholder="Ingresá tu contraseña actual"
+                        />
+                      </div>
+
+                      <div className="perfil-form-group">
+                        <label htmlFor="perfil-password-nueva">
+                          Nueva contraseña
+                        </label>
+                        <input
+                          id="perfil-password-nueva"
+                          type="password"
+                          value={nuevaContrasenia}
+                          onChange={(e) => setNuevaContrasenia(e.target.value)}
+                          autoComplete="new-password"
+                          placeholder="Mínimo 6 caracteres"
+                        />
+                      </div>
+
+                      <div className="perfil-form-group">
+                        <label htmlFor="perfil-password-repetir">
+                          Repetir nueva contraseña
+                        </label>
+                        <input
+                          id="perfil-password-repetir"
+                          type="password"
+                          value={repetirContrasenia}
+                          onChange={(e) =>
+                            setRepetirContrasenia(e.target.value)
+                          }
+                          autoComplete="new-password"
+                          placeholder="Repetí la nueva contraseña"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="perfil-form-actions">
+                      <button
+                        type="button"
+                        className="perfil-btn perfil-btn-secondary"
+                        onClick={cancelarEdicionPassword}
+                        disabled={savingPassword}
+                      >
+                        Cancelar
+                      </button>
+
+                      <button
+                        type="submit"
+                        className="perfil-btn perfil-btn-primary"
+                        disabled={savingPassword}
+                      >
+                        {savingPassword
+                          ? "Actualizando…"
+                          : "Cambiar contraseña"}
+                      </button>
+                    </div>
+                  </form>
+                )}
+              </article>
+
+              <div className="perfil-facturacion-wrap perfil-facturacion-card">
+                <DatosFacturacion />
               </div>
-
-              <form className="perfil-edit-form" onSubmit={cambiarPassword}>
-                {passwordError && (
-                  <p className="perfil-form-error" role="alert">
-                    {passwordError}
-                  </p>
-                )}
-
-                {passwordSuccess && (
-                  <p className="perfil-form-success" role="status">
-                    {passwordSuccess}
-                  </p>
-                )}
-
-                <div className="perfil-info-grid">
-                  <div className="perfil-form-group">
-                    <label htmlFor="perfil-password-actual">
-                      Contraseña actual
-                    </label>
-                    <input
-                      id="perfil-password-actual"
-                      type="password"
-                      value={contraseniaActual}
-                      onChange={(e) => setContraseniaActual(e.target.value)}
-                      autoComplete="current-password"
-                    />
-                  </div>
-
-                  <div className="perfil-form-group">
-                    <label htmlFor="perfil-password-nueva">
-                      Nueva contraseña
-                    </label>
-                    <input
-                      id="perfil-password-nueva"
-                      type="password"
-                      value={nuevaContrasenia}
-                      onChange={(e) => setNuevaContrasenia(e.target.value)}
-                      autoComplete="new-password"
-                    />
-                  </div>
-
-                  <div className="perfil-form-group">
-                    <label htmlFor="perfil-password-repetir">
-                      Repetir nueva contraseña
-                    </label>
-                    <input
-                      id="perfil-password-repetir"
-                      type="password"
-                      value={repetirContrasenia}
-                      onChange={(e) => setRepetirContrasenia(e.target.value)}
-                      autoComplete="new-password"
-                    />
-                  </div>
-                </div>
-
-                <div className="perfil-form-actions">
-                  <button
-                    type="button"
-                    className="perfil-btn perfil-btn-secondary"
-                    onClick={() => {
-                      limpiarFormularioPassword();
-                      setPasswordError("");
-                      setPasswordSuccess("");
-                    }}
-                    disabled={savingPassword}
-                  >
-                    Limpiar
-                  </button>
-
-                  <button
-                    type="submit"
-                    className="perfil-btn perfil-btn-primary"
-                    disabled={savingPassword}
-                  >
-                    {savingPassword ? "Actualizando…" : "Cambiar contraseña"}
-                  </button>
-                </div>
-              </form>
-            </article>
+            </section>
           )}
 
           {!loading && !usuario && !loadError && (
@@ -678,85 +978,131 @@ function Perfil() {
             </p>
           )}
 
-          <div className="perfil-facturacion-wrap">
-            <DatosFacturacion />
-          </div>
+          <section className="perfil-actividad-cursos-grid">
+            <article className="perfil-actividad-card">
+              <div className="perfil-cursos-header">
+                <div>
+                  <span className="perfil-section-icon">🕘</span>
+                  <h2>Actividad reciente</h2>
+                </div>
 
-          <section className="perfil-cursos">
-            <div className="perfil-cursos-header">
-              <div>
-                <span className="perfil-section-icon">🎓</span>
-                <h2>Mis cursos</h2>
+                <button type="button" className="perfil-link-btn">
+                  Ver todo →
+                </button>
               </div>
 
-              {misCursos.length > 0 && (
-                <button
-                  type="button"
-                  className="perfil-link-btn"
-                  onClick={() => navigate("/mis-cursos")}
-                >
-                  Ver todos →
-                </button>
-              )}
-            </div>
+              <div className="perfil-actividad-list">
+                <div className="perfil-actividad-item">
+                  <span>📚</span>
+                  <div>
+                    <strong>Continuaste tu aprendizaje</strong>
+                    <p>Revisaste tus cursos disponibles.</p>
+                  </div>
+                </div>
 
-            <div className="perfil-cursos-list">
-              {misCursos.length > 0 ? (
-                misCursos.slice(0, 3).map((acceso) => (
-                  <article
-                    key={acceso._id}
-                    className="perfil-curso-card"
-                    onClick={() =>
-                      navigate(`/curso/${acceso.curso._id}/aprender`)
-                    }
+                <div className="perfil-actividad-item">
+                  <span>🧾</span>
+                  <div>
+                    <strong>Certificados disponibles</strong>
+                    <p>Tenés {certificadosObtenidos} certificados emitidos.</p>
+                  </div>
+                </div>
+
+                <div className="perfil-actividad-item">
+                  <span>👤</span>
+                  <div>
+                    <strong>Información de cuenta</strong>
+                    <p>Tu perfil se encuentra activo.</p>
+                  </div>
+                </div>
+              </div>
+            </article>
+
+            <section className="perfil-cursos">
+              <div className="perfil-cursos-header">
+                <div>
+                  <span className="perfil-section-icon">🎓</span>
+                  <h2>Mis cursos</h2>
+                </div>
+
+                {misCursos.length > 0 && (
+                  <button
+                    type="button"
+                    className="perfil-link-btn"
+                    onClick={() => navigate("/mis-cursos")}
                   >
-                    <div className="perfil-curso-img-wrap">
-                      <img
-                        src={obtenerImagenCurso(acceso.curso)}
-                        alt={acceso.curso?.titulo || "Curso"}
-                        className="perfil-curso-img"
-                        onError={(e) => {
-                          e.currentTarget.src = "/placeholder-curso.png";
-                        }}
-                      />
+                    Ver todos →
+                  </button>
+                )}
+              </div>
 
-                      <span className="perfil-curso-chip">En progreso</span>
-                    </div>
+              <div className="perfil-cursos-list">
+                {cursosPreview.length > 0 ? (
+                  cursosPreview.map((acceso) => (
+                    <article
+                      key={acceso._id}
+                      className="perfil-curso-card"
+                      onClick={() =>
+                        navigate(`/curso/${acceso.curso._id}/aprender`)
+                      }
+                    >
+                      <div className="perfil-curso-img-wrap">
+                        <img
+                          src={obtenerImagenCurso(acceso.curso)}
+                          alt={acceso.curso?.titulo || "Curso"}
+                          className="perfil-curso-img"
+                          onError={(e) => {
+                            e.currentTarget.src = "/placeholder-curso.png";
+                          }}
+                        />
 
-                    <div className="perfil-curso-body">
-                      <h3>{acceso.curso?.titulo || "Curso sin título"}</h3>
-
-                      <div className="perfil-progress-row">
-                        <div className="perfil-progress-track">
-                          <span
-                            style={{
-                              width: `${Math.min(acceso.progreso || 0, 100)}%`,
-                            }}
-                          />
-                        </div>
-
-                        <strong>{acceso.progreso || 0}%</strong>
+                        <span className="perfil-curso-chip">
+                          {Number(acceso.progreso || 0) >= 100
+                            ? "Completado"
+                            : "En progreso"}
+                        </span>
                       </div>
 
-                      <button
-                        type="button"
-                        className="perfil-btn perfil-btn-primary"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigate(`/curso/${acceso.curso._id}/aprender`);
-                        }}
-                      >
-                        Continuar curso
-                      </button>
-                    </div>
-                  </article>
-                ))
-              ) : (
-                <div className="perfil-vacio">
-                  No tenés cursos comprados todavía.
-                </div>
-              )}
-            </div>
+                      <div className="perfil-curso-body">
+                        <h3>{acceso.curso?.titulo || "Curso sin título"}</h3>
+
+                        <div className="perfil-progress-row">
+                          <div className="perfil-progress-track">
+                            <span
+                              style={{
+                                width: `${Math.min(
+                                  acceso.progreso || 0,
+                                  100,
+                                )}%`,
+                              }}
+                            />
+                          </div>
+
+                          <strong>{acceso.progreso || 0}%</strong>
+                        </div>
+
+                        <button
+                          type="button"
+                          className="perfil-btn perfil-btn-primary"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/curso/${acceso.curso._id}/aprender`);
+                          }}
+                        >
+                          {Number(acceso.progreso || 0) >= 100
+                            ? "Ver curso"
+                            : "Continuar curso"}
+                        </button>
+                      </div>
+                    </article>
+                  ))
+                ) : (
+                  <div className="perfil-vacio">
+                    No tenés cursos comprados todavía.
+                  </div>
+                )}
+              </div>
+            </section>
           </section>
         </main>
       </div>
