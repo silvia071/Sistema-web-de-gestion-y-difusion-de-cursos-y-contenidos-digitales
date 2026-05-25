@@ -429,3 +429,19 @@
 .navbar .navbar__brand {
   transform: translateX(-36px);
 }
+
+.navbar__dropdown-separator {
+  width: calc(100% - 20px);
+  height: 1px;
+  margin: 8px auto;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.navbar__dropdown-item--logout {
+  color: #ffd6d6;
+}
+
+.navbar__dropdown-item--logout:hover {
+  background: rgba(239, 68, 68, 0.14);
+  color: #ffffff;
+}

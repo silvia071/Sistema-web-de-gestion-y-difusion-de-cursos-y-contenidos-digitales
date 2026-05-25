@@ -43,6 +43,14 @@ const accesoCursoSchema = new mongoose.Schema(
       default: false,
     },
 
+    codigoCertificado: {
+      type: String,
+      default: null,
+      trim: true,
+      unique: true,
+      sparse: true,
+    },
+
     fechaFinalizacion: {
       type: Date,
       default: null,

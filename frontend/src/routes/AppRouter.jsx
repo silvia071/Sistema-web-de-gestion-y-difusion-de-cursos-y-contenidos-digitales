@@ -34,6 +34,7 @@ import PagoPendiente from "../pages/PagoPendiente";
 import PagoFallido from "../pages/PagoFallido";
 import MisCompras from "../pages/MisCompras";
 import AdminCompras from "../pages/AdminCompras";
+import MisCertificados from "../pages/MisCertificados";
 
 function AppRouter() {
   return (
@@ -97,6 +98,14 @@ function AppRouter() {
           element={
             <ProtectedRoute>
               <MisFavoritos />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/mis-certificados"
+          element={
+            <ProtectedRoute>
+              <MisCertificados />
             </ProtectedRoute>
           }
         />

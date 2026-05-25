@@ -227,6 +227,14 @@ function Navbar() {
                       <button
                         type="button"
                         className="navbar__dropdown-item"
+                        onClick={() => navegarYCerrarMenu("/mis-certificados")}
+                      >
+                        Mis certificados
+                      </button>
+
+                      <button
+                        type="button"
+                        className="navbar__dropdown-item"
                         onClick={() => navegarYCerrarMenu("/mis-compras")}
                       >
                         Mis compras
@@ -252,9 +260,11 @@ function Navbar() {
                     </button>
                   )}
 
+                  <div className="navbar__dropdown-separator" />
+
                   <button
                     type="button"
-                    className="navbar__dropdown-item"
+                    className="navbar__dropdown-item navbar__dropdown-item--logout"
                     onClick={handleLogout}
                   >
                     Cerrar sesión

@@ -29,6 +29,24 @@ function limpiarNombreArchivo(texto) {
     .replace(/^-|-$/g, "");
 }
 
+function formatearFechaCertificado(fecha) {
+  const fechaValida = fecha ? new Date(fecha) : new Date();
+
+  return fechaValida.toLocaleDateString("es-AR", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
+}
+
+function obtenerCodigoCertificado(acceso) {
+  if (acceso?.codigoCertificado) {
+    return acceso.codigoCertificado;
+  }
+
+  return "CERTIFICADO-SIN-CODIGO";
+}
+
 export function generarCertificado(acceso) {
   const curso = acceso?.curso;
 
@@ -37,11 +55,8 @@ export function generarCertificado(acceso) {
   const alumno = obtenerNombreAlumno();
   const tituloCurso = curso.titulo || "Curso completado";
 
-  const fecha = new Date().toLocaleDateString("es-AR", {
-    day: "2-digit",
-    month: "long",
-    year: "numeric",
-  });
+  const fecha = formatearFechaCertificado(acceso?.fechaFinalizacion);
+  const codigoCertificado = obtenerCodigoCertificado(acceso);
 
   const doc = new jsPDF({
     orientation: "landscape",
@@ -142,7 +157,7 @@ export function generarCertificado(acceso) {
   doc.setFontSize(24);
   doc.text(tituloCurso, ancho / 2, 143, { align: "center" });
 
-  // Fecha
+  // Fecha oficial de finalización desde backend
   doc.setFillColor(14, 165, 233);
   doc.roundedRect(ancho / 2 - 47, 154, 94, 13, 4, 4, "F");
 
@@ -175,11 +190,7 @@ export function generarCertificado(acceso) {
     align: "center",
   });
 
-  // Código de certificado
-  const codigoCertificado = `MD-${String(curso._id || acceso._id || Date.now())
-    .slice(-8)
-    .toUpperCase()}`;
-
+  // Código oficial desde backend
   doc.setTextColor(125, 145, 190);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8);

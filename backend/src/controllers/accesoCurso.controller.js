@@ -4,6 +4,13 @@ const Curso = require("../models/curso.model");
 
 const esObjectIdValido = (id) => mongoose.Types.ObjectId.isValid(id);
 
+const generarCodigoCertificado = (accesoId) => {
+  const base = String(accesoId).slice(-8).toUpperCase();
+  const random = Math.random().toString(36).substring(2, 6).toUpperCase();
+
+  return `MD-${base}-${random}`;
+};
+
 // Obtener cursos del usuario
 const obtenerAccesosUsuario = async (req, res) => {
   try {
@@ -80,6 +87,9 @@ const crearAccesoCurso = async (req, res) => {
       curso: cursoId,
       progreso: 0,
       estado: "ACTIVO",
+      certificadoEmitido: false,
+      codigoCertificado: null,
+      fechaFinalizacion: null,
     });
 
     return res.status(201).json({
@@ -205,14 +215,19 @@ const actualizarProgreso = async (req, res) => {
     if (acceso.progreso >= 100) {
       acceso.progreso = 100;
 
+      if (!acceso.certificadoEmitido) {
+        acceso.certificadoEmitido = true;
+        acceso.fechaFinalizacion = new Date();
+        acceso.codigoCertificado = generarCodigoCertificado(acceso._id);
+      }
+
       if (!acceso.fechaFinalizacion) {
         acceso.fechaFinalizacion = new Date();
       }
 
-      acceso.certificadoEmitido = true;
-    } else {
-      acceso.certificadoEmitido = false;
-      acceso.fechaFinalizacion = null;
+      if (!acceso.codigoCertificado) {
+        acceso.codigoCertificado = generarCodigoCertificado(acceso._id);
+      }
     }
 
     await acceso.save();
@@ -224,6 +239,9 @@ const actualizarProgreso = async (req, res) => {
         progreso: acceso.progreso,
         ultimaLeccion: acceso.ultimaLeccion,
         leccionesCompletadas: acceso.leccionesCompletadas,
+        certificadoEmitido: acceso.certificadoEmitido,
+        codigoCertificado: acceso.codigoCertificado,
+        fechaFinalizacion: acceso.fechaFinalizacion,
       },
     });
   } catch (error) {
