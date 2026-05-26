@@ -50,7 +50,6 @@ const validarYCalcularDescuento = async (carrito, subtotal) => {
   }
 
   const cuponId = carrito.cupon._id || carrito.cupon;
-
   const cupon = await Cupon.findById(cuponId);
 
   if (!cupon) {
@@ -76,6 +75,14 @@ const validarYCalcularDescuento = async (carrito, subtotal) => {
     descuentoAplicado: descuentoCalculado,
     total,
   };
+};
+
+const incrementarUsoCupon = async (cuponId) => {
+  if (!cuponId) return;
+
+  await Cupon.findByIdAndUpdate(cuponId, {
+    $inc: { usosActuales: 1 },
+  });
 };
 
 const generarCompraDesdeCarrito = async (carrito, usuarioId) => {
@@ -147,6 +154,8 @@ const generarCompraDesdeCarrito = async (carrito, usuarioId) => {
     codigoCuponAplicado: datosDescuento.codigoCuponAplicado,
     estado: EstadoCompra.PENDIENTE,
   });
+
+  await incrementarUsoCupon(datosDescuento.cupon);
 
   if (typeof carrito.finalizar === "function") {
     carrito.finalizar();

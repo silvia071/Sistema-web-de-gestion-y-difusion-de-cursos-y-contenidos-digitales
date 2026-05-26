@@ -71,6 +71,14 @@ function Admin() {
       keywords: "leccion lecciones clases contenido",
     },
     {
+      titulo: "Cupones",
+      descripcion: "Crear y administrar descuentos",
+      icono: "🏷️",
+      ruta: "/admin/cupones",
+      color: "green",
+      keywords: "cupon cupones descuento descuentos promocion codigo",
+    },
+    {
       titulo: "Blog",
       descripcion: "Publicaciones y noticias",
       icono: "📝",
@@ -325,6 +333,8 @@ function Admin() {
             🎥 Lecciones
           </button>
 
+          <button onClick={() => navigate("/admin/cupones")}>🏷️ Cupones</button>
+
           <button disabled className="disabled">
             📝 Blog
           </button>
@@ -378,8 +388,8 @@ function Admin() {
               <h1>Panel de administración</h1>
 
               <p>
-                Gestioná cursos, usuarios, pagos, compras, lecciones y contenido
-                desde un solo lugar.
+                Gestioná cursos, usuarios, pagos, compras, lecciones, cupones y
+                contenido desde un solo lugar.
               </p>
 
               <small className="admin-last-update">

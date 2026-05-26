@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useState, useCallback } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import api from "../services/api";
 import { getImageUrl } from "../utils/getImageUrl";
 import "./Home.css";
@@ -8,9 +8,109 @@ import reactHero from "../assets/react-hero.png";
 import figmaHero from "../assets/figma-hero.png";
 import marketingHero from "../assets/marketing-hero.png";
 
+function tokenValido(token) {
+  return (
+    token && token !== "null" && token !== "undefined" && token.trim() !== ""
+  );
+}
+
 export default function Home() {
+  const navigate = useNavigate();
+  const location = useLocation();
+
   const [cursos, setCursos] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [favoritosIds, setFavoritosIds] = useState([]);
+  const [favoritoProcesandoId, setFavoritoProcesandoId] = useState(null);
+  const [cursoAvisoId, setCursoAvisoId] = useState(null);
+  const [cursoAvisoTexto, setCursoAvisoTexto] = useState("");
+
+  const cargarFavoritos = useCallback(async () => {
+    try {
+      const token = localStorage.getItem("token");
+
+      if (!tokenValido(token)) {
+        setFavoritosIds([]);
+        return;
+      }
+
+      const response = await api.get("/api/favoritos/ids");
+
+      const ids = Array.isArray(response.data?.cursosFavoritosIds)
+        ? response.data.cursosFavoritosIds
+        : [];
+
+      setFavoritosIds(ids.map((id) => String(id)));
+    } catch (error) {
+      console.error("Error al obtener favoritos:", error);
+      setFavoritosIds([]);
+    }
+  }, []);
+
+  const mostrarAvisoCurso = (cursoId, texto) => {
+    setCursoAvisoId(cursoId);
+    setCursoAvisoTexto(texto);
+
+    setTimeout(() => {
+      setCursoAvisoId(null);
+      setCursoAvisoTexto("");
+    }, 2500);
+  };
+
+  const handleToggleFavorito = async (e, cursoId) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const token = localStorage.getItem("token");
+
+    if (!tokenValido(token)) {
+      navigate("/login", {
+        state: { from: location.pathname },
+      });
+
+      return;
+    }
+
+    if (favoritoProcesandoId === cursoId) return;
+
+    try {
+      setFavoritoProcesandoId(cursoId);
+
+      const response = await api.patch(`/api/favoritos/${cursoId}/toggle`);
+
+      const esFavorito = Boolean(response.data?.esFavorito);
+      const mensaje =
+        response.data?.mensaje ||
+        (esFavorito
+          ? "Curso agregado a favoritos"
+          : "Curso quitado de favoritos");
+
+      setFavoritosIds((prev) => {
+        const yaExiste = prev.includes(cursoId);
+
+        if (esFavorito && !yaExiste) {
+          return [...prev, cursoId];
+        }
+
+        if (!esFavorito) {
+          return prev.filter((id) => id !== cursoId);
+        }
+
+        return prev;
+      });
+
+      mostrarAvisoCurso(cursoId, mensaje);
+    } catch (error) {
+      console.error("Error al actualizar favorito:", error);
+
+      mostrarAvisoCurso(
+        cursoId,
+        error.response?.data?.mensaje || "No se pudo actualizar el favorito",
+      );
+    } finally {
+      setFavoritoProcesandoId(null);
+    }
+  };
 
   useEffect(() => {
     const obtenerCursos = async () => {
@@ -29,6 +129,10 @@ export default function Home() {
 
     obtenerCursos();
   }, []);
+
+  useEffect(() => {
+    cargarFavoritos();
+  }, [cargarFavoritos]);
 
   const obtenerCategoriaTexto = (curso) => {
     return typeof curso.categoria === "object"
@@ -267,15 +371,17 @@ export default function Home() {
           ) : (
             <div className="featured-courses__grid">
               {cursos.map((curso) => {
+                const cursoId = String(curso._id || curso.id);
                 const categoriaTexto = obtenerCategoriaTexto(curso);
                 const categoriaClase = obtenerCategoriaClase(categoriaTexto);
                 const iniciales = obtenerIniciales(curso, categoriaTexto);
                 const imagenCurso = construirImagenCurso(curso);
+                const esFavorito = favoritosIds.includes(cursoId);
 
                 return (
                   <article
                     className={`course-card ${categoriaClase}`}
-                    key={curso._id || curso.id}
+                    key={cursoId}
                   >
                     <div className="course-card__cover">
                       <span className="course-card__badge">
@@ -284,10 +390,23 @@ export default function Home() {
 
                       <button
                         type="button"
-                        className="course-card__favorite"
-                        aria-label="Agregar a favoritos"
+                        className={`course-card__favorite ${
+                          esFavorito ? "course-card__favorite--active" : ""
+                        }`}
+                        onClick={(e) => handleToggleFavorito(e, cursoId)}
+                        disabled={favoritoProcesandoId === cursoId}
+                        aria-label={
+                          esFavorito
+                            ? "Quitar de favoritos"
+                            : "Agregar a favoritos"
+                        }
+                        title={
+                          esFavorito
+                            ? "Quitar de favoritos"
+                            : "Agregar a favoritos"
+                        }
                       >
-                        ♡
+                        {esFavorito ? "♥" : "♡"}
                       </button>
 
                       {imagenCurso && (
@@ -333,7 +452,11 @@ export default function Home() {
                         )}
 
                         <span className="course-card__rating">
-                          ⭐ {curso.rating || 4.9}
+                          ⭐{" "}
+                          {curso.promedioResenias ||
+                            curso.rating ||
+                            curso.promedio ||
+                            4.9}
                         </span>
                       </div>
 
@@ -342,12 +465,18 @@ export default function Home() {
                       </div>
 
                       <Link
-                        to={`/cursos/${curso._id || curso.id}`}
+                        to={`/cursos/${cursoId}`}
                         className="course-card__link"
                       >
                         Ver curso
                       </Link>
                     </div>
+
+                    {cursoAvisoId === cursoId && (
+                      <div className="course-card__notice">
+                        {cursoAvisoTexto}
+                      </div>
+                    )}
                   </article>
                 );
               })}

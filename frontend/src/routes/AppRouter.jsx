@@ -35,6 +35,7 @@ import PagoFallido from "../pages/PagoFallido";
 import MisCompras from "../pages/MisCompras";
 import AdminCompras from "../pages/AdminCompras";
 import MisCertificados from "../pages/MisCertificados";
+import AdminCupones from "../pages/AdminCupones";
 
 function AppRouter() {
   return (
@@ -177,6 +178,15 @@ function AppRouter() {
           element={
             <ProtectedRoute adminOnly={true}>
               <AdminLecciones />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/cupones"
+          element={
+            <ProtectedRoute adminOnly={true}>
+              <AdminCupones />
             </ProtectedRoute>
           }
         />
