@@ -6,7 +6,7 @@ function Contactos() {
   const [form, setForm] = useState({
     nombre: "",
     email: "",
-    mensaje: "",
+    contenido: "",
   });
 
   const [enviando, setEnviando] = useState(false);
@@ -37,7 +37,7 @@ function Contactos() {
       setForm({
         nombre: "",
         email: "",
-        mensaje: "",
+        contenido: "",
       });
     } catch (error) {
       console.error(error);
@@ -87,10 +87,10 @@ function Contactos() {
             </div>
 
             <textarea
-              name="mensaje"
+              name="contenido"
               placeholder="💬 Mensaje"
               rows="5"
-              value={form.mensaje}
+              value={form.contenido}
               onChange={handleChange}
               required
             />

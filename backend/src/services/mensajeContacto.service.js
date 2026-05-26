@@ -18,7 +18,7 @@ const marcarComoLeido = async (id) => {
   return await Mensaje.findByIdAndUpdate(
     id,
     { estado: EstadoMensaje.LEIDO },
-    { new: true }
+    { new: true },
   );
 };
 
@@ -26,7 +26,7 @@ const marcarComoRespondido = async (id) => {
   return await Mensaje.findByIdAndUpdate(
     id,
     { estado: EstadoMensaje.RESPONDIDO },
-    { new: true }
+    { new: true },
   );
 };
 
@@ -34,7 +34,7 @@ const eliminarMensaje = async (id) => {
   return await Mensaje.findByIdAndUpdate(
     id,
     { estado: EstadoMensaje.ELIMINADO },
-    { new: true }
+    { new: true },
   );
 };
 
@@ -44,5 +44,5 @@ module.exports = {
   buscarMensajePorId,
   marcarComoLeido,
   marcarComoRespondido,
-  eliminarMensaje
+  eliminarMensaje,
 };

@@ -10,29 +10,63 @@ const crearMensaje = async (req, res) => {
 };
 
 const listarMensajes = async (req, res) => {
-  const mensajes = await service.listarMensajes();
-  res.json(mensajes);
+  try {
+    const mensajes = await service.listarMensajes();
+    res.json(mensajes);
+  } catch (error) {
+    res.status(500).json({
+      mensaje: error.message || "No se pudieron listar los mensajes",
+    });
+  }
 };
 
 const buscarMensajePorId = async (req, res) => {
-  const mensaje = await service.buscarMensajePorId(req.params.id);
-  if (!mensaje) return res.status(404).json({ error: "No encontrado" });
-  res.json(mensaje);
+  try {
+    const mensaje = await service.buscarMensajePorId(req.params.id);
+
+    if (!mensaje) {
+      return res.status(404).json({ error: "No encontrado" });
+    }
+
+    res.json(mensaje);
+  } catch (error) {
+    res.status(400).json({
+      mensaje: error.message || "No se pudo buscar el mensaje",
+    });
+  }
 };
 
 const marcarComoLeido = async (req, res) => {
-  const mensaje = await service.marcarComoLeido(req.params.id);
-  res.json(mensaje);
+  try {
+    const mensaje = await service.marcarComoLeido(req.params.id);
+    res.json(mensaje);
+  } catch (error) {
+    res.status(400).json({
+      mensaje: error.message || "No se pudo marcar como leído",
+    });
+  }
 };
 
 const marcarComoRespondido = async (req, res) => {
-  const mensaje = await service.marcarComoRespondido(req.params.id);
-  res.json(mensaje);
+  try {
+    const mensaje = await service.marcarComoRespondido(req.params.id);
+    res.json(mensaje);
+  } catch (error) {
+    res.status(400).json({
+      mensaje: error.message || "No se pudo marcar como respondido",
+    });
+  }
 };
 
 const eliminarMensaje = async (req, res) => {
-  const mensaje = await service.eliminarMensaje(req.params.id);
-  res.json(mensaje);
+  try {
+    const mensaje = await service.eliminarMensaje(req.params.id);
+    res.json(mensaje);
+  } catch (error) {
+    res.status(400).json({
+      mensaje: error.message || "No se pudo eliminar el mensaje",
+    });
+  }
 };
 
 module.exports = {
@@ -41,5 +75,5 @@ module.exports = {
   buscarMensajePorId,
   marcarComoLeido,
   marcarComoRespondido,
-  eliminarMensaje
+  eliminarMensaje,
 };

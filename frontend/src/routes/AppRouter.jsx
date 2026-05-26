@@ -36,6 +36,7 @@ import MisCompras from "../pages/MisCompras";
 import AdminCompras from "../pages/AdminCompras";
 import MisCertificados from "../pages/MisCertificados";
 import AdminCupones from "../pages/AdminCupones";
+import AdminMensajes from "../pages/AdminMensajes";
 
 function AppRouter() {
   return (
@@ -127,7 +128,14 @@ function AppRouter() {
             </ProtectedRoute>
           }
         />
-
+        <Route
+          path="/admin/mensajes"
+          element={
+            <ProtectedRoute adminOnly>
+              <AdminMensajes />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/pago-exitoso"
           element={

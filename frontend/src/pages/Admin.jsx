@@ -79,6 +79,14 @@ function Admin() {
       keywords: "cupon cupones descuento descuentos promocion codigo",
     },
     {
+      titulo: "Mensajes",
+      descripcion: "Consultar mensajes de contacto",
+      icono: "💬",
+      ruta: "/admin/mensajes",
+      color: "cyan",
+      keywords: "mensajes contacto consultas no leido leido respondido",
+    },
+    {
       titulo: "Blog",
       descripcion: "Publicaciones y noticias",
       icono: "📝",
@@ -335,6 +343,10 @@ function Admin() {
 
           <button onClick={() => navigate("/admin/cupones")}>🏷️ Cupones</button>
 
+          <button onClick={() => navigate("/admin/mensajes")}>
+            💬 Mensajes
+          </button>
+
           <button disabled className="disabled">
             📝 Blog
           </button>
@@ -388,8 +400,8 @@ function Admin() {
               <h1>Panel de administración</h1>
 
               <p>
-                Gestioná cursos, usuarios, pagos, compras, lecciones, cupones y
-                contenido desde un solo lugar.
+                Gestioná cursos, usuarios, pagos, compras, lecciones, cupones,
+                mensajes y contenido desde un solo lugar.
               </p>
 
               <small className="admin-last-update">
