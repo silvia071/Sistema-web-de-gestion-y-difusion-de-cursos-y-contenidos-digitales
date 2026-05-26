@@ -1172,8 +1172,29 @@
     align-items: stretch;
   }
 
+
   .btn-eliminar {
     width: 100%;
+    height: 40px;
+    border-radius: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    font-size: 0;
+  }
+
+  .btn-eliminar::before {
+    content: "🗑";
+    font-size: 0.9rem;
+    line-height: 1;
+  }
+
+  .btn-eliminar::after {
+    content: "Eliminar curso";
+    font-size: 0.82rem;
+    font-weight: 850;
+    line-height: 1;
   }
 
   .carrito-cupon {

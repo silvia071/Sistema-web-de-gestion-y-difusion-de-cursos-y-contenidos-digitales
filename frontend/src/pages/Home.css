@@ -2128,3 +2128,128 @@
     padding-bottom: 48px;
   }
 }
+
+@media (max-width: 380px) {
+  .hero-home {
+    padding: 22px 0 42px;
+  }
+
+  .hero-home__content {
+    width: min(100% - 26px, 1180px);
+  }
+
+  .hero-home__eyebrow {
+    max-width: 100%;
+    padding: 6px 10px;
+    font-size: 0.58rem;
+    letter-spacing: 0.06em;
+    text-align: center;
+    justify-content: center;
+  }
+
+  .hero-home__title {
+    font-size: clamp(2rem, 12vw, 2.55rem);
+    line-height: 0.98;
+    letter-spacing: -0.055em;
+    margin-bottom: 14px;
+  }
+
+  .hero-home__text {
+    font-size: 0.88rem;
+    line-height: 1.42;
+    margin-bottom: 18px;
+  }
+
+  .hero-home__actions {
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+
+  .hero-home__btn {
+    min-height: 42px;
+    font-size: 0.86rem;
+  }
+
+  .hero-home__stats {
+    gap: 8px;
+  }
+
+  .hero-home__stat {
+    padding: 11px 10px;
+  }
+
+  .hero-home__stat strong {
+    font-size: 1.12rem;
+  }
+
+  .hero-home__stat span {
+    font-size: 0.72rem;
+  }
+
+  .benefits-strip {
+    margin-top: -18px;
+  }
+
+  .featured-courses {
+    padding-top: 42px;
+  }
+}
+
+@media (max-width: 340px) {
+  .hero-home {
+    padding: 14px 0 28px;
+  }
+
+  .hero-home__content {
+    width: min(100% - 24px, 1180px);
+  }
+
+  .hero-home__eyebrow {
+    margin-bottom: 10px;
+    padding: 5px 9px;
+    font-size: 0.5rem;
+    letter-spacing: 0.05em;
+    line-height: 1.2;
+  }
+
+  .hero-home__title {
+    font-size: clamp(1.48rem, 10.5vw, 1.95rem);
+    line-height: 1.03;
+    letter-spacing: -0.04em;
+    margin-bottom: 10px;
+  }
+
+  .hero-home__text {
+    font-size: 0.76rem;
+    line-height: 1.34;
+    margin-bottom: 12px;
+  }
+
+  .hero-home__actions {
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .hero-home__btn {
+    min-height: 36px;
+    padding: 7px 12px;
+    font-size: 0.76rem;
+    border-radius: 11px;
+  }
+
+  .hero-home__stats {
+    display: none;
+  }
+
+  .hero-home__right {
+    display: none;
+  }
+
+  .benefits-strip {
+    margin-top: -10px;
+  }
+
+  .featured-courses {
+    padding-top: 36px;
+  }
+}

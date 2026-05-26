@@ -564,8 +564,9 @@
   }
 
   .admin-cupones-main {
-    padding: 18px;
-    overflow: visible;
+    width: 100%;
+    max-width: 100%;
+    padding: 14px 12px 24px;
   }
 
   .admin-cupones-topbar,
@@ -592,5 +593,62 @@
 
   .admin-cupones-user-pill {
     justify-content: flex-start;
+  }
+
+  .admin-cupones-content {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  .admin-cupones-panel {
+    width: 100%;
+    max-width: 100%;
+    padding: 16px 14px;
+    overflow: hidden;
+  }
+
+  .admin-cupones-form {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .admin-cupones-field,
+  .admin-cupones-form-row {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .admin-cupones-field input,
+  .admin-cupones-field select {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .admin-cupones-form-actions {
+    width: 100%;
+    grid-template-columns: 1fr;
+  }
+
+  .admin-cupones-form-actions button {
+    width: 100%;
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 380px) {
+  .admin-cupones-main {
+    padding: 12px 10px 22px;
+  }
+
+  .admin-cupones-panel {
+    padding: 15px 12px;
+    border-radius: 20px;
+  }
+
+  .admin-cupones-form-actions button {
+    min-height: 38px;
+    font-size: 0.82rem;
   }
 }
