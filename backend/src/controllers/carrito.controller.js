@@ -95,6 +95,8 @@ const agregarItem = async (req, res) => {
       error.message.includes("no activo") ||
       error.message.includes("ya está en el carrito") ||
       error.message.includes("ya tenés acceso") ||
+      error.message.includes("compra pendiente") ||
+      error.message.includes("disponible") ||
       error.message.includes("obligatorio")
     ) {
       return res.status(400).json({ error: error.message });
@@ -186,15 +188,19 @@ const calcularTotal = async (req, res) => {
       });
     }
 
-    const total = await carritoService.calcularTotalCarrito(
+    const resumen = await carritoService.calcularTotalCarrito(
       idCarrito,
       usuarioId,
     );
 
-    return res.json({ total });
+    return res.json(resumen);
   } catch (error) {
     if (error.message.includes("no encontrado")) {
       return res.status(404).json({ error: error.message });
+    }
+
+    if (error.message.includes("no activo")) {
+      return res.status(400).json({ error: error.message });
     }
 
     if (error.message.includes("permiso")) {

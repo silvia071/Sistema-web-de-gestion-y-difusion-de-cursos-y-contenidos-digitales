@@ -8,35 +8,63 @@ const compraSchema = new mongoose.Schema(
       ref: "Usuario",
       required: true,
     },
+
     detalles: [
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "DetalleCompra",
       },
     ],
+
     estado: {
       type: String,
       enum: Object.values(EstadoCompra).filter((v) => typeof v === "string"),
       default: EstadoCompra.PENDIENTE,
     },
+
     subtotal: {
       type: Number,
       default: 0,
+      min: 0,
     },
+
+    descuento: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+
     total: {
       type: Number,
       default: 0,
+      min: 0,
     },
+
+    cupon: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Cupon",
+      default: null,
+    },
+
+    codigoCuponAplicado: {
+      type: String,
+      trim: true,
+      uppercase: true,
+      default: null,
+    },
+
     pago: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Pago",
       default: null,
     },
+
     datosFacturacion: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "DatosFacturacion",
       default: null,
     },
+
     fechaCompra: {
       type: Date,
       default: Date.now,

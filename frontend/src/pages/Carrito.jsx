@@ -1,13 +1,17 @@
 import "./Carrito.css";
 import { useCarrito } from "../context/CarritoContext";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import api from "../services/api";
 
 function tokenValido(token) {
   return (
     token && token !== "null" && token !== "undefined" && token.trim() !== ""
   );
+}
+
+function formatearPrecio(valor) {
+  return Number(valor || 0).toLocaleString("es-AR");
 }
 
 function Carrito() {
@@ -28,6 +32,23 @@ function Carrito() {
   const [procesando, setProcesando] = useState(false);
   const [procesandoPagoVisual, setProcesandoPagoVisual] = useState(false);
 
+  const [codigoCupon, setCodigoCupon] = useState("");
+  const [aplicandoCupon, setAplicandoCupon] = useState(false);
+  const [quitandoCupon, setQuitandoCupon] = useState(false);
+  const [mensajeCupon, setMensajeCupon] = useState("");
+
+  const subtotalVisual = carrito.reduce(
+    (acc, item) => acc + Number(item.precio || 0),
+    0,
+  );
+
+  const [resumenCompra, setResumenCompra] = useState({
+    subtotal: subtotalVisual,
+    descuento: 0,
+    totalFinal: subtotalVisual,
+    codigoCuponAplicado: null,
+  });
+
   const [modal, setModal] = useState({
     visible: false,
     titulo: "",
@@ -39,10 +60,48 @@ function Carrito() {
     mostrarCancelar: false,
   });
 
-  const subtotal = carrito.reduce(
-    (acc, item) => acc + Number(item.precio || 0),
-    0,
-  );
+  const obtenerResumenCarrito = useCallback(async () => {
+    if (!carritoBackend?._id || carrito.length === 0) {
+      setResumenCompra({
+        subtotal: subtotalVisual,
+        descuento: 0,
+        totalFinal: subtotalVisual,
+        codigoCuponAplicado: null,
+      });
+
+      return;
+    }
+
+    try {
+      const { data } = await api.get(
+        `/api/carrito/${carritoBackend._id}/total`,
+      );
+
+      setResumenCompra({
+        subtotal: Number(data.subtotal || 0),
+        descuento: Number(data.descuento || 0),
+        totalFinal: Number(data.totalFinal || data.subtotal || 0),
+        codigoCuponAplicado: data.codigoCuponAplicado || null,
+      });
+
+      if (data.codigoCuponAplicado) {
+        setCodigoCupon(data.codigoCuponAplicado);
+      }
+    } catch (error) {
+      console.error("Error al obtener resumen del carrito:", error);
+
+      setResumenCompra({
+        subtotal: subtotalVisual,
+        descuento: 0,
+        totalFinal: subtotalVisual,
+        codigoCuponAplicado: null,
+      });
+    }
+  }, [carritoBackend?._id, carrito.length, subtotalVisual]);
+
+  useEffect(() => {
+    obtenerResumenCarrito();
+  }, [obtenerResumenCarrito]);
 
   useEffect(() => {
     const obtenerMetodosPago = async () => {
@@ -125,6 +184,95 @@ function Carrito() {
 
     if (accion) {
       await accion();
+    }
+  };
+
+  const handleAplicarCupon = async () => {
+    if (procesando || procesandoPagoVisual || aplicandoCupon) return;
+
+    const codigo = codigoCupon.trim().toUpperCase();
+
+    if (!codigo) {
+      setMensajeCupon("Ingresá un código de cupón.");
+
+      return;
+    }
+
+    if (!carritoBackend?._id) {
+      setMensajeCupon("No se pudo obtener el carrito activo.");
+
+      return;
+    }
+
+    try {
+      setAplicandoCupon(true);
+      setMensajeCupon("");
+
+      const { data } = await api.post("/api/cupones/aplicar", {
+        codigo,
+        carritoId: carritoBackend._id,
+      });
+
+      setResumenCompra({
+        subtotal: Number(data.subtotal || 0),
+        descuento: Number(data.descuento || 0),
+        totalFinal: Number(data.totalFinal || 0),
+        codigoCuponAplicado: data.codigo || codigo,
+      });
+
+      setCodigoCupon(data.codigo || codigo);
+      setMensajeCupon("Cupón aplicado correctamente.");
+    } catch (error) {
+      console.error("Error al aplicar cupón:", error);
+
+      const mensajeBackend =
+        error.response?.data?.mensaje ||
+        error.response?.data?.error ||
+        "No se pudo aplicar el cupón.";
+
+      setMensajeCupon(mensajeBackend);
+    } finally {
+      setAplicandoCupon(false);
+    }
+  };
+
+  const handleQuitarCupon = async () => {
+    if (procesando || procesandoPagoVisual || quitandoCupon) return;
+
+    if (!carritoBackend?._id) {
+      setMensajeCupon("No se pudo obtener el carrito activo.");
+
+      return;
+    }
+
+    try {
+      setQuitandoCupon(true);
+      setMensajeCupon("");
+
+      const { data } = await api.delete(
+        `/api/cupones/carrito/${carritoBackend._id}`,
+      );
+
+      setResumenCompra({
+        subtotal: Number(data.subtotal || subtotalVisual),
+        descuento: 0,
+        totalFinal: Number(data.totalFinal || data.subtotal || subtotalVisual),
+        codigoCuponAplicado: null,
+      });
+
+      setCodigoCupon("");
+      setMensajeCupon("Cupón quitado correctamente.");
+    } catch (error) {
+      console.error("Error al quitar cupón:", error);
+
+      const mensajeBackend =
+        error.response?.data?.mensaje ||
+        error.response?.data?.error ||
+        "No se pudo quitar el cupón.";
+
+      setMensajeCupon(mensajeBackend);
+    } finally {
+      setQuitandoCupon(false);
     }
   };
 
@@ -291,6 +439,15 @@ function Carrito() {
       tipo: "warning",
       accion: async () => {
         await vaciarCarrito();
+
+        setCodigoCupon("");
+        setMensajeCupon("");
+        setResumenCompra({
+          subtotal: 0,
+          descuento: 0,
+          totalFinal: 0,
+          codigoCuponAplicado: null,
+        });
       },
       textoConfirmar: "Sí, vaciar carrito",
       textoCancelar: "Cancelar",
@@ -311,6 +468,10 @@ function Carrito() {
       accion: async () => {
         await eliminarDelCarrito(itemId);
 
+        setCodigoCupon("");
+        setMensajeCupon("");
+        await obtenerResumenCarrito();
+
         mostrarModal({
           titulo: "Curso eliminado",
           mensaje: `"${tituloCurso}" fue eliminado del carrito.`,
@@ -323,6 +484,11 @@ function Carrito() {
       mostrarCancelar: true,
     });
   };
+
+  const cuponAplicado = Boolean(resumenCompra.codigoCuponAplicado);
+  const descuento = Number(resumenCompra.descuento || 0);
+  const subtotal = Number(resumenCompra.subtotal || subtotalVisual || 0);
+  const totalFinal = Number(resumenCompra.totalFinal || subtotal || 0);
 
   return (
     <section className="carrito-page">
@@ -453,7 +619,7 @@ function Carrito() {
 
                   <div className="carrito-acciones">
                     <p className="carrito-total-item">
-                      ${Number(item.precio || 0).toLocaleString("es-AR")}
+                      ${formatearPrecio(item.precio)}
                     </p>
 
                     <button
@@ -471,15 +637,78 @@ function Carrito() {
               );
             })}
 
-            <div className="carrito-cupon">
-              <div className="carrito-cupon-icono">＋</div>
+            <div className="carrito-cupon carrito-cupon-activo">
+              <div className="carrito-cupon-icono">%</div>
 
-              <div>
+              <div className="carrito-cupon-contenido">
                 <h3>¿Tenés un cupón de descuento?</h3>
-                <p>Podés aplicarlo en el siguiente paso de pago.</p>
-              </div>
+                <p>
+                  Ingresá tu código y aplicá el descuento directamente sobre el
+                  total del carrito.
+                </p>
 
-              <span className="carrito-cupon-flecha">›</span>
+                <div className="carrito-cupon-form">
+                  <input
+                    type="text"
+                    value={codigoCupon}
+                    onChange={(e) => {
+                      setCodigoCupon(e.target.value.toUpperCase());
+                      setMensajeCupon("");
+                    }}
+                    placeholder="Ej: DESCUENTO10"
+                    disabled={
+                      procesando ||
+                      procesandoPagoVisual ||
+                      aplicandoCupon ||
+                      quitandoCupon ||
+                      cuponAplicado
+                    }
+                  />
+
+                  {!cuponAplicado ? (
+                    <button
+                      type="button"
+                      onClick={handleAplicarCupon}
+                      disabled={
+                        procesando ||
+                        procesandoPagoVisual ||
+                        aplicandoCupon ||
+                        !codigoCupon.trim()
+                      }
+                    >
+                      {aplicandoCupon ? "Aplicando..." : "Aplicar"}
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      className="carrito-cupon-quitar"
+                      onClick={handleQuitarCupon}
+                      disabled={
+                        procesando || procesandoPagoVisual || quitandoCupon
+                      }
+                    >
+                      {quitandoCupon ? "Quitando..." : "Quitar"}
+                    </button>
+                  )}
+                </div>
+
+                {mensajeCupon && (
+                  <p
+                    className={`carrito-cupon-mensaje ${
+                      cuponAplicado ? "exito" : "error"
+                    }`}
+                  >
+                    {mensajeCupon}
+                  </p>
+                )}
+
+                {cuponAplicado && (
+                  <p className="carrito-cupon-aplicado">
+                    Cupón aplicado:{" "}
+                    <strong>{resumenCompra.codigoCuponAplicado}</strong>
+                  </p>
+                )}
+              </div>
             </div>
           </div>
 
@@ -493,12 +722,24 @@ function Carrito() {
 
             <div className="resumen-linea">
               <span>Subtotal</span>
-              <strong>${subtotal.toLocaleString("es-AR")}</strong>
+              <strong>${formatearPrecio(subtotal)}</strong>
             </div>
+
+            {descuento > 0 && (
+              <div className="resumen-linea resumen-descuento">
+                <span>
+                  Descuento
+                  {resumenCompra.codigoCuponAplicado
+                    ? ` (${resumenCompra.codigoCuponAplicado})`
+                    : ""}
+                </span>
+                <strong>- ${formatearPrecio(descuento)}</strong>
+              </div>
+            )}
 
             <div className="resumen-total">
               <span>Total</span>
-              <strong>${subtotal.toLocaleString("es-AR")}</strong>
+              <strong>${formatearPrecio(totalFinal)}</strong>
             </div>
 
             <div className="metodos-pago">

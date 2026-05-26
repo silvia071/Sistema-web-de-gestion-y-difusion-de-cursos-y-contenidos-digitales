@@ -45,6 +45,7 @@ const accesoCursoRoutes = require("./routes/accesoCurso.route");
 const adminRoutes = require("./routes/admin.route");
 const favoritoRoutes = require("./routes/favorito.route");
 const reseniaRoutes = require("./routes/resenia.route");
+const cuponRoutes = require("./routes/cupon.route");
 
 app.use("/api/auth", authRoutes);
 app.use("/api/usuarios", usuarioRoutes);
@@ -62,6 +63,7 @@ app.use("/api/compra", compraRoutes);
 app.use("/api/accesos", accesoCursoRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/favoritos", favoritoRoutes);
+app.use("/api/cupones", cuponRoutes);
 app.get("/api/publicaciones/prueba-app", (req, res) => {
   res.json({ mensaje: "PRUEBA DIRECTA EN APP OK" });
 });

@@ -15,6 +15,25 @@ const carritoSchema = new mongoose.Schema({
     },
   ],
 
+  cupon: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Cupon",
+    default: null,
+  },
+
+  descuentoAplicado: {
+    type: Number,
+    default: 0,
+    min: 0,
+  },
+
+  codigoCuponAplicado: {
+    type: String,
+    trim: true,
+    uppercase: true,
+    default: null,
+  },
+
   estado: {
     type: String,
     enum: Object.values(EstadoCarrito).filter((v) => typeof v === "string"),
@@ -56,6 +75,31 @@ carritoSchema.methods.vaciar = function () {
   }
 
   this.items = [];
+  this.cupon = null;
+  this.descuentoAplicado = 0;
+  this.codigoCuponAplicado = null;
+  this.fechaActualizacion = Date.now();
+};
+
+carritoSchema.methods.aplicarCupon = function (cupon, descuento) {
+  if (!EstadoCarrito.esEditable(this.estado)) {
+    throw new Error("El carrito no está abierto");
+  }
+
+  this.cupon = cupon._id;
+  this.codigoCuponAplicado = cupon.codigo;
+  this.descuentoAplicado = descuento;
+  this.fechaActualizacion = Date.now();
+};
+
+carritoSchema.methods.quitarCupon = function () {
+  if (!EstadoCarrito.esEditable(this.estado)) {
+    throw new Error("El carrito no está abierto");
+  }
+
+  this.cupon = null;
+  this.descuentoAplicado = 0;
+  this.codigoCuponAplicado = null;
   this.fechaActualizacion = Date.now();
 };
 

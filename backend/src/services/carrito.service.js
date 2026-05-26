@@ -5,6 +5,7 @@ const Curso = require("../models/curso.model");
 const AccesoCurso = require("../models/accesoCurso.model");
 const Compra = require("../models/compra.model");
 const DetalleCompra = require("../models/detalleCompra.model");
+const Cupon = require("../models/cupon.model");
 
 const validarPropietarioCarrito = (carrito, usuarioId) => {
   if (!usuarioId) {
@@ -14,6 +15,39 @@ const validarPropietarioCarrito = (carrito, usuarioId) => {
   if (carrito.usuario.toString() !== usuarioId.toString()) {
     throw new Error("No tenés permiso para operar este carrito");
   }
+};
+
+const calcularResumenCarrito = async (carrito) => {
+  let subtotal = 0;
+
+  carrito.items.forEach((item) => {
+    subtotal += Number(item.precioUnitario || 0);
+  });
+
+  let descuento = 0;
+  let codigoCuponAplicado = carrito.codigoCuponAplicado || null;
+
+  if (carrito.cupon) {
+    const cuponId = carrito.cupon._id || carrito.cupon;
+    const cupon = await Cupon.findById(cuponId);
+
+    if (cupon && cupon.estaVigente()) {
+      descuento = cupon.calcularDescuento(subtotal);
+      codigoCuponAplicado = cupon.codigo;
+    } else {
+      descuento = 0;
+      codigoCuponAplicado = null;
+    }
+  }
+
+  const totalFinal = Math.max(subtotal - descuento, 0);
+
+  return {
+    subtotal,
+    descuento,
+    totalFinal,
+    codigoCuponAplicado,
+  };
 };
 
 const crearCarrito = async (usuarioId) => {
@@ -43,12 +77,14 @@ const crearCarrito = async (usuarioId) => {
 };
 
 const obtenerCarritoActivo = async (id, usuarioId) => {
-  const carrito = await Carrito.findById(id).populate({
-    path: "items",
-    populate: {
-      path: "curso",
-    },
-  });
+  const carrito = await Carrito.findById(id)
+    .populate({
+      path: "items",
+      populate: {
+        path: "curso",
+      },
+    })
+    .populate("cupon");
 
   if (!carrito) throw new Error("Carrito no encontrado");
 
@@ -135,14 +171,21 @@ const agregarCursoAlCarrito = async (idCarrito, idCurso, usuarioId) => {
   });
 
   carrito.agregarItem(item._id);
+
+  if (typeof carrito.quitarCupon === "function") {
+    carrito.quitarCupon();
+  }
+
   await carrito.save();
 
-  return await Carrito.findById(idCarrito).populate({
-    path: "items",
-    populate: {
-      path: "curso",
-    },
-  });
+  return await Carrito.findById(idCarrito)
+    .populate({
+      path: "items",
+      populate: {
+        path: "curso",
+      },
+    })
+    .populate("cupon");
 };
 
 const eliminarItemDelCarrito = async (idCarrito, idItem, usuarioId) => {
@@ -159,16 +202,23 @@ const eliminarItemDelCarrito = async (idCarrito, idItem, usuarioId) => {
   }
 
   carrito.eliminarItem(idItem);
+
+  if (typeof carrito.quitarCupon === "function") {
+    carrito.quitarCupon();
+  }
+
   await carrito.save();
 
   await ItemCarrito.findByIdAndDelete(idItem);
 
-  return await Carrito.findById(idCarrito).populate({
-    path: "items",
-    populate: {
-      path: "curso",
-    },
-  });
+  return await Carrito.findById(idCarrito)
+    .populate({
+      path: "items",
+      populate: {
+        path: "curso",
+      },
+    })
+    .populate("cupon");
 };
 
 const vaciarCarrito = async (idCarrito, usuarioId) => {
@@ -193,16 +243,20 @@ const vaciarCarrito = async (idCarrito, usuarioId) => {
     _id: { $in: itemsIds },
   });
 
-  return await Carrito.findById(idCarrito).populate({
-    path: "items",
-    populate: {
-      path: "curso",
-    },
-  });
+  return await Carrito.findById(idCarrito)
+    .populate({
+      path: "items",
+      populate: {
+        path: "curso",
+      },
+    })
+    .populate("cupon");
 };
 
 const calcularTotalCarrito = async (idCarrito, usuarioId) => {
-  const carrito = await Carrito.findById(idCarrito).populate("items");
+  const carrito = await Carrito.findById(idCarrito)
+    .populate("items")
+    .populate("cupon");
 
   if (!carrito) {
     throw new Error("Carrito no encontrado");
@@ -210,13 +264,11 @@ const calcularTotalCarrito = async (idCarrito, usuarioId) => {
 
   validarPropietarioCarrito(carrito, usuarioId);
 
-  let total = 0;
+  if (carrito.estado !== EstadoCarrito.ABIERTO) {
+    throw new Error("Carrito no activo");
+  }
 
-  carrito.items.forEach((item) => {
-    total += Number(item.precioUnitario || 0);
-  });
-
-  return total;
+  return await calcularResumenCarrito(carrito);
 };
 
 module.exports = {
@@ -226,4 +278,5 @@ module.exports = {
   eliminarItemDelCarrito,
   vaciarCarrito,
   calcularTotalCarrito,
+  calcularResumenCarrito,
 };

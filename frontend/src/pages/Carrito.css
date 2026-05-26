@@ -306,21 +306,28 @@
 
 /* CUPÓN */
 
+/* CUPÓN */
+
 .carrito-cupon {
   display: grid;
-  grid-template-columns: 52px minmax(0, 1fr) 24px;
-  align-items: center;
-  gap: 18px;
-  padding: 17px 22px;
+  grid-template-columns: 52px minmax(0, 1fr);
+  align-items: flex-start;
+  gap: 16px;
+  padding: 14px 20px;
   border-radius: 22px;
   border: 1px dashed rgba(96, 165, 250, 0.44);
   background:
     radial-gradient(
       circle at top left,
-      rgba(59, 130, 246, 0.1),
+      rgba(59, 130, 246, 0.12),
       transparent 30%
     ),
-    rgba(15, 23, 42, 0.3);
+    radial-gradient(
+      circle at bottom right,
+      rgba(124, 58, 237, 0.12),
+      transparent 34%
+    ),
+    rgba(15, 23, 42, 0.34);
   color: white;
   transition:
     border-color 0.22s ease,
@@ -331,20 +338,24 @@
 .carrito-cupon:hover {
   transform: translateY(-2px);
   border-color: rgba(167, 139, 250, 0.58);
-  background: rgba(30, 41, 59, 0.34);
+  background: rgba(30, 41, 59, 0.38);
 }
 
 .carrito-cupon-icono {
   display: grid;
   place-items: center;
-  width: 52px;
-  height: 52px;
-  border-radius: 16px;
+  width: 46px;
+  height: 46px;
+  border-radius: 15px;
   background: rgba(124, 58, 237, 0.24);
   border: 1px solid rgba(167, 139, 250, 0.28);
   color: #c4b5fd;
-  font-size: 1.25rem;
+  font-size: 1.12rem;
   font-weight: 950;
+}
+
+.carrito-cupon-contenido {
+  min-width: 0;
 }
 
 .carrito-cupon h3 {
@@ -358,13 +369,124 @@
   margin: 0;
   color: #cbd5e1;
   font-size: 0.84rem;
+  line-height: 1.35;
 }
 
-.carrito-cupon-flecha {
-  color: #a78bfa;
-  font-size: 1.8rem;
+.carrito-cupon-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 112px;
+  gap: 10px;
+  margin-top: 10px;
 }
 
+.carrito-cupon-form input {
+  width: 100%;
+  min-height: 38px;
+  padding: 0 14px;
+  border-radius: 13px;
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  outline: none;
+  background: rgba(15, 23, 42, 0.72);
+  color: white;
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  transition:
+    border-color 0.22s ease,
+    box-shadow 0.22s ease,
+    background 0.22s ease;
+}
+
+.carrito-cupon-form input::placeholder {
+  color: rgba(203, 213, 225, 0.58);
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.carrito-cupon-form input:focus {
+  border-color: rgba(96, 165, 250, 0.72);
+  background: rgba(15, 23, 42, 0.92);
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.14);
+}
+
+.carrito-cupon-form input:disabled {
+  opacity: 0.74;
+  cursor: not-allowed;
+}
+
+.carrito-cupon-form button {
+  min-height: 38px;
+  border: none;
+  border-radius: 13px;
+  padding: 0 14px;
+  background: linear-gradient(135deg, #3b82f6, #7c3aed);
+  color: white;
+  font-size: 0.78rem;
+  font-weight: 950;
+  cursor: pointer;
+  box-shadow: 0 14px 28px rgba(59, 130, 246, 0.24);
+  transition:
+    transform 0.22s ease,
+    box-shadow 0.22s ease,
+    opacity 0.22s ease;
+}
+
+.carrito-cupon-form button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 36px rgba(59, 130, 246, 0.34);
+}
+
+.carrito-cupon-form button:disabled {
+  opacity: 0.62;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.carrito-cupon-form .carrito-cupon-quitar {
+  background: rgba(239, 68, 68, 0.18);
+  border: 1px solid rgba(248, 113, 113, 0.38);
+  color: #fecaca;
+  box-shadow: none;
+}
+
+.carrito-cupon-form .carrito-cupon-quitar:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.28);
+  color: white;
+  box-shadow: 0 14px 28px rgba(239, 68, 68, 0.18);
+}
+
+.carrito-cupon-mensaje {
+  margin-top: 9px !important;
+  font-size: 0.78rem !important;
+  font-weight: 800;
+}
+
+.carrito-cupon-mensaje.exito {
+  color: #86efac !important;
+}
+
+.carrito-cupon-mensaje.error {
+  color: #fca5a5 !important;
+}
+
+.carrito-cupon-aplicado {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px !important;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(34, 197, 94, 0.13);
+  border: 1px solid rgba(74, 222, 128, 0.26);
+  color: #bbf7d0 !important;
+  font-size: 0.76rem !important;
+  font-weight: 850;
+}
+
+.carrito-cupon-aplicado strong {
+  color: #ffffff;
+}
 /* RESUMEN */
 
 .carrito-resumen {
@@ -430,6 +552,14 @@
 
 .resumen-linea strong {
   color: #f8fafc;
+}
+
+.resumen-descuento {
+  color: #bbf7d0;
+}
+
+.resumen-descuento strong {
+  color: #86efac;
 }
 
 .resumen-total {
@@ -1058,6 +1188,23 @@
   .carrito-resumen {
     padding: 22px;
   }
+
+  .carrito-cupon {
+  grid-template-columns: 1fr;
+}
+
+.carrito-cupon-icono {
+  width: 48px;
+  height: 48px;
+}
+
+.carrito-cupon-form {
+  grid-template-columns: 1fr;
+}
+
+.carrito-cupon-form button {
+  width: 100%;
+}
 
   .resumen-header {
     flex-direction: column;

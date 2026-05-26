@@ -1,6 +1,7 @@
 const Compra = require("../models/compra.model");
 const DetalleCompra = require("../models/detalleCompra.model");
 const AccesoCurso = require("../models/accesoCurso.model");
+const Cupon = require("../models/cupon.model");
 const EstadoCompra = require("../enums/estadoCompra");
 
 const ESTADOS_COMPRA_PENDIENTES = [EstadoCompra.PENDIENTE, "EN_PROCESO"];
@@ -36,6 +37,45 @@ const validarCompraPendiente = async (usuarioId, cursoId) => {
       "Ya tenés una compra pendiente de aprobación para uno de los cursos del carrito",
     );
   }
+};
+
+const validarYCalcularDescuento = async (carrito, subtotal) => {
+  if (!carrito.cupon) {
+    return {
+      cupon: null,
+      codigoCuponAplicado: null,
+      descuentoAplicado: 0,
+      total: subtotal,
+    };
+  }
+
+  const cuponId = carrito.cupon._id || carrito.cupon;
+
+  const cupon = await Cupon.findById(cuponId);
+
+  if (!cupon) {
+    throw new Error("El cupón aplicado al carrito ya no existe");
+  }
+
+  if (!cupon.estaVigente()) {
+    throw new Error("El cupón aplicado ya no está vigente");
+  }
+
+  if (subtotal < cupon.montoMinimoCompra) {
+    throw new Error(
+      `El cupón requiere una compra mínima de $${cupon.montoMinimoCompra}`,
+    );
+  }
+
+  const descuentoCalculado = cupon.calcularDescuento(subtotal);
+  const total = Math.max(subtotal - descuentoCalculado, 0);
+
+  return {
+    cupon: cupon._id,
+    codigoCuponAplicado: cupon.codigo,
+    descuentoAplicado: descuentoCalculado,
+    total,
+  };
 };
 
 const generarCompraDesdeCarrito = async (carrito, usuarioId) => {
@@ -95,11 +135,16 @@ const generarCompraDesdeCarrito = async (carrito, usuarioId) => {
     detallesIds.push(detalle._id);
   }
 
+  const datosDescuento = await validarYCalcularDescuento(carrito, subtotal);
+
   const compra = await Compra.create({
     usuario: usuarioId,
     detalles: detallesIds,
     subtotal,
-    total: subtotal,
+    descuento: datosDescuento.descuentoAplicado,
+    total: datosDescuento.total,
+    cupon: datosDescuento.cupon,
+    codigoCuponAplicado: datosDescuento.codigoCuponAplicado,
     estado: EstadoCompra.PENDIENTE,
   });
 
