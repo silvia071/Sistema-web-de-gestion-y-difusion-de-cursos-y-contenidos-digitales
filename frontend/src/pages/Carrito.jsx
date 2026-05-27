@@ -1,6 +1,6 @@
 import "./Carrito.css";
 import { useCarrito } from "../context/CarritoContext";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState, useCallback } from "react";
 import api from "../services/api";
 
@@ -15,22 +15,10 @@ function formatearPrecio(valor) {
 }
 
 function Carrito() {
-  const {
-    carrito,
-    carritoBackend,
-    eliminarDelCarrito,
-    vaciarCarrito,
-    limpiarCarritoVisual,
-  } = useCarrito();
+  const { carrito, carritoBackend, eliminarDelCarrito, vaciarCarrito } =
+    useCarrito();
 
   const navigate = useNavigate();
-  const location = useLocation();
-
-  const [metodoPago, setMetodoPago] = useState("TRANSFERENCIA");
-  const [metodoPagoVisual, setMetodoPagoVisual] = useState("TRANSFERENCIA");
-  const [metodosPago, setMetodosPago] = useState([]);
-  const [procesando, setProcesando] = useState(false);
-  const [procesandoPagoVisual, setProcesandoPagoVisual] = useState(false);
 
   const [codigoCupon, setCodigoCupon] = useState("");
   const [aplicandoCupon, setAplicandoCupon] = useState(false);
@@ -103,46 +91,6 @@ function Carrito() {
     obtenerResumenCarrito();
   }, [obtenerResumenCarrito]);
 
-  useEffect(() => {
-    const obtenerMetodosPago = async () => {
-      try {
-        const response = await api.get("/api/metodos-pago");
-        const metodos = Array.isArray(response.data) ? response.data : [];
-
-        setMetodosPago(metodos);
-
-        if (metodos.some((metodo) => metodo.tipo === "TARJETA")) {
-          setMetodoPago("TARJETA");
-          setMetodoPagoVisual("MERCADO_PAGO");
-        } else if (metodos.some((metodo) => metodo.tipo === "TRANSFERENCIA")) {
-          setMetodoPago("TRANSFERENCIA");
-          setMetodoPagoVisual("TRANSFERENCIA");
-        } else if (metodos[0]?.tipo) {
-          setMetodoPago(metodos[0].tipo);
-          setMetodoPagoVisual(metodos[0].tipo);
-        }
-      } catch (error) {
-        console.error("Error al obtener métodos de pago:", error);
-      }
-    };
-
-    obtenerMetodosPago();
-  }, []);
-
-  const obtenerMetodoPagoSeleccionado = () => {
-    return metodosPago.find((metodo) => metodo.tipo === metodoPago);
-  };
-
-  const metodoExiste = (tipo) =>
-    metodosPago.some((metodo) => metodo.tipo === tipo);
-
-  const seleccionarMetodoPago = (visual, backend) => {
-    if (procesando || procesandoPagoVisual) return;
-
-    setMetodoPagoVisual(visual);
-    setMetodoPago(backend);
-  };
-
   const mostrarModal = ({
     titulo,
     mensaje,
@@ -188,19 +136,17 @@ function Carrito() {
   };
 
   const handleAplicarCupon = async () => {
-    if (procesando || procesandoPagoVisual || aplicandoCupon) return;
+    if (aplicandoCupon) return;
 
     const codigo = codigoCupon.trim().toUpperCase();
 
     if (!codigo) {
       setMensajeCupon("Ingresá un código de cupón.");
-
       return;
     }
 
     if (!carritoBackend?._id) {
       setMensajeCupon("No se pudo obtener el carrito activo.");
-
       return;
     }
 
@@ -237,11 +183,10 @@ function Carrito() {
   };
 
   const handleQuitarCupon = async () => {
-    if (procesando || procesandoPagoVisual || quitandoCupon) return;
+    if (quitandoCupon) return;
 
     if (!carritoBackend?._id) {
       setMensajeCupon("No se pudo obtener el carrito activo.");
-
       return;
     }
 
@@ -276,163 +221,49 @@ function Carrito() {
     }
   };
 
-  const handleContinuarPago = async () => {
-    if (procesando || procesandoPagoVisual) return;
+  const handleIrCheckout = () => {
+    const token = localStorage.getItem("token");
 
-    try {
-      setProcesando(true);
-
-      const token = localStorage.getItem("token");
-
-      if (!tokenValido(token)) {
-        mostrarModal({
-          titulo: "Iniciá sesión",
-          mensaje: "Tenés que iniciar sesión para poder comprar cursos.",
-          tipo: "info",
-          accion: () =>
-            navigate("/login", {
-              replace: true,
-              state: { from: location.pathname },
-            }),
-          textoConfirmar: "Iniciar sesión",
-        });
-
-        return;
-      }
-
-      if (carrito.length === 0) {
-        mostrarModal({
-          titulo: "Carrito vacío",
-          mensaje: "Agregá al menos un curso antes de continuar con la compra.",
-          tipo: "warning",
-        });
-
-        return;
-      }
-
-      if (!carritoBackend?._id) {
-        mostrarModal({
-          titulo: "Error de carrito",
-          mensaje: "No se pudo obtener el carrito activo.",
-          tipo: "error",
-        });
-
-        return;
-      }
-
-      const metodoSeleccionado = obtenerMetodoPagoSeleccionado();
-
-      if (!metodoSeleccionado?._id) {
-        mostrarModal({
-          titulo: "Método de pago no disponible",
-          mensaje:
-            "No se encontró el método de pago seleccionado en el backend.",
-          tipo: "warning",
-        });
-
-        return;
-      }
-
-      const { data: compraResponse } = await api.post(
-        `/api/compra/desde-carrito/${carritoBackend._id}`,
-      );
-
-      const compra = compraResponse.datos;
-
-      const { data: pagoResponse } = await api.post("/api/pagos", {
-        monto: compra.total,
-        metodoPago: metodoSeleccionado._id,
-        compra: compra._id,
+    if (!tokenValido(token)) {
+      mostrarModal({
+        titulo: "Iniciá sesión",
+        mensaje: "Tenés que iniciar sesión para poder comprar cursos.",
+        tipo: "info",
+        accion: () =>
+          navigate("/login", {
+            replace: true,
+            state: { from: "/checkout" },
+          }),
+        textoConfirmar: "Iniciar sesión",
       });
 
-      const pago = pagoResponse.datos;
+      return;
+    }
 
-      const { data: resultadoPagoResponse } = await api.post(
-        "/api/pagos/procesar",
-        {
-          pagoId: pago._id,
-        },
-      );
-
-      const resultadoPago = resultadoPagoResponse.datos;
-
-      if (resultadoPago?.tipo === "mercadopago" && resultadoPago?.init_point) {
-        setProcesandoPagoVisual(true);
-        setProcesando(false);
-
-        setTimeout(() => {
-          window.location.href = resultadoPago.init_point;
-        }, 3000);
-
-        return;
-      }
-
-      if (resultadoPago?.tipo === "transferencia") {
-        setProcesandoPagoVisual(true);
-        setProcesando(false);
-
-        setTimeout(() => {
-          limpiarCarritoVisual();
-          navigate("/pago-pendiente", { replace: true });
-        }, 3000);
-
-        return;
-      }
-
-      setProcesandoPagoVisual(true);
-      setProcesando(false);
-
-      setTimeout(() => {
-        limpiarCarritoVisual();
-
-        mostrarModal({
-          titulo: "Compra generada",
-          mensaje: "La compra fue generada correctamente.",
-          tipo: "success",
-          accion: () => navigate("/mis-cursos"),
-          textoConfirmar: "Ver mis cursos",
-        });
-
-        setProcesandoPagoVisual(false);
-      }, 1600);
-    } catch (error) {
-      console.error("Error al finalizar compra:", error);
-
-      setProcesandoPagoVisual(false);
-
-      const mensajeBackend =
-        error.response?.data?.mensaje ||
-        error.message ||
-        "Ocurrió un error al finalizar la compra.";
-
-      if (mensajeBackend === "Carrito no activo") {
-        limpiarCarritoVisual();
-
-        mostrarModal({
-          titulo: "Carrito vencido",
-          mensaje:
-            "El carrito anterior ya no está activo. Volvé a agregar el curso para continuar.",
-          tipo: "warning",
-          accion: () => navigate("/cursos"),
-          textoConfirmar: "Ver cursos",
-        });
-
-        return;
-      }
-
+    if (carrito.length === 0) {
       mostrarModal({
-        titulo: "Error al finalizar la compra",
-        mensaje: mensajeBackend,
+        titulo: "Carrito vacío",
+        mensaje: "Agregá al menos un curso antes de continuar con la compra.",
+        tipo: "warning",
+      });
+
+      return;
+    }
+
+    if (!carritoBackend?._id) {
+      mostrarModal({
+        titulo: "Error de carrito",
+        mensaje: "No se pudo obtener el carrito activo.",
         tipo: "error",
       });
-    } finally {
-      setProcesando(false);
+
+      return;
     }
+
+    navigate("/checkout");
   };
 
   const handleVaciarCarrito = () => {
-    if (procesando || procesandoPagoVisual) return;
-
     mostrarModal({
       titulo: "Vaciar carrito",
       mensaje: "¿Seguro que querés eliminar todos los cursos del carrito?",
@@ -456,8 +287,6 @@ function Carrito() {
   };
 
   const handleEliminarCurso = (item) => {
-    if (procesando || procesandoPagoVisual) return;
-
     const itemId = item.itemId || item.id || item._id;
     const tituloCurso = item.titulo || "este curso";
 
@@ -492,26 +321,7 @@ function Carrito() {
 
   return (
     <section className="carrito-page">
-      {procesandoPagoVisual && (
-        <div className="carrito-modal-overlay">
-          <div className="carrito-modal carrito-modal-info carrito-modal-procesando">
-            <div className="carrito-loader"></div>
-
-            <h2>
-              Procesando pago
-              <span className="puntos-cargando">
-                <span>.</span>
-                <span>.</span>
-                <span>.</span>
-              </span>
-            </h2>
-
-            <p>Estamos validando la operación. Aguarde un momento.</p>
-          </div>
-        </div>
-      )}
-
-      {modal.visible && !procesandoPagoVisual && (
+      {modal.visible && (
         <div className="carrito-modal-overlay">
           <div className={`carrito-modal carrito-modal-${modal.tipo}`}>
             <div className="carrito-modal-icon">
@@ -549,10 +359,10 @@ function Carrito() {
 
       <div className="carrito-header">
         <div>
-          <span className="carrito-eyebrow">Finalizá tu compra</span>
+          <span className="carrito-eyebrow">Revisá tu compra</span>
           <h1 className="carrito-title">Tu carrito</h1>
           <p className="carrito-subtitle">
-            Revisá los cursos seleccionados antes de continuar con el pago.
+            Revisá los cursos seleccionados antes de continuar con la compra.
           </p>
         </div>
 
@@ -564,8 +374,8 @@ function Carrito() {
             </div>
 
             <div className="checkout-step">
-              <span>💳</span>
-              <p>Pago</p>
+              <span>🧾</span>
+              <p>Confirmar</p>
             </div>
 
             <div className="checkout-step">
@@ -628,7 +438,6 @@ function Carrito() {
                       onClick={() => handleEliminarCurso(item)}
                       aria-label={`Eliminar ${item.titulo}`}
                       title="Eliminar curso"
-                      disabled={procesando || procesandoPagoVisual}
                     >
                       🗑
                     </button>
@@ -656,25 +465,14 @@ function Carrito() {
                       setMensajeCupon("");
                     }}
                     placeholder="Ej: DESCUENTO10"
-                    disabled={
-                      procesando ||
-                      procesandoPagoVisual ||
-                      aplicandoCupon ||
-                      quitandoCupon ||
-                      cuponAplicado
-                    }
+                    disabled={aplicandoCupon || quitandoCupon || cuponAplicado}
                   />
 
                   {!cuponAplicado ? (
                     <button
                       type="button"
                       onClick={handleAplicarCupon}
-                      disabled={
-                        procesando ||
-                        procesandoPagoVisual ||
-                        aplicandoCupon ||
-                        !codigoCupon.trim()
-                      }
+                      disabled={aplicandoCupon || !codigoCupon.trim()}
                     >
                       {aplicandoCupon ? "Aplicando..." : "Aplicar"}
                     </button>
@@ -683,9 +481,7 @@ function Carrito() {
                       type="button"
                       className="carrito-cupon-quitar"
                       onClick={handleQuitarCupon}
-                      disabled={
-                        procesando || procesandoPagoVisual || quitandoCupon
-                      }
+                      disabled={quitandoCupon}
                     >
                       {quitandoCupon ? "Quitando..." : "Quitar"}
                     </button>
@@ -742,142 +538,12 @@ function Carrito() {
               <strong>${formatearPrecio(totalFinal)}</strong>
             </div>
 
-            <div className="metodos-pago">
-              <h4>Elegí tu método de pago</h4>
-
-              {metodoExiste("TARJETA") && (
-                <button
-                  type="button"
-                  className={`metodo-opcion ${
-                    metodoPagoVisual === "MERCADO_PAGO" ? "activo" : ""
-                  }`}
-                  onClick={() =>
-                    seleccionarMetodoPago("MERCADO_PAGO", "TARJETA")
-                  }
-                  disabled={procesando || procesandoPagoVisual}
-                >
-                  <span className="metodo-radio">
-                    {metodoPagoVisual === "MERCADO_PAGO" && "✓"}
-                  </span>
-
-                  <span className="metodo-icono">💳</span>
-
-                  <span className="metodo-texto">
-                    <span className="metodo-titulo">
-                      Mercado Pago
-                      <small>Más usado</small>
-                    </span>
-                    <span className="metodo-descripcion">
-                      Pagá con tarjeta, débito o saldo disponible.
-                    </span>
-                  </span>
-
-                  <span className="metodo-flecha">›</span>
-                </button>
-              )}
-
-              {metodoExiste("TARJETA") && (
-                <button
-                  type="button"
-                  className={`metodo-opcion ${
-                    metodoPagoVisual === "TARJETA_DEBITO_CREDITO"
-                      ? "activo"
-                      : ""
-                  }`}
-                  onClick={() =>
-                    seleccionarMetodoPago("TARJETA_DEBITO_CREDITO", "TARJETA")
-                  }
-                  disabled={procesando || procesandoPagoVisual}
-                >
-                  <span className="metodo-radio">
-                    {metodoPagoVisual === "TARJETA_DEBITO_CREDITO" && "✓"}
-                  </span>
-
-                  <span className="metodo-icono">💳</span>
-
-                  <span className="metodo-texto">
-                    <span className="metodo-titulo">
-                      Tarjeta de crédito / débito
-                      <small>Cuotas</small>
-                    </span>
-                    <span className="metodo-descripcion">
-                      Visa, Mastercard y más.
-                    </span>
-                  </span>
-
-                  <span className="metodo-flecha">›</span>
-                </button>
-              )}
-
-              {metodoExiste("TRANSFERENCIA") && (
-                <button
-                  type="button"
-                  className={`metodo-opcion ${
-                    metodoPagoVisual === "TRANSFERENCIA" ? "activo" : ""
-                  }`}
-                  onClick={() =>
-                    seleccionarMetodoPago("TRANSFERENCIA", "TRANSFERENCIA")
-                  }
-                  disabled={procesando || procesandoPagoVisual}
-                >
-                  <span className="metodo-radio">
-                    {metodoPagoVisual === "TRANSFERENCIA" && "✓"}
-                  </span>
-
-                  <span className="metodo-icono">🏦</span>
-
-                  <span className="metodo-texto">
-                    <span className="metodo-titulo">
-                      Transferencia bancaria
-                      <small>Aprobación manual</small>
-                    </span>
-                    <span className="metodo-descripcion">
-                      Pago pendiente de aprobación administrativa.
-                    </span>
-                  </span>
-
-                  <span className="metodo-flecha">›</span>
-                </button>
-              )}
-
-              {metodoExiste("TARJETA") && (
-                <button
-                  type="button"
-                  className={`metodo-opcion ${
-                    metodoPagoVisual === "PAYPAL" ? "activo" : ""
-                  }`}
-                  onClick={() => seleccionarMetodoPago("PAYPAL", "TARJETA")}
-                  disabled={procesando || procesandoPagoVisual}
-                >
-                  <span className="metodo-radio">
-                    {metodoPagoVisual === "PAYPAL" && "✓"}
-                  </span>
-
-                  <span className="metodo-icono">🅿️</span>
-
-                  <span className="metodo-texto">
-                    <span className="metodo-titulo">
-                      PayPal o billetera digital
-                    </span>
-                    <span className="metodo-descripcion">
-                      Pagá de forma rápida y segura.
-                    </span>
-                  </span>
-
-                  <span className="metodo-flecha">›</span>
-                </button>
-              )}
-            </div>
-
             <button
               type="button"
               className="btn-finalizar"
-              onClick={handleContinuarPago}
-              disabled={procesando || procesandoPagoVisual}
+              onClick={handleIrCheckout}
             >
-              {procesando || procesandoPagoVisual
-                ? "Procesando pago..."
-                : "Continuar al pago →"}
+              Continuar con la compra →
             </button>
 
             <div className="resumen-botones-secundarios">
@@ -885,7 +551,6 @@ function Carrito() {
                 type="button"
                 className="btn-vaciar btn-vaciar-carrito"
                 onClick={handleVaciarCarrito}
-                disabled={procesando || procesandoPagoVisual}
               >
                 Vaciar carrito
               </button>

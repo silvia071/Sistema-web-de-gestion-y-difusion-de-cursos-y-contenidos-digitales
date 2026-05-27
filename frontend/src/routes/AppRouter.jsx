@@ -37,6 +37,7 @@ import AdminCompras from "../pages/AdminCompras";
 import MisCertificados from "../pages/MisCertificados";
 import AdminCupones from "../pages/AdminCupones";
 import AdminMensajes from "../pages/AdminMensajes";
+import Checkout from "../pages/Checkout";
 
 function AppRouter() {
   return (
@@ -82,6 +83,15 @@ function AppRouter() {
           element={
             <ProtectedRoute>
               <Carrito />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/checkout"
+          element={
+            <ProtectedRoute>
+              <Checkout />
             </ProtectedRoute>
           }
         />
