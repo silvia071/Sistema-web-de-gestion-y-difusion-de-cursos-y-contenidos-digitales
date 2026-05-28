@@ -28,6 +28,7 @@ import AdminLecciones from "../pages/AdminLecciones";
 import AdminPagos from "../pages/AdminPagos";
 import AdminDatosFacturacion from "../pages/AdminDatosFacturacion";
 import AdminUsuarios from "../pages/AdminUsuarios";
+import AdminPublicaciones from "../pages/AdminPublicaciones";
 
 import PagoExitoso from "../pages/PagoExitoso";
 import PagoPendiente from "../pages/PagoPendiente";
@@ -187,6 +188,15 @@ function AppRouter() {
           element={
             <ProtectedRoute adminOnly={true}>
               <AdminCursos />
+            </ProtectedRoute>
+          }
+        />
+
+         <Route
+          path="/admin/publicaciones"
+          element={
+            <ProtectedRoute adminOnly={true}>
+              <AdminPublicaciones />
             </ProtectedRoute>
           }
         />

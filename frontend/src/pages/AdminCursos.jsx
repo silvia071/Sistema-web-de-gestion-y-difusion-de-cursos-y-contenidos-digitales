@@ -860,4 +860,5 @@ function AdminCursos() {
   );
 }
 
+
 export default AdminCursos;

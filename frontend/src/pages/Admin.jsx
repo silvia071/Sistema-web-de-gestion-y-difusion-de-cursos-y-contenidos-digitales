@@ -90,9 +90,8 @@ function Admin() {
       titulo: "Blog",
       descripcion: "Publicaciones y noticias",
       icono: "📝",
-      ruta: null,
+      ruta: "/admin/publicaciones",
       color: "pink",
-      proximamente: true,
       keywords: "blog publicaciones noticias articulos",
     },
     {
@@ -347,7 +346,7 @@ function Admin() {
             💬 Mensajes
           </button>
 
-          <button disabled className="disabled">
+          <button onClick={() => navigate("/admin/publicaciones")}>
             📝 Blog
           </button>
 
