@@ -157,7 +157,7 @@ function imprimirComprobante(compra) {
     })
     .join("");
 
-const ventana = window.open("", "_blank", "width=980,height=900");
+  const ventana = window.open("", "_blank", "width=980,height=900");
 
   if (!ventana) {
     alert(
@@ -277,9 +277,9 @@ export default function MisCompras() {
     } catch (error) {
       setError(
         error.response?.data?.mensaje ||
-          error.response?.data?.error ||
-          error.message ||
-          "No se pudieron cargar tus compras.",
+        error.response?.data?.error ||
+        error.message ||
+        "No se pudieron cargar tus compras.",
       );
 
       setCompras([]);
@@ -656,7 +656,7 @@ export default function MisCompras() {
                   <strong>
                     {formatearFecha(
                       compraSeleccionada.createdAt ||
-                        compraSeleccionada.fechaCompra,
+                      compraSeleccionada.fechaCompra,
                       true,
                     )}
                   </strong>
@@ -697,8 +697,25 @@ export default function MisCompras() {
 
             {!compraHabilitada(compraSeleccionada.estado) && (
               <div className="mis-compra-modal-aviso">
-                Tu compra todavía no está aprobada. El acceso al curso se
-                habilitará cuando el pago sea confirmado.
+                <p>
+                  Tu compra todavía no está aprobada. El acceso al curso se
+                  habilitará cuando el pago sea confirmado.
+                </p>
+
+                <hr />
+
+                <h3> Datos para transferencia</h3>
+                <br />
+                <p><strong>Titular:</strong> Mundo Dev SRL</p>
+                <p><strong>Banco:</strong> Banco de la Nación Argentina</p>
+                <p><strong>Alias:</strong> mundo_dev</p>
+                <p><strong>CBU:</strong> 0123456789012345678901</p>
+                 <br />
+                <hr />
+                <p>
+                  Una vez realizada la transferencia, enviá el comprobante para
+                  validar el pago y habilitar el acceso al curso.
+                </p>
               </div>
             )}
 
