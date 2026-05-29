@@ -1,3 +1,4 @@
+const { sendPasswordResetEmail } = require("../utils/mailer");
 const crypto = require("crypto");
 const bcrypt = require("bcrypt");
 const Usuario = require("../models/usuario.model");
@@ -94,11 +95,20 @@ const solicitarRecuperacionContrasenia = async (req, res) => {
 
     const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
 
+
     const enlaceRecuperacion = `${frontendUrl}/restablecer-contrasenia/${token}`;
 
+    await sendPasswordResetEmail({
+      to: usuario.email,
+      resetLink: enlaceRecuperacion,
+    });
+
     return res.status(200).json({
-      mensaje: "Solicitud de recuperación generada correctamente",
-      enlaceRecuperacion,
+      mensaje: "Se envió un correo con las instrucciones para recuperar la contraseña",
+    });
+
+    return res.status(200).json({
+      mensaje: "Se envió un correo con las instrucciones para recuperar la contraseña",
     });
   } catch (error) {
     return res.status(500).json({
