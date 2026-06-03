@@ -29,7 +29,6 @@ const createTransporter = () => {
   });
 };
 
-// --- FUNCIONES EXTRAÍDAS DEL PDF ---
 
 const escapeHtml = (unsafe) => {
   if (!unsafe) return "";
