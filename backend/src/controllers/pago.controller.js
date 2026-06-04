@@ -79,7 +79,7 @@ const crearPago = async (req, res) => {
                 tipoMetodo ||
                 "Método de pago";
 
-        const numeroOrdenCorto = compra._id.toString().substring(0, 6);
+        const numeroOrdenCorto = compra._id.toString().slice(-6);
 
         await mailer.sendOrderConfirmationEmail({
           to: pagoCompleto.usuario.email,

@@ -232,7 +232,7 @@ const notificarEstadoCompraAdmin = async (req, res) => {
       });
     }
 
-    const numeroOrdenCorto = compra._id.toString().substring(0, 6);
+    const numeroOrdenCorto = compra._id.toString().slice(-6);
 
     await mailer.sendOrderStatusEmail({
       to: compra.usuario.email,

@@ -308,6 +308,26 @@ function Checkout() {
         return;
       }
 
+      try {
+        await api.put("/api/datos-facturacion/mis-datos", {
+          razonSocial: datosFacturacion.nombreCompleto.trim(),
+          cuitCuil: datosFacturacion.dni.trim(),
+          condicionFiscal: "Consumidor final",
+          domicilioFiscal: datosFacturacion.domicilio.trim(),
+        });
+      } catch (error) {
+        mostrarModal({
+          titulo: "Error en datos de facturación",
+          mensaje:
+            error.response?.data?.mensaje ||
+            error.response?.data?.error ||
+            "No se pudieron guardar los datos de facturación.",
+          tipo: "error",
+        });
+
+        return;
+      }
+
       const { data: compraResponse } = await api.post(
         `/api/compra/desde-carrito/${carritoBackend._id}`,
       );
