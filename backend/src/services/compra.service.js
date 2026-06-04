@@ -5,6 +5,7 @@ const Cupon = require("../models/cupon.model");
 const Pago = require("../models/pago.model");
 const EstadoCompra = require("../enums/estadoCompra");
 const EstadoPago = require("../enums/estadoPago");
+const pagoService = require("./pago.service");
 
 const populateCompra = (query) => {
   return query.populate("usuario").populate({
@@ -299,19 +300,60 @@ const actualizarEstadoCompra = async (compraId, nuevoEstado) => {
     throw new Error("Estado de compra inválido");
   }
 
-  const compra = await Compra.findByIdAndUpdate(
+  const compraExistente = await Compra.findById(compraId);
+
+  if (!compraExistente) {
+    throw new Error("Compra no encontrada");
+  }
+
+  const pago = await Pago.findOne({ compra: compraId });
+
+  if (estadoNormalizado === EstadoCompra.PAGADA) {
+    if (!pago) {
+      throw new Error(
+        "La compra no tiene un pago asociado para poder aprobarla",
+      );
+    }
+
+    await pagoService.aprobarPago(pago._id);
+
+    const compraActualizada = await populateCompra(Compra.findById(compraId));
+
+    return await agregarPagoACompras(compraActualizada);
+  }
+
+  if (
+    estadoNormalizado === EstadoCompra.CANCELADA ||
+    estadoNormalizado === EstadoCompra.ANULADA
+  ) {
+    if (pago) {
+      await pagoService.rechazarPago(pago._id);
+    }
+
+    const compraActualizada = await Compra.findByIdAndUpdate(
+      compraId,
+      { estado: estadoNormalizado },
+      { new: true },
+    );
+
+    const compraPopulada = await populateCompra(
+      Compra.findById(compraActualizada._id),
+    );
+
+    return await agregarPagoACompras(compraPopulada);
+  }
+
+  const compraActualizada = await Compra.findByIdAndUpdate(
     compraId,
     { estado: estadoNormalizado },
     { new: true },
   );
 
-  if (!compra) {
-    throw new Error("Compra no encontrada");
-  }
+  const compraPopulada = await populateCompra(
+    Compra.findById(compraActualizada._id),
+  );
 
-  const compraActualizada = await populateCompra(Compra.findById(compra._id));
-
-  return await agregarPagoACompras(compraActualizada);
+  return await agregarPagoACompras(compraPopulada);
 };
 
 const eliminarCompra = async (compraId) => {
