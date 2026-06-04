@@ -191,7 +191,7 @@ function AdminCursos() {
     setModalEliminar(null);
   };
 
-  const confirmarEliminarCurso = async () => {
+  const confirmarOcultarCurso = async () => {
     if (!modalEliminar) return;
 
     const cursoId = obtenerIdCurso(modalEliminar);
@@ -206,9 +206,11 @@ function AdminCursos() {
       setMensaje("");
       setError("");
 
-      await api.delete(`/api/cursos/${cursoId}`);
+      await api.patch(`/api/cursos/${cursoId}/ocultar`);
 
-      setMensaje("Curso eliminado correctamente.");
+      setMensaje(
+        "Curso ocultado correctamente. Podés recuperarlo publicándolo nuevamente.",
+      );
       setModalEliminar(null);
 
       if (editandoId === cursoId) {
@@ -217,12 +219,49 @@ function AdminCursos() {
 
       await cargarDatos();
     } catch (error) {
-      console.error("Error eliminando curso:", error);
+      console.error("Error ocultando curso:", error);
 
       setError(
         error.response?.data?.mensaje ||
           error.response?.data?.detalle ||
-          "Error al eliminar curso.",
+          "Error al ocultar curso.",
+      );
+    } finally {
+      setProcesandoId("");
+    }
+  };
+
+  const cambiarEstadoCurso = async (curso, accion) => {
+    const cursoId = obtenerIdCurso(curso);
+
+    if (!cursoId) {
+      setError("No se pudo obtener el ID del curso.");
+      return;
+    }
+
+    try {
+      setProcesandoId(cursoId);
+      setMensaje("");
+      setError("");
+
+      await api.patch(`/api/cursos/${cursoId}/${accion}`);
+
+      if (accion === "publicar") {
+        setMensaje("Curso publicado correctamente.");
+      }
+
+      if (accion === "ocultar") {
+        setMensaje("Curso ocultado correctamente.");
+      }
+
+      await cargarDatos();
+    } catch (error) {
+      console.error(`Error al ${accion} curso:`, error);
+
+      setError(
+        error.response?.data?.mensaje ||
+          error.response?.data?.detalle ||
+          `Error al ${accion} curso.`,
       );
     } finally {
       setProcesandoId("");
@@ -800,15 +839,29 @@ function AdminCursos() {
                           ✎
                         </button>
 
-                        <button
-                          type="button"
-                          className="admin-delete-btn"
-                          onClick={() => abrirModalEliminar(curso)}
-                          title="Eliminar curso"
-                          disabled={procesandoId === cursoId}
-                        >
-                          🗑
-                        </button>
+                        {curso.estado === "OCULTO" ? (
+                          <button
+                            type="button"
+                            className="admin-edit-btn"
+                            onClick={() =>
+                              cambiarEstadoCurso(curso, "publicar")
+                            }
+                            title="Recuperar / publicar curso"
+                            disabled={procesandoId === cursoId}
+                          >
+                            ↻
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            className="admin-delete-btn"
+                            onClick={() => abrirModalEliminar(curso)}
+                            title="Ocultar curso"
+                            disabled={procesandoId === cursoId}
+                          >
+                            ◌
+                          </button>
+                        )}
                       </div>
                     </article>
                   );
@@ -822,14 +875,14 @@ function AdminCursos() {
       {modalEliminar && (
         <div className="admin-modal-overlay">
           <div className="admin-modal-card">
-            <div className="admin-modal-icon">🗑</div>
+            <div className="admin-modal-icon">◌</div>
 
-            <h2>Eliminar curso</h2>
+            <h2>Ocultar curso</h2>
 
             <p>
-              ¿Seguro que querés eliminar el curso{" "}
-              <strong>{modalEliminar.titulo}</strong>? También se eliminarán sus
-              lecciones. Esta acción no se puede deshacer.
+              ¿Seguro que querés ocultar el curso{" "}
+              <strong>{modalEliminar.titulo}</strong>? No se eliminará
+              definitivamente y podrás recuperarlo publicándolo nuevamente.
             </p>
 
             <div className="admin-modal-actions">
@@ -845,12 +898,12 @@ function AdminCursos() {
               <button
                 type="button"
                 className="admin-modal-danger"
-                onClick={confirmarEliminarCurso}
+                onClick={confirmarOcultarCurso}
                 disabled={procesandoId === obtenerIdCurso(modalEliminar)}
               >
                 {procesandoId === obtenerIdCurso(modalEliminar)
-                  ? "Eliminando..."
-                  : "Eliminar"}
+                  ? "Ocultando..."
+                  : "Ocultar"}
               </button>
             </div>
           </div>
@@ -859,6 +912,5 @@ function AdminCursos() {
     </section>
   );
 }
-
 
 export default AdminCursos;
