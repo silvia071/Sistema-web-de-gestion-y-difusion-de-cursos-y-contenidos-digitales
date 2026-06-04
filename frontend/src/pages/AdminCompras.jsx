@@ -15,6 +15,29 @@ function formatearPrecio(valor) {
   });
 }
 
+function obtenerMedioPago(compra) {
+  const tipo =
+    compra?.pago?.metodoPago?.tipo ||
+    compra?.pago?.metodoPago ||
+    compra?.medioPago ||
+    "";
+
+  const tipoNormalizado = String(tipo).toUpperCase();
+
+  if (tipoNormalizado.includes("TRANSFERENCIA")) {
+    return "Transferencia bancaria";
+  }
+
+  if (
+    tipoNormalizado.includes("TARJETA") ||
+    tipoNormalizado.includes("MERCADO")
+  ) {
+    return "Mercado Pago";
+  }
+
+  return compra?.medioPago || "Medio de pago";
+}
+
 function obtenerSiglaCurso(titulo) {
   const palabrasIgnoradas = [
     "curso",
@@ -734,7 +757,7 @@ export default function AdminCompras() {
                     <strong>
                       {formatearFecha(compra.createdAt || compra.fechaCompra)}
                     </strong>
-                    <p>Mercado Pago</p>
+                    <p>{obtenerMedioPago(compra)}</p>
                   </div>
 
                   <div className="admin-compra-col total">

@@ -15,6 +15,54 @@ const populateCompra = (query) => {
   });
 };
 
+const obtenerNombreMedioPago = (tipoMetodo) => {
+  if (tipoMetodo === "TRANSFERENCIA") {
+    return "Transferencia bancaria";
+  }
+
+  if (tipoMetodo === "TARJETA") {
+    return "Mercado Pago";
+  }
+
+  return "Medio de pago";
+};
+
+const agregarPagoACompras = async (compras) => {
+  const esArray = Array.isArray(compras);
+  const listaCompras = esArray ? compras : [compras];
+
+  const idsCompras = listaCompras.map((compra) => compra?._id).filter(Boolean);
+
+  if (idsCompras.length === 0) {
+    return compras;
+  }
+
+  const pagos = await Pago.find({
+    compra: { $in: idsCompras },
+  })
+    .populate("metodoPago")
+    .lean();
+
+  const pagosPorCompra = new Map(
+    pagos.map((pago) => [pago.compra.toString(), pago]),
+  );
+
+  const comprasConPago = listaCompras.map((compra) => {
+    const compraObj =
+      typeof compra.toObject === "function" ? compra.toObject() : compra;
+
+    const pago = pagosPorCompra.get(compraObj._id.toString());
+
+    return {
+      ...compraObj,
+      pago,
+      medioPago: obtenerNombreMedioPago(pago?.metodoPago?.tipo),
+    };
+  });
+
+  return esArray ? comprasConPago : comprasConPago[0];
+};
+
 const validarCompraPendiente = async (usuarioId, cursoId) => {
   const detallesDelCurso = await DetalleCompra.find({
     curso: cursoId,
@@ -180,9 +228,11 @@ const obtenerComprasPorUsuario = async (usuarioId) => {
     throw new Error("El usuario es obligatorio");
   }
 
-  return await populateCompra(
+  const compras = await populateCompra(
     Compra.find({ usuario: usuarioId }).sort({ createdAt: -1 }),
   );
+
+  return await agregarPagoACompras(compras);
 };
 
 const obtenerCompraPorIdYUsuario = async (compraId, usuarioId) => {
@@ -207,11 +257,13 @@ const obtenerCompraPorIdYUsuario = async (compraId, usuarioId) => {
     throw new Error("No tenés permiso para ver esta compra");
   }
 
-  return compra;
+  return await agregarPagoACompras(compra);
 };
 
 const obtenerTodasLasCompras = async () => {
-  return await populateCompra(Compra.find().sort({ createdAt: -1 }));
+  const compras = await populateCompra(Compra.find().sort({ createdAt: -1 }));
+
+  return await agregarPagoACompras(compras);
 };
 
 const obtenerCompraPorIdAdmin = async (compraId) => {
@@ -225,7 +277,7 @@ const obtenerCompraPorIdAdmin = async (compraId) => {
     throw new Error("Compra no encontrada");
   }
 
-  return compra;
+  return await agregarPagoACompras(compra);
 };
 
 const actualizarEstadoCompra = async (compraId, nuevoEstado) => {
@@ -257,7 +309,9 @@ const actualizarEstadoCompra = async (compraId, nuevoEstado) => {
     throw new Error("Compra no encontrada");
   }
 
-  return await populateCompra(Compra.findById(compra._id));
+  const compraActualizada = await populateCompra(Compra.findById(compra._id));
+
+  return await agregarPagoACompras(compraActualizada);
 };
 
 const eliminarCompra = async (compraId) => {

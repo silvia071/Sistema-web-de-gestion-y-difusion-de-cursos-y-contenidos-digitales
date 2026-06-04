@@ -11,26 +11,34 @@ function PagoPendiente() {
 
         <p>
           Tu compra fue registrada correctamente. El acceso se habilitará una
-          vez confirmado el pago.
+          vez confirmado el pago por administración.
         </p>
 
-         <div className="datos-transferencia">
-        <h3>Datos para transferencia</h3>
+        <div className="datos-transferencia">
+          <h3>Datos para transferencia</h3>
 
-        <p><strong>Titular:</strong> Mundo Dev SRL </p>
-        <p><strong>Banco:</strong> Banco de la Nación Argentina</p>
-        <p><strong>Alias:</strong> mundo_dev</p>
-        <p><strong>CBU:</strong> 0123456789012345678901</p>
+          <p>
+            <strong>Titular:</strong> Mundo Dev SRL
+          </p>
+          <p>
+            <strong>Banco:</strong> Banco de la Nación Argentina
+          </p>
+          <p>
+            <strong>Alias:</strong> mundo_dev
+          </p>
+          <p>
+            <strong>CBU:</strong> 0123456789012345678901
+          </p>
 
-        <p>
-          Una vez realizada la transferencia, envíanos el comprobante para
-          habilitar el acceso al curso.
-        </p>
-      </div>
+          <p>
+            Una vez realizada la transferencia, enviá el comprobante para que
+            podamos verificar el pago y habilitar el acceso al curso.
+          </p>
+        </div>
 
         <div className="estado-pago-actions">
-          <Link to="/mis-cursos" className="estado-pago-btn">
-            Ir a Mis Cursos
+          <Link to="/mis-compras" className="estado-pago-btn">
+            Ver mis compras
           </Link>
 
           <Link to="/cursos" className="estado-pago-btn secundario">

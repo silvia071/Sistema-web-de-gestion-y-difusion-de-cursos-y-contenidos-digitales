@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const Pago = require("../models/pago.model");
 const pagoService = require("../services/pago.service");
+const mailer = require("../utils/mailer");
 
 const client = require("../config/mercadoPago");
 const { Preference } = require("mercadopago");
@@ -44,6 +45,55 @@ const crearPago = async (req, res) => {
     };
 
     const pago = await pagoService.crearPago(datosPago);
+
+    try {
+      const pagoCompleto = await Pago.findById(pago._id)
+        .populate("metodoPago")
+        .populate("usuario")
+        .populate({
+          path: "compra",
+          populate: [
+            {
+              path: "usuario",
+            },
+            {
+              path: "detalles",
+              populate: {
+                path: "curso",
+              },
+            },
+          ],
+        });
+
+      const compra = pagoCompleto?.compra;
+
+      if (compra && pagoCompleto?.usuario?.email) {
+        const tipoMetodo = pagoCompleto.metodoPago?.tipo;
+
+        const nombreMetodoPago =
+          tipoMetodo === "TRANSFERENCIA"
+            ? "Transferencia bancaria"
+            : tipoMetodo === "TARJETA"
+              ? "Mercado Pago"
+              : pagoCompleto.metodoPago?.nombre ||
+                tipoMetodo ||
+                "Método de pago";
+
+        const numeroOrdenCorto = compra._id.toString().substring(0, 6);
+
+        await mailer.sendOrderConfirmationEmail({
+          to: pagoCompleto.usuario.email,
+          orden: {
+            ...compra.toObject(),
+            medioPago: nombreMetodoPago,
+            metodoEntrega: "Acceso Digital",
+          },
+          numeroOrden: numeroOrdenCorto,
+        });
+      }
+    } catch (error) {
+      console.error("Error al enviar el email de confirmación:", error);
+    }
 
     return res.status(201).json({
       mensaje: "Pago creado correctamente",
@@ -312,9 +362,10 @@ const procesarPago = async (req, res) => {
         mensaje: "Pago pendiente por transferencia",
         datos: {
           tipo: "transferencia",
-          banco: "Banco Ejemplo",
-          alias: "mi.alias",
-          cbu: "0000000000000000000000",
+          banco: "Banco de la Nación Argentina",
+          alias: "mundo_dev",
+          cbu: "0123456789012345678901",
+          titular: "Mundo Dev SRL",
         },
       });
     }

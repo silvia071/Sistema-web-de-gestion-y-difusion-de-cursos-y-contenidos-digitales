@@ -1,6 +1,6 @@
 const carritoService = require("../services/carrito.service");
 const compraService = require("../services/compra.service");
-const mailer = require("../utils/mailer"); 
+const mailer = require("../utils/mailer");
 
 const generarCompra = async (req, res) => {
   try {
@@ -25,21 +25,6 @@ const generarCompra = async (req, res) => {
       carrito,
       usuarioId,
     );
-
-    
-    try {
-      
-      const numeroOrdenCorto = compra._id.toString().substring(0, 6);
-      
-      await mailer.sendOrderConfirmationEmail({
-        to: compra.usuario.email, 
-        orden: compra,
-        numeroOrden: numeroOrdenCorto
-      });
-    } catch (error) {
-     
-      console.error("Error al enviar el email de confirmación:", error);
-    }
 
     return res.status(201).json({
       mensaje: "Compra generada correctamente",
