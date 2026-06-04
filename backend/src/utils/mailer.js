@@ -130,7 +130,55 @@ const sendOrderConfirmationEmail = async ({ to, orden, numeroOrden }) => {
   });
 };
 
+const sendOrderStatusEmail = async ({ to, orden, numeroOrden }) => {
+  const transporter = createTransporter();
+  const from = process.env.MAIL_FROM || process.env.SMTP_USER;
+
+  const estado = orden.estado || "PENDIENTE";
+
+  const mensajesPorEstado = {
+    PENDIENTE: "Tu compra está pendiente de confirmación.",
+    PAGADA: "Tu pago fue confirmado. Ya podés acceder a tus cursos.",
+    CANCELADA: "Tu compra fue cancelada.",
+    ANULADA: "Tu compra fue anulada.",
+  };
+
+  const mensajeEstado =
+    mensajesPorEstado[estado] || "Tu compra tuvo una actualización.";
+
+  return transporter.sendMail({
+    from,
+    to,
+    subject: `Actualización de tu compra #${numeroOrden}`,
+    text: [
+      "Hola,",
+      "",
+      `Tu compra #${numeroOrden} tuvo una actualización.`,
+      `Estado actual: ${estado}`,
+      "",
+      mensajeEstado,
+      "",
+      "Gracias por usar nuestra plataforma.",
+    ].join("\n"),
+    html: `
+      <h1>Actualización de tu compra</h1>
+
+      <p>Tu compra <strong>#${escapeHtml(numeroOrden)}</strong> tuvo una actualización.</p>
+
+      <p>
+        <strong>Estado actual:</strong>
+        ${escapeHtml(estado)}
+      </p>
+
+      <p>${escapeHtml(mensajeEstado)}</p>
+
+      <p>Gracias por usar nuestra plataforma.</p>
+    `,
+  });
+};
+
 module.exports = {
   sendPasswordResetEmail,
   sendOrderConfirmationEmail,
+  sendOrderStatusEmail,
 };

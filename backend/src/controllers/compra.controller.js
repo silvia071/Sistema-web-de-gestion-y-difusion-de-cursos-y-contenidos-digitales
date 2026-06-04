@@ -193,6 +193,85 @@ const obtenerCompraPorIdAdmin = async (req, res) => {
   }
 };
 
+const actualizarEstadoCompraAdmin = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { estado } = req.body;
+
+    if (!id) {
+      return res.status(400).json({
+        mensaje: "Falta id de la compra",
+      });
+    }
+
+    if (!estado) {
+      return res.status(400).json({
+        mensaje: "El estado es obligatorio",
+      });
+    }
+
+    const compra = await compraService.actualizarEstadoCompra(id, estado);
+
+    return res.status(200).json({
+      mensaje: "Estado de compra actualizado correctamente",
+      datos: compra,
+    });
+  } catch (error) {
+    if (error.message.includes("no encontrada")) {
+      return res.status(404).json({
+        mensaje: error.message,
+      });
+    }
+
+    return res.status(400).json({
+      mensaje: error.message,
+    });
+  }
+};
+
+const notificarEstadoCompraAdmin = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({
+        mensaje: "Falta id de la compra",
+      });
+    }
+
+    const compra = await compraService.obtenerCompraPorIdAdmin(id);
+
+    if (!compra.usuario?.email) {
+      return res.status(400).json({
+        mensaje: "La compra no tiene un email de usuario asociado",
+      });
+    }
+
+    const numeroOrdenCorto = compra._id.toString().substring(0, 6);
+
+    await mailer.sendOrderStatusEmail({
+      to: compra.usuario.email,
+      orden: compra,
+      numeroOrden: numeroOrdenCorto,
+    });
+
+    return res.status(200).json({
+      mensaje: "Notificación enviada correctamente",
+    });
+  } catch (error) {
+    if (error.message.includes("no encontrada")) {
+      return res.status(404).json({
+        mensaje: error.message,
+      });
+    }
+
+    return res.status(500).json({
+      mensaje: "Error al notificar el estado de la compra",
+      error: error.message,
+    });
+  }
+};
+
 const eliminarCompra = async (req, res) => {
   try {
     const { id } = req.params;
@@ -228,5 +307,7 @@ module.exports = {
   obtenerMiCompraPorId,
   obtenerTodasLasCompras,
   obtenerCompraPorIdAdmin,
+  actualizarEstadoCompraAdmin,
+  notificarEstadoCompraAdmin,
   eliminarCompra,
 };

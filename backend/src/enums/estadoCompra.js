@@ -14,7 +14,7 @@ const EstadoCompra = {
 
   estaCancelada(estado) {
     return estado === this.CANCELADA || estado === this.ANULADA;
-  }
+  },
 };
 
 module.exports = EstadoCompra;

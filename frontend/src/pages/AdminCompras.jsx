@@ -3,6 +3,8 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import api from "../services/api";
 import "./AdminCompras.css";
 
+const ESTADOS_COMPRA = ["PENDIENTE", "PAGADA", "CANCELADA", "ANULADA"];
+
 function formatearPrecio(valor) {
   const numero = Number(valor || 0);
 
@@ -12,6 +14,7 @@ function formatearPrecio(valor) {
     maximumFractionDigits: 0,
   });
 }
+
 function obtenerSiglaCurso(titulo) {
   const palabrasIgnoradas = [
     "curso",
@@ -102,6 +105,10 @@ function normalizarEstado(estado) {
   return String(estado || "PENDIENTE").toUpperCase();
 }
 
+function obtenerIdCompra(compra) {
+  return compra?._id || compra?.id;
+}
+
 function normalizarFiltroEstado(valor) {
   const estado = String(valor || "").toUpperCase();
 
@@ -119,6 +126,7 @@ function normalizarFiltroEstado(valor) {
     RECHAZADO: "rechazada",
     CANCELADA: "cancelada",
     CANCELADO: "cancelada",
+    ANULADA: "cancelada",
   };
 
   return equivalencias[estado] || "todos";
@@ -143,6 +151,7 @@ function claseEstado(estado) {
 
   if (
     estadoNormalizado === "CANCELADA" ||
+    estadoNormalizado === "ANULADA" ||
     estadoNormalizado === "RECHAZADA" ||
     estadoNormalizado === "CANCELADO" ||
     estadoNormalizado === "RECHAZADO"
@@ -180,7 +189,9 @@ function coincideEstadoCompra(estadoCompra, filtro) {
   }
 
   if (filtro === "cancelada") {
-    return estado === "CANCELADA" || estado === "CANCELADO";
+    return (
+      estado === "CANCELADA" || estado === "CANCELADO" || estado === "ANULADA"
+    );
   }
 
   return true;
@@ -208,6 +219,9 @@ export default function AdminCompras() {
   const [estadoFiltro, setEstadoFiltro] = useState(estadoInicial);
   const [orden, setOrden] = useState("recientes");
   const [compraSeleccionada, setCompraSeleccionada] = useState(null);
+  const [actualizandoEstadoId, setActualizandoEstadoId] = useState(null);
+  const [notificandoId, setNotificandoId] = useState(null);
+  const [mensajeAccion, setMensajeAccion] = useState("");
 
   const obtenerCompras = async () => {
     try {
@@ -264,6 +278,77 @@ export default function AdminCompras() {
     setEstadoFiltro("todos");
     setOrden("recientes");
     navigate("/admin/compras", { replace: true });
+  };
+
+  const actualizarEstadoCompra = async (compra, nuevoEstado) => {
+    const compraId = obtenerIdCompra(compra);
+
+    if (!compraId) {
+      setMensajeAccion("No se pudo identificar la compra.");
+      return;
+    }
+
+    try {
+      setMensajeAccion("");
+      setActualizandoEstadoId(compraId);
+
+      const response = await api.patch(`/api/compra/admin/${compraId}/estado`, {
+        estado: nuevoEstado,
+      });
+
+      const compraActualizada = response.data?.datos;
+
+      setCompras((comprasActuales) =>
+        comprasActuales.map((item) =>
+          obtenerIdCompra(item) === compraId
+            ? compraActualizada || { ...item, estado: nuevoEstado }
+            : item,
+        ),
+      );
+
+      setCompraSeleccionada((actual) => {
+        if (!actual || obtenerIdCompra(actual) !== compraId) return actual;
+        return compraActualizada || { ...actual, estado: nuevoEstado };
+      });
+
+      setMensajeAccion("Estado de compra actualizado correctamente.");
+    } catch (error) {
+      setMensajeAccion(
+        error.response?.data?.mensaje ||
+          error.response?.data?.error ||
+          error.message ||
+          "No se pudo actualizar el estado de la compra.",
+      );
+    } finally {
+      setActualizandoEstadoId(null);
+    }
+  };
+
+  const notificarEstadoCompra = async (compra) => {
+    const compraId = obtenerIdCompra(compra);
+
+    if (!compraId) {
+      setMensajeAccion("No se pudo identificar la compra.");
+      return;
+    }
+
+    try {
+      setMensajeAccion("");
+      setNotificandoId(compraId);
+
+      await api.post(`/api/compra/admin/${compraId}/notificar`);
+
+      setMensajeAccion("Notificación enviada correctamente al cliente.");
+    } catch (error) {
+      setMensajeAccion(
+        error.response?.data?.mensaje ||
+          error.response?.data?.error ||
+          error.message ||
+          "No se pudo enviar la notificación.",
+      );
+    } finally {
+      setNotificandoId(null);
+    }
   };
 
   const resumen = useMemo(() => {
@@ -447,6 +532,12 @@ export default function AdminCompras() {
         </div>
       </section>
 
+      {mensajeAccion && (
+        <div className="admin-compras-filter-info">
+          <strong>{mensajeAccion}</strong>
+        </div>
+      )}
+
       <section className="admin-compras-stats">
         <article>
           <span className="admin-stat-icon purple">🧾</span>
@@ -500,26 +591,10 @@ export default function AdminCompras() {
 
         <button
           type="button"
-          className={estadoFiltro === "aprobada" ? "active aprobada" : ""}
-          onClick={() => aplicarFiltroEstado("APROBADA")}
-        >
-          Aprobadas
-        </button>
-
-        <button
-          type="button"
           className={estadoFiltro === "pagada" ? "active pagada" : ""}
           onClick={() => aplicarFiltroEstado("PAGADA")}
         >
           Pagadas
-        </button>
-
-        <button
-          type="button"
-          className={estadoFiltro === "rechazada" ? "active rechazada" : ""}
-          onClick={() => aplicarFiltroEstado("RECHAZADA")}
-        >
-          Rechazadas
         </button>
 
         <button
@@ -548,10 +623,8 @@ export default function AdminCompras() {
         >
           <option value="todos">Estado: Todos</option>
           <option value="pendiente">Pendientes</option>
-          <option value="aprobada">Aprobadas</option>
           <option value="pagada">Pagadas</option>
-          <option value="rechazada">Rechazadas</option>
-          <option value="cancelada">Canceladas</option>
+          <option value="cancelada">Canceladas / Anuladas</option>
         </select>
 
         <select value={orden} onChange={(e) => setOrden(e.target.value)}>
@@ -618,17 +691,15 @@ export default function AdminCompras() {
               const cursosExtra = Math.max(detalles.length - 1, 0);
               const estado = normalizarEstado(compra.estado);
               const estadoClase = claseEstado(estado);
+              const compraId = obtenerIdCompra(compra);
+              const estaActualizando = actualizandoEstadoId === compraId;
+              const estaNotificando = notificandoId === compraId;
 
               return (
-                <article
-                  key={compra._id || compra.id}
-                  className="admin-compra-row"
-                >
+                <article key={compraId} className="admin-compra-row">
                   <div className="admin-compra-col orden">
                     <small>Orden</small>
-                    <strong>
-                      #{String(compra._id || compra.id).slice(-6)}
-                    </strong>
+                    <strong>#{String(compraId).slice(-6)}</strong>
                     <span className={`admin-compra-estado ${estadoClase}`}>
                       {estado}
                     </span>
@@ -658,7 +729,6 @@ export default function AdminCompras() {
                       <p>Sin cursos asociados</p>
                     )}
                   </div>
-
                   <div className="admin-compra-col fecha">
                     <small>Fecha</small>
                     <strong>
@@ -670,12 +740,41 @@ export default function AdminCompras() {
                   <div className="admin-compra-col total">
                     <small>Total</small>
                     <strong>{formatearPrecio(compra.total)}</strong>
-                    <button
-                      type="button"
-                      onClick={() => setCompraSeleccionada(compra)}
+                  </div>
+
+                  <div className="admin-compra-col acciones">
+                    <small>Acciones</small>
+
+                    <select
+                      value={estado}
+                      disabled={estaActualizando}
+                      onChange={(e) =>
+                        actualizarEstadoCompra(compra, e.target.value)
+                      }
                     >
-                      Ver detalle →
-                    </button>
+                      {ESTADOS_COMPRA.map((estadoDisponible) => (
+                        <option key={estadoDisponible} value={estadoDisponible}>
+                          {estadoDisponible}
+                        </option>
+                      ))}
+                    </select>
+
+                    <div className="admin-compra-acciones-botones">
+                      <button
+                        type="button"
+                        disabled={estaNotificando}
+                        onClick={() => notificarEstadoCompra(compra)}
+                      >
+                        {estaNotificando ? "Notificando..." : "Notificar"}
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setCompraSeleccionada(compra)}
+                      >
+                        Ver detalle
+                      </button>
+                    </div>
                   </div>
                 </article>
               );
@@ -753,6 +852,38 @@ export default function AdminCompras() {
             </div>
 
             <div className="admin-compra-modal-cursos">
+              <h3>Administrar compra</h3>
+
+              <div className="admin-compras-toolbar">
+                <select
+                  value={normalizarEstado(compraSeleccionada.estado)}
+                  disabled={
+                    actualizandoEstadoId === obtenerIdCompra(compraSeleccionada)
+                  }
+                  onChange={(e) =>
+                    actualizarEstadoCompra(compraSeleccionada, e.target.value)
+                  }
+                >
+                  {ESTADOS_COMPRA.map((estadoDisponible) => (
+                    <option key={estadoDisponible} value={estadoDisponible}>
+                      {estadoDisponible}
+                    </option>
+                  ))}
+                </select>
+
+                <button
+                  type="button"
+                  disabled={
+                    notificandoId === obtenerIdCompra(compraSeleccionada)
+                  }
+                  onClick={() => notificarEstadoCompra(compraSeleccionada)}
+                >
+                  {notificandoId === obtenerIdCompra(compraSeleccionada)
+                    ? "Notificando..."
+                    : "Notificar al cliente"}
+                </button>
+              </div>
+
               <h3>Cursos incluidos</h3>
 
               {obtenerDetalles(compraSeleccionada).map((detalle) => (

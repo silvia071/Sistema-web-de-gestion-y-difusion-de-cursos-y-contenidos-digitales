@@ -8,6 +8,8 @@ const {
   obtenerMiCompraPorId,
   obtenerTodasLasCompras,
   obtenerCompraPorIdAdmin,
+  actualizarEstadoCompraAdmin,
+  notificarEstadoCompraAdmin,
 } = require("../controllers/compra.controller");
 
 const { verificarToken } = require("../middlewares/verificarToken.middleware");
@@ -24,11 +26,26 @@ router.get(
   verificarAdmin,
   obtenerTodasLasCompras,
 );
+
 router.get(
   "/admin/:id",
   verificarToken,
   verificarAdmin,
   obtenerCompraPorIdAdmin,
+);
+
+router.patch(
+  "/admin/:id/estado",
+  verificarToken,
+  verificarAdmin,
+  actualizarEstadoCompraAdmin,
+);
+
+router.post(
+  "/admin/:id/notificar",
+  verificarToken,
+  verificarAdmin,
+  notificarEstadoCompraAdmin,
 );
 
 router.delete("/:id", verificarToken, verificarAdmin, eliminarCompra);

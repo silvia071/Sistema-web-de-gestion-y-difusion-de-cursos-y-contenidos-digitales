@@ -70,6 +70,9 @@ const solicitarRecuperacionContrasenia = async (req, res) => {
   try {
     const { email } = req.body;
 
+    const mensajeGenerico =
+      "Si el email está registrado, recibirás un enlace para restablecer tu contraseña.";
+
     if (!email) {
       return res.status(400).json({
         mensaje: "El email es obligatorio",
@@ -80,21 +83,25 @@ const solicitarRecuperacionContrasenia = async (req, res) => {
       email: email.toLowerCase().trim(),
     });
 
+    // Respuesta genérica para no revelar si el email existe o no
     if (!usuario) {
-      return res.status(404).json({
-        mensaje: "No existe un usuario registrado con ese email",
+      return res.status(200).json({
+        mensaje: mensajeGenerico,
       });
     }
 
+    // Token real que va en el link del mail
     const token = crypto.randomBytes(32).toString("hex");
 
-    usuario.tokenRecuperacionContrasenia = token;
-    usuario.expiracionTokenRecuperacion = Date.now() + 1000 * 60 * 30;
+    // Hash del token que se guarda en la base de datos
+    const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
+
+    usuario.tokenRecuperacionContrasenia = tokenHash;
+    usuario.expiracionTokenRecuperacion = Date.now() + 1000 * 60 * 15;
 
     await usuario.save();
 
     const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
-
 
     const enlaceRecuperacion = `${frontendUrl}/restablecer-contrasenia/${token}`;
 
@@ -104,11 +111,7 @@ const solicitarRecuperacionContrasenia = async (req, res) => {
     });
 
     return res.status(200).json({
-      mensaje: "Se envió un correo con las instrucciones para recuperar la contraseña",
-    });
-
-    return res.status(200).json({
-      mensaje: "Se envió un correo con las instrucciones para recuperar la contraseña",
+      mensaje: mensajeGenerico,
     });
   } catch (error) {
     return res.status(500).json({
@@ -141,11 +144,12 @@ const restablecerContrasenia = async (req, res) => {
       });
     }
 
-    const usuario = await Usuario.findOne({
-      tokenRecuperacionContrasenia: token,
-      expiracionTokenRecuperacion: { $gt: Date.now() },
-    });
+const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
 
+const usuario = await Usuario.findOne({
+  tokenRecuperacionContrasenia: tokenHash,
+  expiracionTokenRecuperacion: { $gt: Date.now() },
+});
     if (!usuario) {
       return res.status(400).json({
         mensaje: "El enlace de recuperación es inválido o expiró",
@@ -155,9 +159,8 @@ const restablecerContrasenia = async (req, res) => {
     const hashContrasenia = await bcrypt.hash(nuevaContrasenia, 10);
 
     usuario.contrasenia = hashContrasenia;
-    usuario.tokenRecuperacionContrasenia = null;
-    usuario.expiracionTokenRecuperacion = null;
-
+    usuario.tokenRecuperacionContrasenia = undefined;
+    usuario.expiracionTokenRecuperacion = undefined;
     await usuario.save();
 
     return res.status(200).json({

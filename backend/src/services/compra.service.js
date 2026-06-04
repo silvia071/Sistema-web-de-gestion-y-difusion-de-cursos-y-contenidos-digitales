@@ -228,6 +228,38 @@ const obtenerCompraPorIdAdmin = async (compraId) => {
   return compra;
 };
 
+const actualizarEstadoCompra = async (compraId, nuevoEstado) => {
+  if (!compraId) {
+    throw new Error("El id de la compra es obligatorio");
+  }
+
+  if (!nuevoEstado) {
+    throw new Error("El estado es obligatorio");
+  }
+
+  const estadosValidos = Object.values(EstadoCompra).filter(
+    (valor) => typeof valor === "string",
+  );
+
+  const estadoNormalizado = nuevoEstado.toUpperCase();
+
+  if (!estadosValidos.includes(estadoNormalizado)) {
+    throw new Error("Estado de compra inválido");
+  }
+
+  const compra = await Compra.findByIdAndUpdate(
+    compraId,
+    { estado: estadoNormalizado },
+    { new: true },
+  );
+
+  if (!compra) {
+    throw new Error("Compra no encontrada");
+  }
+
+  return await populateCompra(Compra.findById(compra._id));
+};
+
 const eliminarCompra = async (compraId) => {
   const compra = await Compra.findByIdAndDelete(compraId);
 
@@ -244,5 +276,6 @@ module.exports = {
   obtenerCompraPorIdYUsuario,
   obtenerTodasLasCompras,
   obtenerCompraPorIdAdmin,
+  actualizarEstadoCompra,
   eliminarCompra,
 };
