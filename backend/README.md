@@ -1,317 +1,384 @@
-# Backend - Proyecto Final
+# Backend - Mundo Dev
 
-## Instalación y Configuración
+Backend de **Mundo Dev**, una plataforma web para la gestión, difusión y comercialización de cursos digitales.
 
-### Paso 1: Clonar el Repositorio
+La API REST fue desarrollada con **Node.js**, **Express.js** y **MongoDB** mediante **Mongoose**. El sistema permite administrar usuarios, cursos, carritos, compras, pagos, accesos a cursos, datos de facturación y mensajes de contacto.
+
+## Descripción del sistema
+
+Mundo Dev es una aplicación web orientada a la venta de cursos digitales. El backend centraliza la lógica de negocio y expone una API REST consumida por el frontend desarrollado en React.
+
+El sistema incluye autenticación con JWT, autorización por roles, recuperación de contraseña por correo electrónico, gestión de cursos, carrito de compras, checkout, pagos por transferencia o Mercado Pago/modo simulado, generación de accesos a cursos y panel administrativo.
+
+## Tecnologías utilizadas
+
+* Node.js
+* Express.js
+* MongoDB
+* Mongoose
+* JSON Web Token
+* Bcrypt
+* Nodemailer
+* Mercado Pago SDK
+* Dotenv
+* CORS
+* Nodemon
+
+## Funcionalidades principales
+
+### Autenticación y autorización
+
+* Registro de usuarios.
+* Inicio de sesión.
+* Encriptación de contraseñas.
+* Autenticación mediante JWT.
+* Middleware de autenticación.
+* Middleware de autorización por rol.
+* Roles CLIENTE y ADMINISTRADOR.
+* Recuperación de contraseña mediante correo electrónico.
+* Restablecimiento de contraseña con token temporal.
+
+### Gestión de usuarios
+
+* Consulta de perfil.
+* Edición de datos personales.
+* Listado de usuarios para administradores.
+* Edición de usuarios.
+* Cambio de rol.
+* Bloqueo de usuarios como baja lógica.
+* Reactivación de usuarios bloqueados.
+
+### Gestión de cursos
+
+* Listado público de cursos publicados.
+* Listado administrativo de todos los cursos.
+* Creación de cursos.
+* Edición de cursos.
+* Publicación de cursos.
+* Ocultamiento de cursos como baja lógica.
+* Recuperación de cursos ocultos.
+* Gestión de categorías y lecciones.
+
+### Carrito y compras
+
+* Creación u obtención del carrito activo.
+* Agregado de cursos al carrito.
+* Eliminación de cursos del carrito.
+* Vaciado del carrito.
+* Cálculo de total.
+* Aplicación de cupones.
+* Generación de compra desde carrito.
+* Consulta de compras propias.
+* Administración de compras.
+
+### Pagos
+
+* Creación de pagos.
+* Procesamiento de pagos.
+* Pago por transferencia bancaria.
+* Mercado Pago o modo simulado.
+* Aprobación manual de pagos.
+* Rechazo de pagos.
+* Sincronización entre pago aprobado, compra pagada y acceso al curso.
+
+### Datos de facturación
+
+* Creación de datos de facturación.
+* Consulta de datos propios.
+* Actualización de datos propios.
+* Administración de datos de facturación.
+
+### Mensajes de contacto
+
+* Recepción de mensajes desde el formulario público.
+* Guardado de mensajes en base de datos.
+* Envío de email al administrador.
+* Listado de mensajes para administradores.
+* Marcado de mensajes como leídos.
+* Respuesta desde el panel administrador.
+* Envío de email al usuario con la respuesta.
+* Eliminación lógica de mensajes.
+
+### Correos electrónicos
+
+El sistema utiliza Nodemailer para enviar correos en los siguientes casos:
+
+* Recuperación de contraseña.
+* Confirmación de orden de compra.
+* Actualización del estado de una compra.
+* Notificación al administrador por nuevo mensaje de contacto.
+* Respuesta al usuario desde el panel de mensajes.
+
+## Requisitos
+
+* Node.js 18 o superior.
+* npm.
+* MongoDB local o MongoDB Atlas.
+* Cuenta SMTP para envío de correos.
+* Credenciales de Mercado Pago, o uso de modo simulado con `MP_MOCK=true`.
+
+## Instalación
+
+Clonar el repositorio:
+
 ```bash
-git clone https://github.com/tu-usuario/tu-repositorio.git
-cd proyecto-final/backend
+git clone https://github.com/silvia071/Sistema-web-de-gestion-y-difusion-de-cursos-y-contenidos-digitales.git
 ```
 
-### Paso 2: Instalar Dependencias
+Ingresar a la carpeta del backend:
+
+```bash
+cd Sistema-web-de-gestion-y-difusion-de-cursos-y-contenidos-digitales/backend
+```
+
+Instalar dependencias:
+
 ```bash
 npm install
 ```
 
-### Paso 3: Configurar Base de Datos
+## Variables de entorno
 
-#### MongoDB Atlas (Recomendado)
-1. Crea una cuenta en [MongoDB Atlas](https://www.mongodb.com/cloud/atlas)
-2. Crea un cluster gratuito
-3. Obtén la connection string
+Crear un archivo `.env` dentro de la carpeta `backend`.
 
-### Paso 4: Configurar Mercado Pago
-1. Crea una cuenta en [Mercado Pago Developers](https://www.mercadopago.com.ar/developers)
-2. Crea una aplicación
-3. Obtén el `access_token` y `public_key`
+Se puede tomar como base el archivo `.env.example`.
 
-### Paso 5: Configurar Variables de Entorno
-Crea el archivo `.env` como se describe en la sección "Crear archivo .env"
+Ejemplo de configuración:
 
-### Paso 6: Iniciar el Servidor
+```env
+# Server
+PORT=3000
+NODE_ENV=development
 
-#### Modo Desarrollo (con Nodemon)
+# Database
+MONGO_URI=mongodb://127.0.0.1:27017/mundo-dev
+
+# JWT
+JWT_SECRET=tu_clave_secreta_jwt
+
+# URLs
+FRONTEND_URL=http://localhost:5173
+BACKEND_URL=http://localhost:3000
+
+# Mercado Pago
+MP_ACCESS_TOKEN=TU_ACCESS_TOKEN
+MP_MOCK=true
+MP_WEBHOOK_SECRET=tu_webhook_secret
+
+# SMTP / Mail
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=tu_email@gmail.com
+SMTP_PASS=tu_password_o_app_password
+MAIL_FROM=tu_email@gmail.com
+ADMIN_EMAIL=tu_email_admin@gmail.com
+```
+
+El archivo `.env` real no debe subirse al repositorio.
+
+## Ejecución
+
+Para iniciar el servidor en modo desarrollo:
+
 ```bash
 npm run dev
 ```
 
-## Descripción del Sistema
+El backend se ejecuta por defecto en:
 
-Esta es la **API REST** del backend para una plataforma web de gestión y difusión de cursos y contenidos digitales. El sistema permite:
-
-### Funcionalidades Principales
-- **Gestión de Usuarios**: Registro, autenticación y perfiles de usuarios
-- **Administración de Cursos**: Crear, editar y gestionar cursos en línea
-- **Carrito de Compras**: Sistema de compras integrado
-- **Pagos con Mercado Pago**: Procesamiento de pagos seguros
-- **Sistema de Lecciones**: Contenido multimedia organizado
-- **Mensajes de Contacto**: Comunicación con administradores
-- **Autenticación JWT**: Seguridad basada en tokens
-- **Panel Administrativo**: Gestión completa del sistema
-
-### Arquitectura
-- **Backend**: Node.js + Express.js
-- **Base de Datos**: MongoDB (local o Atlas)
-- **Autenticación**: JWT (JSON Web Tokens)
-- **Pagos**: Mercado Pago API
-- **Arquitectura**: RESTful API con MVC
-
-## Requisitos del Sistema
-
-### Requisitos Mínimos
-- **Node.js**: versión 16 o superior
-- **npm**: versión 7 o superior
-- **MongoDB**: versión 4.4 o superior (local o Atlas)
-- **Sistema Operativo**: Windows 10+, macOS 10.15+, Linux Ubuntu 18.04+
-
-### Requisitos Recomendados
-- **Node.js**: versión 18 LTS
-- **npm**: versión 9+
-- **MongoDB Atlas**: Para despliegue en la nube
-- **RAM**: 4GB mínimo
-- **Espacio en Disco**: 500MB para el proyecto + base de datos
-
-## Tecnologías Utilizadas
-
-### Core
-- **Node.js** - Runtime de JavaScript
-- **Express.js** - Framework web para Node.js
-- **MongoDB** - Base de datos NoSQL
-- **Mongoose** - ODM para MongoDB
-
-### Seguridad y Autenticación
-- **JWT** - JSON Web Tokens para autenticación
-- **bcryptjs** - Hashing de contraseñas
-- **CORS** - Control de acceso cross-origin
-
-### Pagos y APIs Externas
-- **Mercado Pago SDK** - Integración de pagos
-- **Axios** - Cliente HTTP para APIs
-
-### Desarrollo
-- **Nodemon** - Reinicio automático del servidor
-- **Dotenv** - Gestión de variables de entorno
-
-
-
-#### Modo Producción
-```bash
-npm start
+```text
+http://localhost:3000
 ```
 
-El servidor se iniciará en `http://localhost:3000` por defecto.
-
-### Verificar Instalación
-Una vez iniciado el servidor, puedes verificar que todo funciona correctamente:
-
-1. **Health Check**: Visita `http://localhost:3000/api/health` (si tienes este endpoint)
-2. **Conexión a BD**: El servidor debería mostrar "Conectado a MongoDB" en la consola
-3. **API Documentation**: Si tienes Swagger/Postman, prueba los endpoints básicos
-
-
-## Configuración Inicial
-
-### Crear archivo `.env`
-Para que la aplicación funcione correctamente, debes crear un archivo `.env` en la raíz de la carpeta `backend/` con las siguientes variables de entorno:
+## Estructura del proyecto
 
 ```bash
-# Archivo: .env (ubicado en: backend/.env)
-
-# Base de datos MongoDB
-MONGO_URI=mongodb+srv://usuario:contraseña@cluster.mongodb.net/proyectoFinal
-
-# Puerto del servidor
-PORT=3000
-
-# JWT (JSON Web Token)
-JWT_SECRET=tu_clave_secreta_muy_segura
-
-# URL del frontend
-FRONTEND_URL=http://localhost:5173
-
-# Node Environment
-NODE_ENV=development
-```
-
-### Pasos para configurar:
-
-1. **Duplica el archivo de ejemplo** (si existe `.env.example`):
-   ```bash
-   cp .env.example .env
-   ```
-
-2. **O crea el archivo manualmente**:
-   - En la raíz de la carpeta `backend/`
-   - Nombre del archivo: `.env`
-   - Llena las variables con tus valores
-
-3. **Variables requeridas**:
-   - **MONGO_URI**: Conexión a MongoDB (local o Atlas)
-     - Formato: `mongodb+srv://usuario:contraseña@cluster.mongodb.net/nombreBD`
-     - O local: `mongodb://localhost:27017/proyectoFinal`
-   - **PORT**: Puerto del servidor (3000 en tu caso)
-   - **JWT_SECRET**: Clave segura para firmar tokens
-
-
-4. **Para obtener credenciales**:
-   - **MongoDB Atlas**: Crea una cuenta en [MongoDB Atlas](https://www.mongodb.com/cloud/atlas)
-   - **Mercado Pago**: Obtén tus credenciales para vender tus cursos en [Mercado Pago Developers](https://www.mercadopago.com.ar/developers)
-
-5. **Instala dependencias**:
-   ```bash
-   npm install
-   ```
-
-6. **Inicia el servidor**:
-   ```bash
-   npm start
-   ```
-   O con nodemon (desarrollo):
-   ```bash
-   npm run dev
-   ```
-
-### Importante:
-
-⚠️ **Nunca commits el archivo `.env` al repositorio**. Debe estar en `.gitignore`:
-
-```gitignore
-.env
-.env.local
-node_modules/
-```
-
----
-
-## Estructura del Proyecto
-
-```
 backend/
 ├── src/
-│   ├── app.js                    # Configuración principal de Express
-│   ├── server.js                 # Punto de entrada del servidor
 │   ├── config/
-│   │   ├── database.js           # Configuración de MongoDB
-│   │   └── mercadopago.js        # Configuración de Mercado Pago
-│   ├── controllers/              # Controladores de la API
-│   │   ├── usuario.controller.js
-│   │   ├── curso.controller.js
-│   │   ├── compra.controller.js
-│   │   └── ...
-│   ├── models/                   # Modelos de datos (Mongoose)
-│   │   ├── usuario.model.js
-│   │   ├── curso.model.js
-│   │   ├── compra.model.js
-│   │   └── ...
-│   ├── routes/                   # Definición de rutas
-│   │   ├── usuario.route.js
-│   │   ├── curso.route.js
-│   │   └── ...
-│   ├── services/                 # Lógica de negocio
-│   │   ├── usuario.service.js
-│   │   ├── pago.service.js
-│   │   └── ...
-│   ├── middlewares/              # Middlewares personalizados
-│   │   ├── verificarToken.middleware.js
-│   │   ├── verificarAdmin.middleware.js
-│   │   └── ...
-│   ├── enums/                    # Enumeraciones
-│   │   ├── estadoCompra.js
-│   │   ├── rolUsuario.js
-│   │   └── ...
-│   └── utils/                    # Utilidades (opcional)
-├── node_modules/                 # Dependencias instaladas
-├── .env                          # Variables de entorno (no versionado)
-├── .env.example                  # Ejemplo de variables de entorno
-├── package.json                  # Dependencias y scripts
-├── nodemon.json                  # Configuración de Nodemon
-├── .gitignore                    # Archivos ignorados por Git
-└── README.md                     # Esta documentación
+│   ├── controllers/
+│   ├── enums/
+│   ├── middlewares/
+│   ├── models/
+│   ├── routes/
+│   ├── services/
+│   ├── utils/
+│   ├── app.js
+│   └── server.js
+├── .env.example
+├── package.json
+└── README.md
 ```
 
-## Scripts Disponibles
+## Endpoints principales
 
-- `npm start` - Inicia el servidor en modo producción
-- `npm run dev` - Inicia el servidor con Nodemon (desarrollo)
-- `npm test` - Ejecuta los tests (si están configurados)
-- `npm run lint` - Ejecuta ESLint (si está configurado)
+### Autenticación
 
-## Despliegue en Producción
+```http
+POST /api/auth/registro
+POST /api/auth/login
+POST /api/auth/recuperar-contrasenia
+POST /api/auth/restablecer-contrasenia/:token
+```
 
-### Variables de Entorno para Producción
+### Usuarios
+
+```http
+GET /api/usuarios
+GET /api/usuarios/perfil
+PUT /api/usuarios/perfil/:id
+PUT /api/usuarios/bloquear/:id
+PUT /api/usuarios/activar/:id
+PUT /api/usuarios/rol/:id
+```
+
+### Cursos
+
+```http
+GET /api/cursos
+GET /api/cursos/:id
+GET /api/cursos/admin/todos
+POST /api/cursos
+PUT /api/cursos/:id
+PATCH /api/cursos/:id/publicar
+PATCH /api/cursos/:id/ocultar
+```
+
+### Categorías
+
+```http
+GET /api/categorias
+GET /api/categorias/:id
+POST /api/categorias
+PUT /api/categorias/:id
+DELETE /api/categorias/:id
+```
+
+### Carrito
+
+```http
+POST /api/carrito
+GET /api/carrito/:id
+POST /api/carrito/:id/item
+DELETE /api/carrito/:id/item/:itemId
+DELETE /api/carrito/:id/vaciar
+GET /api/carrito/:id/total
+POST /api/carrito/:id/cupon
+DELETE /api/carrito/:id/cupon
+```
+
+### Compras
+
+```http
+POST /api/compra/desde-carrito/:id
+GET /api/compra/mis-compras
+GET /api/compra/mis-compras/:id
+GET /api/compra/admin/todas
+GET /api/compra/admin/:id
+PATCH /api/compra/admin/:id/estado
+POST /api/compra/admin/:id/notificar
+DELETE /api/compra/:id
+```
+
+### Pagos
+
+```http
+POST /api/pagos
+POST /api/pagos/procesar
+POST /api/pagos/crear-preferencia
+POST /api/pagos/webhook
+GET /api/pagos
+GET /api/pagos/:id
+PATCH /api/pagos/:id/aprobar
+PATCH /api/pagos/:id/rechazar
+```
+
+### Datos de facturación
+
+```http
+POST /api/datos-facturacion
+GET /api/datos-facturacion/mis-datos
+PUT /api/datos-facturacion/mis-datos
+GET /api/datos-facturacion
+GET /api/datos-facturacion/:id
+PUT /api/datos-facturacion/:id
+DELETE /api/datos-facturacion/:id
+```
+
+### Accesos a cursos
+
+```http
+GET /api/accesos/mis-cursos
+GET /api/accesos/usuario/:usuarioId
+PATCH /api/accesos/progreso
+```
+
+### Mensajes de contacto
+
+```http
+POST /api/mensajes
+GET /api/mensajes
+GET /api/mensajes/:id
+PATCH /api/mensajes/:id/leido
+PATCH /api/mensajes/:id/responder
+PATCH /api/mensajes/:id/eliminar
+```
+
+### Publicaciones
+
+```http
+GET /api/publicaciones
+GET /api/publicaciones/:id
+POST /api/publicaciones
+PUT /api/publicaciones/:id
+DELETE /api/publicaciones/:id
+PATCH /api/publicaciones/:id/publicar
+PATCH /api/publicaciones/:id/ocultar
+```
+
+## Respuestas JSON
+
+Ejemplo de respuesta exitosa:
+
+```json
+{
+  "mensaje": "Operación realizada correctamente",
+  "datos": {}
+}
+```
+
+Ejemplo de respuesta con error:
+
+```json
+{
+  "mensaje": "Descripción del error",
+  "error": "Detalle técnico"
+}
+```
+
+## Adaptación a cursos digitales
+
+El proyecto fue adaptado al dominio de cursos digitales.
+
+Por este motivo:
+
+* El producto del sistema es el curso.
+* No se utiliza stock físico.
+* No se manejan cantidades en el carrito.
+* Cada curso se puede adquirir una sola vez por usuario.
+* El control equivalente al stock se realiza mediante acceso digital.
+* La entrega se realiza habilitando el curso en “Mis cursos”.
+* La baja lógica de productos se implementa ocultando cursos.
+
+## Scripts disponibles
+
 ```bash
-NODE_ENV=production
-MONGO_URI=mongodb+srv://usuario:password@cluster.mongodb.net/proyectoFinal
-JWT_SECRET=clave_muy_segura_para_produccion
-PORT=3000
-FRONTEND_URL=https://tu-dominio.com
+npm run dev
 ```
 
-### Servicios de Hosting Recomendados
-- **Backend**: Railway, Render, Heroku, DigitalOcean App Platform
-- **Base de Datos**: MongoDB Atlas
-- **Archivos**: Cloudinary, AWS S3 (para imágenes/videos de cursos)
+## Repositorio
 
-### Checklist de Despliegue
-- [ ] Variables de entorno configuradas
-- [ ] Base de datos conectada
-- [ ] Credenciales de Mercado Pago válidas
-- [ ] CORS configurado para el dominio del frontend
-- [ ] HTTPS habilitado
-- [ ] Logs configurados
-- [ ] Backup de base de datos programado
-
-## Desarrollo y Testing
-
-### Ejecutar Tests
-```bash
-npm test
+```text
+https://github.com/silvia071/Sistema-web-de-gestion-y-difusion-de-cursos-y-contenidos-digitales.git
 ```
-
-
-### Debugging
-- Usa `console.log()` para debugging básico
-- Configura logs con Winston para producción
-- Revisa los logs de MongoDB Atlas para consultas lentas
-
-## Contribución
-
-### Flujo de Trabajo
-1. Crea una rama para tu feature: `git checkout -b feature/nueva-funcionalidad`
-2. Realiza tus cambios siguiendo las mejores prácticas
-3. Ejecuta tests y linting: `npm run lint && npm test`
-4. Crea un commit descriptivo
-5. Push a tu rama y crea un Pull Request
-
-### Estándares de Código
-- Usa ESLint para mantener consistencia
-- Documenta funciones y endpoints importantes
-- Sigue el patrón MVC establecido
-- Usa nombres descriptivos en inglés
-
-### Reportar Issues
-Si encuentras bugs o tienes sugerencias:
-1. Revisa si ya existe un issue similar
-2. Crea un nuevo issue con descripción detallada
-3. Incluye pasos para reproducir el problema
-4. Agrega logs o screenshots si es relevante
-
-
-## Troubleshooting
-
-### "Error: connect ECONNREFUSED"
-- Verifica que MongoDB está corriendo (local o tiene acceso a Atlas)
-- Confirma la URI de conexión en `.env`
-
-### "Error: Invalid connection string"
-- Verifica el formato de MONGO_URI
-- Comprueba usuario y contraseña si usas MongoDB Atlas
-- Revisa que el cluster esté activo en MongoDB Atlas
-
-### "Error: JWT_SECRET is not defined"
-- Asegúrate de que el archivo `.env` existe en la carpeta `backend/`
-- Verifica que la variable `JWT_SECRET` está configurada
-
-### "Error: MERCADO_PAGO_ACCESS_TOKEN not found"
-- Obtén tu token en Mercado Pago Developers
-- Configúralo en el archivo `.env`

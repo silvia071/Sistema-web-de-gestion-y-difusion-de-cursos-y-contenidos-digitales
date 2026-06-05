@@ -1,72 +1,130 @@
-# Frontend - Proyecto Final (React + Vite)
+# Frontend - Mundo Dev
 
-## Descripción
+Frontend de **Mundo Dev**, una plataforma web para la gestión, difusión y comercialización de cursos digitales.
 
-Este es el frontend de la aplicación web del proyecto final, desarrollado con **React** y **Vite**. Proporciona la interfaz de usuario para la plataforma de cursos en línea, incluyendo autenticación, gestión de cursos, carrito de compras y pagos con Mercado Pago.
+La aplicación fue desarrollada con **React** y **Vite**, y consume una API REST desarrollada con Node.js, Express y MongoDB.
 
-Esta plantilla proporciona una configuración mínima para hacer funcionar React en Vite con HMR (Hot Module Replacement) y algunas reglas de ESLint.
+## Descripción del sistema
 
-## Tecnologías Utilizadas
+Mundo Dev permite que los usuarios exploren cursos digitales, se registren, inicien sesión, agreguen cursos al carrito, completen el checkout, realicen compras y accedan a sus cursos adquiridos.
 
-- **React 19** - Framework de JavaScript para interfaces de usuario
-- **Vite** - Herramienta de desarrollo rápida y moderna
-- **React Router DOM** - Enrutamiento para aplicaciones React
-- **ESLint** - Linting y formateo de código
+Además, cuenta con un panel administrativo desde el cual se pueden gestionar cursos, usuarios, compras, pagos y mensajes de contacto.
 
-Actualmente, hay dos plugins oficiales disponibles:
+## Tecnologías utilizadas
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) usa [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) usa [SWC](https://swc.rs/)
+* React
+* Vite
+* React Router DOM
+* Axios
+* Context API
+* LocalStorage
+* CSS modular por páginas y componentes
+* Librerías de íconos
+
+## Funcionalidades principales
+
+### Funcionalidades públicas
+
+* Página de inicio.
+* Catálogo de cursos.
+* Detalle de curso.
+* Blog o publicaciones.
+* Página “Sobre nosotros”.
+* Formulario de contacto.
+* Registro de usuario.
+* Inicio de sesión.
+* Recuperación de contraseña.
+* Restablecimiento de contraseña mediante token.
+
+### Funcionalidades del cliente
+
+* Persistencia de sesión.
+* Rutas protegidas.
+* Perfil de usuario.
+* Carrito de compras.
+* Agregar cursos al carrito.
+* Eliminar cursos del carrito.
+* Vaciar carrito.
+* Visualización del total.
+* Checkout.
+* Carga de datos de facturación.
+* Selección de método de pago.
+* Pago por transferencia bancaria.
+* Pago mediante Mercado Pago o modo simulado.
+* Consulta de compras realizadas.
+* Visualización del detalle de compra.
+* Acceso a cursos adquiridos.
+* Visualización del progreso del curso.
+
+### Funcionalidades del administrador
+
+* Dashboard administrador.
+* Gestión de cursos.
+* Crear cursos.
+* Editar cursos.
+* Publicar cursos.
+* Ocultar cursos como baja lógica.
+* Recuperar cursos ocultos.
+* Gestión de usuarios.
+* Bloquear y reactivar usuarios.
+* Cambio de roles.
+* Gestión de compras.
+* Cambio de estado de compras.
+* Notificación de estado de compra por email.
+* Gestión de pagos.
+* Gestión de mensajes de contacto.
+* Respuesta a mensajes de contacto con envío de email al usuario.
+
+## Adaptación a cursos digitales
+
+El sistema está adaptado a la venta de cursos digitales.
+
+Por este motivo:
+
+* El producto comercializado es el curso.
+* No se manejan cantidades en el carrito.
+* Cada curso se compra una sola vez por usuario.
+* No se utiliza stock físico.
+* El control equivalente al stock se realiza mediante el acceso digital al curso.
+* La entrega se realiza habilitando el curso en la sección “Mis cursos”.
+* La baja lógica de productos se realiza ocultando cursos.
+
+## Estructura del proyecto
+
+```bash
+frontend/
+├── public/
+├── src/
+│   ├── assets/
+│   ├── components/
+│   ├── context/
+│   ├── pages/
+│   ├── routes/
+│   ├── services/
+│   ├── utils/
+│   ├── App.jsx
+│   └── main.jsx
+├── index.html
+├── package.json
+├── vite.config.js
+└── README.md
+```
 
 ## Instalación
 
-### Prerrequisitos
-
-- **Node.js** versión 18 o superior
-- **npm** o **yarn** instalado
-
-### Pasos de Instalación
-
-1. **Navega a la carpeta frontend**:
-   ```bash
-   cd frontend
-   ```
-
-2. **Instala las dependencias**:
-   ```bash
-   npm install
-   ```
-
-3. **Configura las variables de entorno** (opcional):
-   - Crea un archivo `.env` en la raíz de `frontend/` si necesitas variables específicas
-   - Ejemplo: `VITE_API_URL=http://localhost:3000`
-
-## Configuración
-
-### Conexión con el Backend
-
-El frontend se conecta con el backend a través de la API. Asegúrate de que:
-
-1. El backend esté corriendo en `http://localhost:3000` (o la URL configurada)
-2. Las rutas de la API estén correctamente configuradas en `src/config/api.js`
-
-### Variables de Entorno
-
-Si necesitas configurar variables de entorno, crea un archivo `.env` en la raíz del frontend:
+Ingresar a la carpeta del frontend:
 
 ```bash
-# Archivo: .env (ubicado en: frontend/.env)
-
-# URL de la API del backend
-VITE_API_URL=http://localhost:3000
-
-# Otras variables específicas del frontend
-VITE_APP_NAME=Proyecto Final
+cd frontend
 ```
 
-## Ejecución
+Instalar dependencias:
 
-### Modo Desarrollo
+```bash
+npm install
+```
+
+## Ejecución en desarrollo
 
 Para iniciar el servidor de desarrollo:
 
@@ -74,117 +132,131 @@ Para iniciar el servidor de desarrollo:
 npm run dev
 ```
 
-El servidor se iniciará en `http://localhost:5173` por defecto.
+La aplicación se ejecuta por defecto en:
 
-### Build de Producción
+```text
+http://localhost:5173
+```
 
-Para crear una versión optimizada para producción:
+## Build de producción
+
+Para generar una versión optimizada para producción:
 
 ```bash
 npm run build
 ```
 
-Los archivos se generarán en la carpeta `dist/`.
+Los archivos generados se ubican en la carpeta:
 
-### Vista Previa de Producción
+```bash
+dist/
+```
 
-Para previsualizar la versión de producción localmente:
+## Vista previa de producción
+
+Para previsualizar la versión generada:
 
 ```bash
 npm run preview
 ```
 
-## Estructura del Proyecto
+## Configuración de conexión con backend
 
-```
-frontend/
-├── public/                 # Archivos estáticos
-├── src/
-│   ├── assets/            # Imágenes, estilos, etc.
-│   ├── components/        # Componentes reutilizables
-│   │   ├── common/        # Componentes comunes
-│   │   ├── layout/        # Componentes de layout
-│   │   └── Blog.jsx       # Componente específico
-│   ├── config/            # Configuraciones (API, etc.)
-│   ├── context/           # Contextos de React (Auth, etc.)
-│   ├── layouts/           # Layouts de la aplicación
-│   ├── pages/             # Páginas/componentes de rutas
-│   ├── routes/            # Configuración de rutas
-│   ├── services/          # Servicios (llamadas a API)
-│   ├── styles/            # Estilos globales
-│   ├── App.jsx            # Componente principal
-│   ├── main.jsx           # Punto de entrada
-│   └── index.css          # Estilos globales
-├── index.html             # HTML principal
-├── package.json           # Dependencias y scripts
-├── vite.config.js         # Configuración de Vite
-├── eslint.config.js       # Configuración de ESLint
-└── README.md              # Este archivo
+El frontend consume la API del backend mediante Axios.
+
+El backend debe estar ejecutándose en:
+
+```text
+http://localhost:3000
 ```
 
-## Scripts Disponibles
+o en la URL configurada dentro del servicio de API correspondiente.
 
-- `npm run dev` - Inicia el servidor de desarrollo
-- `npm run build` - Construye la aplicación para producción
-- `npm run lint` - Ejecuta ESLint para verificar el código
-- `npm run preview` - Previsualiza la versión de producción
+## Rutas principales
 
-## Desarrollo
+### Rutas públicas
 
-### Linting
+```text
+/
+ /cursos
+ /cursos/:id
+ /blog
+ /sobre-nosotros
+ /contacto
+ /login
+ /registro
+ /recuperar-contrasenia
+ /restablecer-contrasenia/:token
+```
 
-Para mantener la calidad del código, ejecuta ESLint regularmente:
+### Rutas privadas de cliente
+
+```text
+/carrito
+/checkout
+/mis-compras
+/mis-cursos
+/perfil
+/pago-pendiente
+/pago-exitoso
+/pago-fallido
+```
+
+### Rutas administrativas
+
+```text
+/admin
+/admin/cursos
+/admin/usuarios
+/admin/compras
+/admin/pagos
+/admin/mensajes
+```
+
+## Manejo de estado
+
+El frontend utiliza **Context API** para manejar estado global, principalmente relacionado con el carrito de compras.
+
+También utiliza **localStorage** para persistir datos básicos de sesión, como el token JWT y la información del usuario autenticado.
+
+## Protección de rutas
+
+El sistema diferencia rutas públicas, privadas y administrativas.
+
+* Las rutas privadas requieren que el usuario esté autenticado.
+* Las rutas administrativas requieren autenticación y rol de administrador.
+* Si un usuario no autorizado intenta acceder, es redirigido según corresponda.
+
+## Pruebas realizadas
+
+Se verificaron los siguientes flujos principales:
+
+* Registro de usuario.
+* Inicio de sesión.
+* Recuperación de contraseña.
+* Visualización del catálogo.
+* Detalle de curso.
+* Carrito de compras.
+* Checkout con datos de facturación.
+* Compra por transferencia bancaria.
+* Visualización de pago pendiente.
+* Consulta de compras.
+* Acceso a cursos adquiridos.
+* Baja lógica y recuperación de cursos desde admin.
+* Administración de compras.
+* Envío y respuesta de mensajes de contacto.
+* Build de producción con Vite.
+
+## Scripts disponibles
 
 ```bash
-npm run lint
+npm run dev
+npm run build
+npm run preview
 ```
 
-### Convenciones de Código
+## Repositorio
 
-- Usa componentes funcionales con hooks
-- Mantén la estructura de carpetas organizada
-- Usa nombres descriptivos para componentes y archivos
-- Sigue las mejores prácticas de React
-
-## React Compiler
-
-El React Compiler no está habilitado en esta plantilla debido a su impacto en el rendimiento de desarrollo y construcción. Para agregarlo, consulta [esta documentación](https://react.dev/learn/react-compiler/installation).
-
-## Expandiendo la Configuración de ESLint
-
-Si estás desarrollando una aplicación de producción, recomendamos usar TypeScript con reglas de linting conscientes de tipos habilitadas. Consulta la [plantilla TS](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) para información sobre cómo integrar TypeScript y [`typescript-eslint`](https://typescript-eslint.io) en tu proyecto.
-
-## Troubleshooting
-
-### "Error: Cannot resolve module"
-- Asegúrate de que todas las dependencias estén instaladas: `npm install`
-- Verifica que no haya errores de sintaxis en los imports
-
-### "Error: Port 5173 is already in use"
-- Cambia el puerto en `vite.config.js` o mata el proceso que usa el puerto
-- En Windows: `netstat -ano | findstr :5173` y luego `taskkill /PID <PID> /F`
-
-### "Error: Failed to fetch" (API)
-- Verifica que el backend esté corriendo
-- Confirma la URL de la API en `src/config/api.js`
-- Revisa la consola del navegador para errores de CORS
-
-### Problemas con React Router
-- Asegúrate de que las rutas estén correctamente configuradas en `src/routes/`
-- Verifica que los componentes de página existan
-
-### ESLint Errors
-- Ejecuta `npm run lint` para ver los errores específicos
-- Corrige los problemas de linting antes de hacer commit
-
-## Contribución
-
-1. Crea una rama para tu feature: `git checkout -b feature/nueva-funcionalidad`
-2. Realiza tus cambios
-3. Ejecuta los tests y linting: `npm run lint`
-4. Crea un commit descriptivo
-5. Push a tu rama y crea un Pull Request
-
-## Licencia
-
-Este proyecto es privado y confidencial.
+```text
+https://github.com/silvia071/Sistema-web-de-gestion-y-difusion-de-cursos-y-contenidos-digitales.git
+```
