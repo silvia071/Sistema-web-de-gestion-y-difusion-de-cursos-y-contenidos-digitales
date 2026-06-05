@@ -43,6 +43,10 @@ function AdminMensajes() {
   const [accionandoId, setAccionandoId] = useState(null);
   const [error, setError] = useState("");
 
+  const [mensajeSeleccionado, setMensajeSeleccionado] = useState(null);
+  const [respuesta, setRespuesta] = useState("");
+  const [mensajeAccion, setMensajeAccion] = useState("");
+
   const cargarMensajes = async () => {
     try {
       setLoading(true);
@@ -72,8 +76,18 @@ function AdminMensajes() {
     try {
       setAccionandoId(id);
       setError("");
+      setMensajeAccion("");
 
       await api.patch(`/api/mensajes/${id}/${accion}`);
+
+      if (accion === "leido") {
+        setMensajeAccion("Mensaje marcado como leído.");
+      }
+
+      if (accion === "eliminar") {
+        setMensajeAccion("Mensaje eliminado correctamente.");
+      }
+
       await cargarMensajes();
     } catch (error) {
       console.error(error);
@@ -81,6 +95,53 @@ function AdminMensajes() {
         error.response?.data?.mensaje ||
           error.response?.data?.error ||
           "No se pudo actualizar el mensaje.",
+      );
+    } finally {
+      setAccionandoId(null);
+    }
+  };
+
+  const abrirModalRespuesta = (mensaje) => {
+    setMensajeSeleccionado(mensaje);
+    setRespuesta(mensaje.respuestaAdmin || "");
+    setError("");
+    setMensajeAccion("");
+  };
+
+  const cerrarModalRespuesta = () => {
+    setMensajeSeleccionado(null);
+    setRespuesta("");
+  };
+
+  const responderMensaje = async () => {
+    if (!mensajeSeleccionado) return;
+
+    const id = mensajeSeleccionado._id || mensajeSeleccionado.id;
+
+    if (!respuesta.trim()) {
+      setError("La respuesta no puede estar vacía.");
+      return;
+    }
+
+    try {
+      setAccionandoId(id);
+      setError("");
+      setMensajeAccion("");
+
+      await api.patch(`/api/mensajes/${id}/responder`, {
+        respuesta: respuesta.trim(),
+      });
+
+      setMensajeAccion("Respuesta enviada correctamente.");
+      cerrarModalRespuesta();
+      await cargarMensajes();
+    } catch (error) {
+      console.error(error);
+
+      setError(
+        error.response?.data?.mensaje ||
+          error.response?.data?.error ||
+          "No se pudo enviar la respuesta.",
       );
     } finally {
       setAccionandoId(null);
@@ -97,7 +158,9 @@ function AdminMensajes() {
 
       const contenidoBusqueda = `${mensaje.nombre || ""} ${
         mensaje.email || ""
-      } ${mensaje.contenido || ""}`.toLowerCase();
+      } ${mensaje.asunto || ""} ${mensaje.contenido || ""} ${
+        mensaje.respuestaAdmin || ""
+      }`.toLowerCase();
 
       const cumpleBusqueda = !texto || contenidoBusqueda.includes(texto);
 
@@ -169,8 +232,8 @@ function AdminMensajes() {
           <div className="admin-mensajes-help">
             <strong>¿Necesitás ayuda?</strong>
             <p>
-              Los mensajes pueden marcarse como leídos, respondidos o
-              eliminados.
+              Los mensajes pueden marcarse como leídos, responderse por email o
+              eliminarse.
             </p>
           </div>
         </aside>
@@ -253,7 +316,7 @@ function AdminMensajes() {
               <span>⌕</span>
               <input
                 type="text"
-                placeholder="Buscar por nombre, email o contenido..."
+                placeholder="Buscar por nombre, email, asunto, contenido o respuesta..."
                 value={busqueda}
                 onChange={(e) => setBusqueda(e.target.value)}
               />
@@ -286,6 +349,10 @@ function AdminMensajes() {
           </div>
 
           {error && <p className="admin-mensajes-error">{error}</p>}
+
+          {mensajeAccion && (
+            <p className="admin-mensajes-success">{mensajeAccion}</p>
+          )}
 
           <section className="admin-mensajes-table">
             <div className="admin-mensajes-table-head">
@@ -323,9 +390,17 @@ function AdminMensajes() {
                       </div>
 
                       <div className="admin-mensaje-preview">
-                        <strong>Consulta recibida desde contacto</strong>
+                        <strong>
+                          {mensaje.asunto || "Consulta recibida desde contacto"}
+                        </strong>
 
                         <p>{mensaje.contenido || "Sin contenido"}</p>
+
+                        {mensaje.respuestaAdmin && (
+                          <small>
+                            <strong>Respuesta:</strong> {mensaje.respuestaAdmin}
+                          </small>
+                        )}
                       </div>
 
                       <div>
@@ -352,13 +427,15 @@ function AdminMensajes() {
                             </button>
                           )}
 
-                        {estado !== "RESPONDIDO" && estado !== "ELIMINADO" && (
+                        {estado !== "ELIMINADO" && (
                           <button
                             type="button"
-                            onClick={() => cambiarEstado(id, "respondido")}
+                            onClick={() => abrirModalRespuesta(mensaje)}
                             disabled={accionando}
                           >
-                            Respondido
+                            {estado === "RESPONDIDO"
+                              ? "Ver / editar respuesta"
+                              : "Responder"}
                           </button>
                         )}
 
@@ -381,6 +458,69 @@ function AdminMensajes() {
           </section>
         </main>
       </div>
+
+      {mensajeSeleccionado && (
+        <div className="admin-modal-overlay">
+          <div className="admin-modal-card admin-mensaje-respuesta-modal">
+            <div className="admin-modal-icon">✉</div>
+
+            <h2>Responder consulta</h2>
+
+            <p>
+              Respuesta para <strong>{mensajeSeleccionado.nombre}</strong> (
+              {mensajeSeleccionado.email})
+            </p>
+
+            <div className="admin-mensaje-consulta-box">
+              <strong>{mensajeSeleccionado.asunto || "Consulta"}</strong>
+              <p>{mensajeSeleccionado.contenido}</p>
+            </div>
+
+            <label className="admin-respuesta-label">
+              Respuesta del administrador
+              <textarea
+                value={respuesta}
+                onChange={(e) => setRespuesta(e.target.value)}
+                placeholder="Escribí la respuesta para el usuario..."
+                rows={6}
+                disabled={
+                  accionandoId ===
+                  (mensajeSeleccionado._id || mensajeSeleccionado.id)
+                }
+              />
+            </label>
+
+            <div className="admin-modal-actions">
+              <button
+                type="button"
+                className="admin-modal-cancel"
+                onClick={cerrarModalRespuesta}
+                disabled={
+                  accionandoId ===
+                  (mensajeSeleccionado._id || mensajeSeleccionado.id)
+                }
+              >
+                Cancelar
+              </button>
+
+              <button
+                type="button"
+                className="admin-modal-danger"
+                onClick={responderMensaje}
+                disabled={
+                  accionandoId ===
+                  (mensajeSeleccionado._id || mensajeSeleccionado.id)
+                }
+              >
+                {accionandoId ===
+                (mensajeSeleccionado._id || mensajeSeleccionado.id)
+                  ? "Enviando..."
+                  : "Enviar respuesta"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

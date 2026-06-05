@@ -3,9 +3,16 @@ const service = require("../services/mensajeContacto.service");
 const crearMensaje = async (req, res) => {
   try {
     const mensaje = await service.enviarMensaje(req.body);
-    res.status(201).json(mensaje);
+
+    return res.status(201).json({
+      mensaje: "Mensaje enviado correctamente",
+      datos: mensaje,
+    });
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    return res.status(400).json({
+      mensaje: "Error al enviar el mensaje",
+      error: error.message,
+    });
   }
 };
 
@@ -58,6 +65,34 @@ const marcarComoRespondido = async (req, res) => {
   }
 };
 
+const responderMensaje = async (req, res) => {
+  try {
+    const { respuesta } = req.body;
+    const adminId = req.usuario?._id;
+
+    if (!respuesta || !respuesta.trim()) {
+      return res.status(400).json({
+        mensaje: "La respuesta es obligatoria",
+      });
+    }
+
+    const mensaje = await service.responderMensaje(
+      req.params.id,
+      respuesta.trim(),
+      adminId,
+    );
+
+    return res.status(200).json({
+      mensaje: "Respuesta enviada correctamente",
+      datos: mensaje,
+    });
+  } catch (error) {
+    return res.status(400).json({
+      mensaje: error.message || "No se pudo responder el mensaje",
+    });
+  }
+};
+
 const eliminarMensaje = async (req, res) => {
   try {
     const mensaje = await service.eliminarMensaje(req.params.id);
@@ -75,5 +110,6 @@ module.exports = {
   buscarMensajePorId,
   marcarComoLeido,
   marcarComoRespondido,
+  responderMensaje,
   eliminarMensaje,
 };

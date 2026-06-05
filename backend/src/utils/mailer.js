@@ -9,13 +9,11 @@ const requiredMailEnvVars = [
 
 const createTransporter = () => {
   const missingEnvVars = requiredMailEnvVars.filter(
-    (envVar) => !process.env[envVar]
+    (envVar) => !process.env[envVar],
   );
 
   if (missingEnvVars.length > 0) {
-    throw new Error(
-      `Faltan variables SMTP: ${missingEnvVars.join(", ")}`
-    );
+    throw new Error(`Faltan variables SMTP: ${missingEnvVars.join(", ")}`);
   }
 
   return nodemailer.createTransport({
@@ -29,7 +27,6 @@ const createTransporter = () => {
   });
 };
 
-
 const escapeHtml = (unsafe) => {
   if (!unsafe) return "";
   return unsafe
@@ -42,9 +39,9 @@ const escapeHtml = (unsafe) => {
 };
 
 const formatCurrency = (value) => {
-  return new Intl.NumberFormat('es-AR', {
-    style: 'currency',
-    currency: 'ARS'
+  return new Intl.NumberFormat("es-AR", {
+    style: "currency",
+    currency: "ARS",
   }).format(Number(value || 0));
 };
 
@@ -82,27 +79,27 @@ const sendOrderConfirmationEmail = async ({ to, orden, numeroOrden }) => {
   const transporter = createTransporter();
   const from = process.env.MAIL_FROM || process.env.SMTP_USER;
 
-  
-  const itemRows = (orden.detalles || []).map(detalle => {
-    const curso = detalle.curso || {};
-    return `
+  const itemRows = (orden.detalles || [])
+    .map((detalle) => {
+      const curso = detalle.curso || {};
+      return `
     <tr>
-      <td style="padding: 8px; border-bottom: 2px solid #ddd; text-align: left;">${escapeHtml(curso.titulo || 'Curso')}</td>
+      <td style="padding: 8px; border-bottom: 2px solid #ddd; text-align: left;">${escapeHtml(curso.titulo || "Curso")}</td>
       <td style="padding: 8px; border-bottom: 2px solid #ddd; text-align: center;">1</td>
       <td style="padding: 8px; border-bottom: 2px solid #ddd; text-align: right;">${formatCurrency(detalle.precioUnitario)}</td>
       <td style="padding: 8px; border-bottom: 2px solid #ddd; text-align: right;">${formatCurrency(detalle.subtotal)}</td>
     </tr>
     `;
-  }).join('');
+    })
+    .join("");
 
-  
   const htmlContent = `
     <h1>Recibimos tu orden de compra!</h1>
     <p>Gracias. Este es el detalle de tu orden:</p>
     
-    ${numeroOrden ? `<p><strong>Pedido:</strong> ${escapeHtml(numeroOrden)}</p>` : ''}
-    <p><strong>Medio de pago:</strong> ${escapeHtml(orden.medioPago || 'Mercado Pago')}</p>
-    <p><strong>Entrega:</strong> ${escapeHtml(orden.metodoEntrega || 'Acceso Digital')}</p>
+    ${numeroOrden ? `<p><strong>Pedido:</strong> ${escapeHtml(numeroOrden)}</p>` : ""}
+    <p><strong>Medio de pago:</strong> ${escapeHtml(orden.medioPago || "Mercado Pago")}</p>
+    <p><strong>Entrega:</strong> ${escapeHtml(orden.metodoEntrega || "Acceso Digital")}</p>
     
     <table style="border-collapse: collapse; width: 100%; max-width: 640px;">
       <thead>
@@ -177,8 +174,106 @@ const sendOrderStatusEmail = async ({ to, orden, numeroOrden }) => {
   });
 };
 
+const sendContactMessageToAdmin = async ({
+  nombre,
+  email,
+  asunto,
+  contenido,
+  mensajeId,
+}) => {
+  const transporter = createTransporter();
+  const from = process.env.MAIL_FROM || process.env.SMTP_USER;
+  const adminEmail =
+    process.env.ADMIN_EMAIL || process.env.MAIL_FROM || process.env.SMTP_USER;
+
+  return transporter.sendMail({
+    from,
+    to: adminEmail,
+    subject: `Nueva consulta: ${asunto || "Formulario de contacto"}`,
+    text: [
+      "Recibiste una nueva consulta desde el formulario de contacto.",
+      "",
+      `Nombre: ${nombre}`,
+      `Email: ${email}`,
+      `Asunto: ${asunto || "Sin asunto"}`,
+      mensajeId ? `ID del mensaje: ${mensajeId}` : "",
+      "",
+      "Mensaje:",
+      contenido,
+    ].join("\n"),
+    html: `
+      <h1>Nueva consulta recibida</h1>
+
+      <p>Recibiste una nueva consulta desde el formulario de contacto.</p>
+
+      <p><strong>Nombre:</strong> ${escapeHtml(nombre)}</p>
+      <p><strong>Email:</strong> ${escapeHtml(email)}</p>
+      <p><strong>Asunto:</strong> ${escapeHtml(asunto || "Sin asunto")}</p>
+      ${
+        mensajeId
+          ? `<p><strong>ID del mensaje:</strong> ${escapeHtml(mensajeId)}</p>`
+          : ""
+      }
+
+      <hr />
+
+      <h3>Mensaje</h3>
+      <p>${escapeHtml(contenido).replace(/\n/g, "<br />")}</p>
+
+      <p>Podés responder esta consulta desde el panel de administración.</p>
+    `,
+  });
+};
+
+const sendContactReplyToUser = async ({
+  to,
+  nombre,
+  asunto,
+  consulta,
+  respuesta,
+}) => {
+  const transporter = createTransporter();
+  const from = process.env.MAIL_FROM || process.env.SMTP_USER;
+
+  return transporter.sendMail({
+    from,
+    to,
+    subject: `Respuesta a tu consulta: ${asunto || "Mundo Dev"}`,
+    text: [
+      `Hola ${nombre || ""},`,
+      "",
+      "Recibiste una respuesta a tu consulta.",
+      "",
+      "Tu consulta:",
+      consulta,
+      "",
+      "Respuesta:",
+      respuesta,
+      "",
+      "Gracias por comunicarte con nosotros.",
+    ].join("\n"),
+    html: `
+      <h1>Respuesta a tu consulta</h1>
+
+      <p>Hola ${escapeHtml(nombre || "")},</p>
+
+      <p>Recibiste una respuesta a tu consulta.</p>
+
+      <h3>Tu consulta</h3>
+      <p>${escapeHtml(consulta).replace(/\n/g, "<br />")}</p>
+
+      <h3>Respuesta</h3>
+      <p>${escapeHtml(respuesta).replace(/\n/g, "<br />")}</p>
+
+      <p>Gracias por comunicarte con nosotros.</p>
+    `,
+  });
+};
+
 module.exports = {
   sendPasswordResetEmail,
   sendOrderConfirmationEmail,
   sendOrderStatusEmail,
+  sendContactMessageToAdmin,
+  sendContactReplyToUser,
 };

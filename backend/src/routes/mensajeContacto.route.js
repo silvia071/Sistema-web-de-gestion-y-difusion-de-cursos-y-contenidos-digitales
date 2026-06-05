@@ -7,6 +7,7 @@ const {
   buscarMensajePorId,
   marcarComoLeido,
   marcarComoRespondido,
+  responderMensaje,
   eliminarMensaje,
 } = require("../controllers/mensajeContacto.controller");
 
@@ -28,6 +29,13 @@ router.patch(
   verificarToken,
   verificarAdmin,
   marcarComoRespondido,
+);
+
+router.patch(
+  "/:id/responder",
+  verificarToken,
+  verificarAdmin,
+  responderMensaje,
 );
 
 router.patch("/:id/eliminar", verificarToken, verificarAdmin, eliminarMensaje);
