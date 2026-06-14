@@ -18,6 +18,7 @@ function AdminUsuarios() {
   const [procesandoId, setProcesandoId] = useState("");
   const [mensaje, setMensaje] = useState("");
   const [error, setError] = useState("");
+  const [toast, setToast] = useState(null);
 
   const [busqueda, setBusqueda] = useState("");
   const [filtroRol, setFiltroRol] = useState("");
@@ -65,6 +66,17 @@ function AdminUsuarios() {
         err.response?.data?.detalle ||
         mensajeDefault,
     );
+  };
+
+  const mostrarToast = (texto, tipo = "success") => {
+    setToast({
+      texto,
+      tipo,
+    });
+
+    setTimeout(() => {
+      setToast(null);
+    }, 3000);
   };
 
   const limpiarForm = () => {
@@ -196,9 +208,8 @@ function AdminUsuarios() {
       }
 
       if (tipo === "eliminar") {
-        setError("No podés eliminar tu propia cuenta desde esta pantalla.");
+        setError("No podés dar de baja tu propia cuenta desde esta pantalla.");
       }
-
       return;
     }
 
@@ -230,10 +241,10 @@ function AdminUsuarios() {
     }
 
     if (tipo === "eliminar") {
-      titulo = "Eliminar usuario";
-      descripcion = `¿Seguro que querés eliminar a ${usuario.nombre} ${usuario.apellido}? Esta acción no se puede deshacer.`;
-      textoBoton = "Eliminar";
-      icono = "🗑";
+      titulo = "Dar de baja usuario";
+      descripcion = `¿Seguro que querés dar de baja a ${usuario.nombre} ${usuario.apellido}? El usuario quedará bloqueado y podrá ser reactivado más adelante.`;
+      textoBoton = "Dar de baja";
+      icono = "⛔";
     }
 
     setModalConfirmacion({
@@ -285,17 +296,18 @@ function AdminUsuarios() {
 
         await api.put(`/api/usuarios/${endpoint}/${usuarioId}`);
 
-        setMensaje(
-          debeActivar
-            ? "Usuario activado correctamente."
-            : "Usuario bloqueado correctamente.",
-        );
+        const textoExito = debeActivar
+          ? `Usuario ${usuario.nombre} ${usuario.apellido} activado correctamente.`
+          : `Usuario ${usuario.nombre} ${usuario.apellido} bloqueado correctamente.`;
+
+        setMensaje(textoExito);
+        mostrarToast(textoExito, "success");
       }
 
       if (tipo === "eliminar") {
         await api.delete(`/api/usuarios/${usuarioId}`);
 
-        setMensaje("Usuario eliminado correctamente.");
+        setMensaje("Usuario dado de baja correctamente.");
       }
 
       setModalConfirmacion(null);
@@ -857,13 +869,13 @@ function AdminUsuarios() {
                         <button
                           type="button"
                           className="admin-usuario-delete-btn"
-                          title="Eliminar usuario"
+                          title="Dar de baja usuario"
                           onClick={() =>
                             abrirModalConfirmacion("eliminar", usuario)
                           }
                           disabled={estaProcesando || usuarioActual}
                         >
-                          🗑
+                          ⛔
                         </button>
                       </div>
                     </article>
@@ -1018,6 +1030,18 @@ function AdminUsuarios() {
               </button>
             </div>
           </form>
+        </div>
+      )}
+      {toast && (
+        <div className={`admin-toast ${toast.tipo}`}>
+          <div className="admin-toast-icon">
+            {toast.tipo === "success" ? "✓" : "!"}
+          </div>
+
+          <div>
+            <strong>Acción realizada</strong>
+            <p>{toast.texto}</p>
+          </div>
         </div>
       )}
     </section>

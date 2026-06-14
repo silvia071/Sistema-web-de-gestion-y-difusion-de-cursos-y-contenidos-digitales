@@ -165,7 +165,20 @@ const cambiarContrasenia = async (id, datos) => {
 };
 
 const eliminarUsuario = async (id) => {
-  return await Usuario.findByIdAndDelete(id);
+  const usuarioActualizado = await Usuario.findByIdAndUpdate(
+    id,
+    { estadoCuenta: EstadoCuenta.BLOQUEADO },
+    {
+      returnDocument: "after",
+      runValidators: true,
+    },
+  );
+
+  if (!usuarioActualizado) {
+    throw new Error("Usuario no encontrado");
+  }
+
+  return usuarioActualizado;
 };
 
 const bloquearUsuario = async (id) => {

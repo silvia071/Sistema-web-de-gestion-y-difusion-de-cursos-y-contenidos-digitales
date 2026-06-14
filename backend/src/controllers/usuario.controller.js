@@ -167,22 +167,21 @@ const cambiarContrasenia = async (req, res) => {
 
 const eliminarUsuario = async (req, res) => {
   try {
-    const usuarioEliminado = await usuarioService.eliminarUsuario(
-      req.params.id,
-    );
+    const usuario = await usuarioService.eliminarUsuario(req.params.id);
 
-    if (!usuarioEliminado) {
+    if (!usuario) {
       return res.status(404).json({
         mensaje: "Usuario no encontrado",
       });
     }
 
     return res.status(200).json({
-      mensaje: "Usuario eliminado correctamente",
+      mensaje: "Usuario dado de baja correctamente",
+      datos: usuario,
     });
   } catch (error) {
     return res.status(400).json({
-      mensaje: "Error al eliminar usuario",
+      mensaje: "Error al dar de baja el usuario",
       error: error.message,
     });
   }
