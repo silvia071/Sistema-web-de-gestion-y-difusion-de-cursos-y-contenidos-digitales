@@ -206,7 +206,8 @@ const eliminarCurso = async (req, res) => {
     }
 
     return res.status(200).json({
-      mensaje: "Curso eliminado correctamente",
+      mensaje: "Curso dado de baja correctamente",
+      datos: curso,
     });
   } catch (error) {
     return res.status(500).json({

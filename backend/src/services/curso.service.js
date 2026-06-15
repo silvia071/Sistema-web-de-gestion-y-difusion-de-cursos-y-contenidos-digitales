@@ -51,17 +51,23 @@ class CursoService {
       .populate(populateCategoria)
       .populate(populateLecciones);
   }
-
   async eliminarCurso(id) {
-    const curso = await Curso.findById(id);
+    const curso = await Curso.findByIdAndUpdate(
+      id,
+      { estado: EstadoContenido.OCULTO },
+      {
+        new: true,
+        runValidators: true,
+      },
+    )
+      .populate(populateCategoria)
+      .populate(populateLecciones);
 
     if (!curso) {
       return null;
     }
 
-    await Leccion.deleteMany({ curso: id });
-
-    return await Curso.findByIdAndDelete(id);
+    return curso;
   }
 
   async listarCursos(filtros = {}) {

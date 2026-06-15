@@ -510,13 +510,9 @@ function AdminUsuarios() {
           </div>
         </header>
 
-        {(mensaje || error) && (
+        {error && (
           <div className="admin-usuarios-feedback">
-            {mensaje && (
-              <div className="admin-usuarios-alert success">{mensaje}</div>
-            )}
-
-            {error && <div className="admin-usuarios-alert error">{error}</div>}
+            <div className="admin-usuarios-alert error">{error}</div>
           </div>
         )}
 

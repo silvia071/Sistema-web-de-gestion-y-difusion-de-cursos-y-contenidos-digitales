@@ -24,13 +24,14 @@ function AdminCursos() {
   const [procesandoId, setProcesandoId] = useState("");
   const [mensaje, setMensaje] = useState("");
   const [error, setError] = useState("");
+  const [toast, setToast] = useState(null);
 
   const [busqueda, setBusqueda] = useState("");
   const [filtroNivel, setFiltroNivel] = useState("");
   const [filtroCategoria, setFiltroCategoria] = useState("");
   const [filtroEstado, setFiltroEstado] = useState("");
 
-  const [modalEliminar, setModalEliminar] = useState(null);
+  const [modalOcultar, setModalOcultar] = useState(null);
 
   const formCursoRef = useRef(null);
   const inputTituloRef = useRef(null);
@@ -58,6 +59,17 @@ function AdminCursos() {
 
       inputTituloRef.current?.focus();
     }, 100);
+  };
+
+  const mostrarToast = (texto, tipo = "success") => {
+    setToast({
+      texto,
+      tipo,
+    });
+
+    setTimeout(() => {
+      setToast(null);
+    }, 3000);
   };
 
   const cargarDatos = async () => {
@@ -149,10 +161,16 @@ function AdminCursos() {
 
       if (editandoId) {
         await api.put(`/api/cursos/${editandoId}`, cursoPayload);
-        setMensaje("Curso editado correctamente.");
+
+        const textoExito = "Curso editado correctamente.";
+        setMensaje(textoExito);
+        mostrarToast(textoExito, "success");
       } else {
         await api.post("/api/cursos", cursoPayload);
-        setMensaje("Curso creado correctamente.");
+
+        const textoExito = "Curso creado correctamente.";
+        setMensaje(textoExito);
+        mostrarToast(textoExito, "success");
       }
 
       limpiarForm();
@@ -173,7 +191,7 @@ function AdminCursos() {
     }
   };
 
-  const abrirModalEliminar = (curso) => {
+  const abrirModalOcultar = (curso) => {
     setMensaje("");
     setError("");
 
@@ -184,17 +202,17 @@ function AdminCursos() {
       return;
     }
 
-    setModalEliminar(curso);
+    setModalOcultar(curso);
   };
 
-  const cerrarModalEliminar = () => {
-    setModalEliminar(null);
+  const cerrarModalOcultar = () => {
+    setModalOcultar(null);
   };
 
   const confirmarOcultarCurso = async () => {
-    if (!modalEliminar) return;
+    if (!modalOcultar) return;
 
-    const cursoId = obtenerIdCurso(modalEliminar);
+    const cursoId = obtenerIdCurso(modalOcultar);
 
     if (!cursoId) {
       setError("No se pudo obtener el ID del curso.");
@@ -208,10 +226,11 @@ function AdminCursos() {
 
       await api.patch(`/api/cursos/${cursoId}/ocultar`);
 
-      setMensaje(
-        "Curso ocultado correctamente. Podés recuperarlo publicándolo nuevamente.",
-      );
-      setModalEliminar(null);
+      const textoExito = `Curso ${modalOcultar.titulo} ocultado correctamente. Podés recuperarlo publicándolo nuevamente.`;
+
+      setMensaje(textoExito);
+      mostrarToast(textoExito, "success");
+      setModalOcultar(null);
 
       if (editandoId === cursoId) {
         limpiarForm();
@@ -246,13 +265,13 @@ function AdminCursos() {
 
       await api.patch(`/api/cursos/${cursoId}/${accion}`);
 
-      if (accion === "publicar") {
-        setMensaje("Curso publicado correctamente.");
-      }
+      const textoExito =
+        accion === "publicar"
+          ? `Curso ${curso.titulo} publicado correctamente.`
+          : `Curso ${curso.titulo} ocultado correctamente.`;
 
-      if (accion === "ocultar") {
-        setMensaje("Curso ocultado correctamente.");
-      }
+      setMensaje(textoExito);
+      mostrarToast(textoExito, "success");
 
       await cargarDatos();
     } catch (error) {
@@ -453,9 +472,8 @@ function AdminCursos() {
           </div>
         </header>
 
-        {(mensaje || error || editandoId) && (
+        {(error || editandoId) && (
           <div className="admin-feedback-zone">
-            {mensaje && <div className="admin-alert success">{mensaje}</div>}
             {error && <div className="admin-alert error">{error}</div>}
 
             {editandoId && (
@@ -855,7 +873,7 @@ function AdminCursos() {
                           <button
                             type="button"
                             className="admin-delete-btn"
-                            onClick={() => abrirModalEliminar(curso)}
+                            onClick={() => abrirModalOcultar(curso)}
                             title="Ocultar curso"
                             disabled={procesandoId === cursoId}
                           >
@@ -872,7 +890,7 @@ function AdminCursos() {
         </div>
       </div>
 
-      {modalEliminar && (
+      {modalOcultar && (
         <div className="admin-modal-overlay">
           <div className="admin-modal-card">
             <div className="admin-modal-icon">◌</div>
@@ -881,7 +899,7 @@ function AdminCursos() {
 
             <p>
               ¿Seguro que querés ocultar el curso{" "}
-              <strong>{modalEliminar.titulo}</strong>? No se eliminará
+              <strong>{modalOcultar.titulo}</strong>? No se eliminará
               definitivamente y podrás recuperarlo publicándolo nuevamente.
             </p>
 
@@ -889,8 +907,8 @@ function AdminCursos() {
               <button
                 type="button"
                 className="admin-modal-cancel"
-                onClick={cerrarModalEliminar}
-                disabled={procesandoId === obtenerIdCurso(modalEliminar)}
+                onClick={cerrarModalOcultar}
+                disabled={procesandoId === obtenerIdCurso(modalOcultar)}
               >
                 Cancelar
               </button>
@@ -899,13 +917,26 @@ function AdminCursos() {
                 type="button"
                 className="admin-modal-danger"
                 onClick={confirmarOcultarCurso}
-                disabled={procesandoId === obtenerIdCurso(modalEliminar)}
+                disabled={procesandoId === obtenerIdCurso(modalOcultar)}
               >
-                {procesandoId === obtenerIdCurso(modalEliminar)
+                {procesandoId === obtenerIdCurso(modalOcultar)
                   ? "Ocultando..."
                   : "Ocultar"}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {toast && (
+        <div className={`admin-toast ${toast.tipo}`}>
+          <div className="admin-toast-icon">
+            {toast.tipo === "success" ? "✓" : "!"}
+          </div>
+
+          <div>
+            <strong>Acción realizada</strong>
+            <p>{toast.texto}</p>
           </div>
         </div>
       )}
