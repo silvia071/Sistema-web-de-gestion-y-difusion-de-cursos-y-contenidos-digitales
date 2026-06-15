@@ -71,6 +71,7 @@ const compraSchema = new mongoose.Schema(
     },
   },
   {
+    timestamps: true,
     versionKey: false,
   },
 );
