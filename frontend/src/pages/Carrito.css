@@ -628,7 +628,8 @@
   background: rgba(7, 15, 48, 0.88);
 }
 
-.checkout-input-wrap input {
+.checkout-input-wrap input,
+.checkout-input-wrap select {
   width: 100%;
   height: 100%;
   padding: 0;
@@ -637,6 +638,25 @@
   color: #ffffff;
   background: transparent;
   font-weight: 700;
+}
+
+.checkout-input-wrap select {
+  cursor: pointer;
+  appearance: none;
+}
+
+.checkout-input-wrap select option {
+  color: #111827;
+}
+.checkout-facturacion-ok {
+  margin: 10px 0 14px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(34, 197, 94, 0.12);
+  border: 1px solid rgba(74, 222, 128, 0.28);
+  color: #bbf7d0 !important;
+  font-size: 0.82rem !important;
+  font-weight: 800;
 }
 
 .checkout-input-wrap input::placeholder {

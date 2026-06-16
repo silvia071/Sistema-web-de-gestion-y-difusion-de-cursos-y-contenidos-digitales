@@ -64,8 +64,12 @@ function Checkout() {
   const [datosFacturacion, setDatosFacturacion] = useState({
     nombreCompleto: "",
     dni: "",
+    condicionFiscal: "Consumidor Final",
     domicilio: "",
   });
+
+  const [datosFacturacionCargados, setDatosFacturacionCargados] =
+    useState(false);
 
   const [erroresFacturacion, setErroresFacturacion] = useState({});
 
@@ -145,6 +149,30 @@ function Checkout() {
     };
 
     obtenerMetodosPago();
+  }, []);
+
+  useEffect(() => {
+    const cargarDatosFacturacion = async () => {
+      try {
+        const response = await api.get("/api/datos-facturacion/mis-datos");
+        const datos = response.data?.datos;
+
+        if (datos) {
+          setDatosFacturacion({
+            nombreCompleto: datos.razonSocial || "",
+            dni: datos.cuitCuil || "",
+            condicionFiscal: datos.condicionFiscal || "Consumidor Final",
+            domicilio: datos.domicilioFiscal || "",
+          });
+
+          setDatosFacturacionCargados(true);
+        }
+      } catch (error) {
+        console.error("Error cargando datos de facturación:", error);
+      }
+    };
+
+    cargarDatosFacturacion();
   }, []);
 
   useEffect(() => {
@@ -253,6 +281,9 @@ function Checkout() {
     if (!datosFacturacion.domicilio.trim()) {
       errores.domicilio = "Ingresá el domicilio.";
     }
+    if (!datosFacturacion.condicionFiscal.trim()) {
+      errores.condicionFiscal = "Seleccioná la condición fiscal.";
+    }
 
     setErroresFacturacion(errores);
 
@@ -327,7 +358,7 @@ function Checkout() {
         await api.put("/api/datos-facturacion/mis-datos", {
           razonSocial: datosFacturacion.nombreCompleto.trim(),
           cuitCuil: datosFacturacion.dni.trim(),
-          condicionFiscal: "Consumidor final",
+          condicionFiscal: datosFacturacion.condicionFiscal.trim(),
           domicilioFiscal: datosFacturacion.domicilio.trim(),
         });
       } catch (error) {
@@ -581,7 +612,12 @@ function Checkout() {
                 Completá los datos necesarios para registrar la compra a tu
                 nombre.
               </p>
-
+              {datosFacturacionCargados && (
+                <p className="checkout-facturacion-ok">
+                  ✓ Datos de facturación recuperados de tu perfil. Podés
+                  modificarlos antes de confirmar la compra.
+                </p>
+              )}
               <div className="checkout-form">
                 <label>
                   Nombre completo
@@ -618,6 +654,28 @@ function Checkout() {
                   </div>
                   {erroresFacturacion.dni && (
                     <span>{erroresFacturacion.dni}</span>
+                  )}
+                </label>
+                <label>
+                  Condición fiscal
+                  <div className="checkout-input-wrap">
+                    <FileText size={18} />
+                    <select
+                      name="condicionFiscal"
+                      value={datosFacturacion.condicionFiscal}
+                      onChange={handleCambioFacturacion}
+                      disabled={procesando || procesandoPagoVisual}
+                    >
+                      <option value="Consumidor Final">Consumidor Final</option>
+                      <option value="Monotributista">Monotributista</option>
+                      <option value="Responsable Inscripto">
+                        Responsable Inscripto
+                      </option>
+                      <option value="Exento">Exento</option>
+                    </select>
+                  </div>
+                  {erroresFacturacion.condicionFiscal && (
+                    <span>{erroresFacturacion.condicionFiscal}</span>
                   )}
                 </label>
 
