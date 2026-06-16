@@ -3,6 +3,22 @@ import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useCarrito } from "../context/CarritoContext";
 import mercadoPagoIcon from "../assets/payment/mercado-pago-icon.png";
+import visaLogo from "../assets/payment/visa.svg";
+import mastercardLogo from "../assets/payment/mastercard.svg";
+import amexLogo from "../assets/payment/amex.svg";
+import cabalLogo from "../assets/payment/cabal.svg";
+import naranjaLogo from "../assets/payment/naranja-x.svg";
+import maestroLogo from "../assets/payment/maestro.svg";
+
+import bbvaLogo from "../assets/payment/bbva.svg";
+import icbcLogo from "../assets/payment/icbc.svg";
+import galiciaLogo from "../assets/payment/galicia.svg";
+import santanderLogo from "../assets/payment/santander.svg";
+import macroLogo from "../assets/payment/macro.svg";
+import nacionLogo from "../assets/payment/nacion.svg";
+import credicoopLogo from "../assets/payment/credicoop.svg";
+import provinciaLogo from "../assets/payment/provincia.svg";
+
 import api from "../services/api";
 import {
   Check,
@@ -12,7 +28,7 @@ import {
   FileText,
   Headphones,
   IdCard,
-  Infinity,
+  Infinity as InfinityIcon,
   Landmark,
   Lock,
   MapPin,
@@ -184,10 +200,9 @@ function Checkout() {
 
   const obtenerNombreMetodoVisual = () => {
     const nombres = {
-      MERCADO_PAGO: "Mercado Pago",
+      MERCADO_PAGO: "Billetera virtual",
       TARJETA_DEBITO_CREDITO: "Tarjeta de crédito / débito",
       TRANSFERENCIA: "Transferencia bancaria",
-      PAYPAL: "PayPal o billetera digital",
     };
 
     return nombres[metodoPagoVisual] || "Método no seleccionado";
@@ -538,7 +553,7 @@ function Checkout() {
 
                 <div>
                   <span>
-                    <Infinity size={20} />
+                    <InfinityIcon size={20} />
                   </span>
                   <strong>Acceso permanente</strong>
                   <p>El curso queda asociado a tu usuario.</p>
@@ -628,137 +643,217 @@ function Checkout() {
             </div>
           </div>
 
-          <div className="metodos-pago" ref={metodosPagoRef}>
-            <h4>Elegí tu método de pago</h4>
+          <div
+            className="metodos-pago metodos-pago-premium"
+            ref={metodosPagoRef}
+          >
+            <div className="metodos-pago-header">
+              <div>
+                <span>MEDIOS DISPONIBLES</span>
+                <h4>Elegí cómo querés pagar</h4>
+              </div>
 
-            {metodoExiste("TARJETA") && (
-              <button
-                type="button"
-                className={`metodo-opcion ${
-                  metodoPagoVisual === "MERCADO_PAGO" ? "activo" : ""
-                }`}
-                onClick={() => seleccionarMetodoPago("MERCADO_PAGO", "TARJETA")}
-                disabled={procesando || procesandoPagoVisual}
-              >
-                <span className="metodo-radio">
-                  {metodoPagoVisual === "MERCADO_PAGO" && <Check size={13} />}
-                </span>
+              <p>Seleccioná una opción para continuar con la compra.</p>
+            </div>
 
-                <span className="metodo-icono metodo-icono-mp">
-                  <img src={mercadoPagoIcon} alt="Mercado Pago" />
-                </span>
-
-                <span className="metodo-texto">
-                  <span className="metodo-titulo">
-                    Mercado Pago
-                    <small>Más usado</small>
+            <div className="medios-pago-grid">
+              {metodoExiste("TARJETA") && (
+                <button
+                  type="button"
+                  className={`medio-pago-panel ${
+                    metodoPagoVisual === "TARJETA_DEBITO_CREDITO"
+                      ? "activo"
+                      : ""
+                  }`}
+                  onClick={() =>
+                    seleccionarMetodoPago("TARJETA_DEBITO_CREDITO", "TARJETA")
+                  }
+                  disabled={procesando || procesandoPagoVisual}
+                >
+                  <span className="medio-pago-check">
+                    {metodoPagoVisual === "TARJETA_DEBITO_CREDITO" && (
+                      <Check size={14} />
+                    )}
                   </span>
-                  <span className="metodo-descripcion">
-                    Pagá con tarjeta, débito o saldo disponible.
+
+                  <div className="medio-pago-icono-principal">
+                    <WalletCards size={34} />
+                  </div>
+
+                  <h5>Tarjetas</h5>
+                  <p>crédito / débito</p>
+
+                  <div className="medio-pago-separador" />
+
+                  <small>Tarjetas aceptadas</small>
+
+                  <div className="medio-pago-logos logos-tarjetas">
+                    <span className="medio-logo-img">
+                      <img src={visaLogo} alt="Visa" />
+                    </span>
+
+                    <span className="medio-logo-img">
+                      <img src={mastercardLogo} alt="Mastercard" />
+                    </span>
+
+                    <span className="medio-logo-img">
+                      <img src={amexLogo} alt="American Express" />
+                    </span>
+
+                    <span className="medio-logo-img">
+                      <img src={cabalLogo} alt="Cabal" />
+                    </span>
+
+                    <span className="medio-logo-img logo-naranja-img">
+                      <img src={naranjaLogo} alt="Naranja X" />
+                    </span>
+
+                    <span className="medio-logo-img logo-maestro-img">
+                      <img src={maestroLogo} alt="Maestro" />
+                    </span>
+                  </div>
+
+                  <p className="medio-pago-descripcion">
+                    Pagá con tarjeta de crédito o débito de forma segura.
+                  </p>
+                </button>
+              )}
+
+              {metodoExiste("TARJETA") && (
+                <button
+                  type="button"
+                  className={`medio-pago-panel medio-pago-panel-billetera ${
+                    metodoPagoVisual === "MERCADO_PAGO" ? "activo" : ""
+                  }`}
+                  onClick={() =>
+                    seleccionarMetodoPago("MERCADO_PAGO", "TARJETA")
+                  }
+                  disabled={procesando || procesandoPagoVisual}
+                >
+                  <span className="medio-pago-check">
+                    {metodoPagoVisual === "MERCADO_PAGO" && <Check size={14} />}
                   </span>
-                </span>
 
-                <span className="metodo-flecha">›</span>
-              </button>
-            )}
+                  <div className="medio-pago-icono-principal medio-pago-icono-mp">
+                    <img src={mercadoPagoIcon} alt="Mercado Pago" />
+                  </div>
 
-            {metodoExiste("TARJETA") && (
-              <button
-                type="button"
-                className={`metodo-opcion ${
-                  metodoPagoVisual === "TARJETA_DEBITO_CREDITO" ? "activo" : ""
-                }`}
-                onClick={() =>
-                  seleccionarMetodoPago("TARJETA_DEBITO_CREDITO", "TARJETA")
-                }
-                disabled={procesando || procesandoPagoVisual}
-              >
-                <span className="metodo-radio">
-                  {metodoPagoVisual === "TARJETA_DEBITO_CREDITO" && (
-                    <Check size={13} />
-                  )}
-                </span>
+                  <h5>Billetera virtual</h5>
+                  <p>Mercado Pago</p>
 
-                <span className="metodo-icono">
-                  <WalletCards size={18} />
-                </span>
+                  <div className="medio-pago-separador" />
 
-                <span className="metodo-texto">
-                  <span className="metodo-titulo">
-                    Tarjeta de crédito / débito
-                    <small>Cuotas</small>
+                  <small>Pago rápido</small>
+
+                  <div className="medio-pago-logos medios-billetera">
+                    <span className="medio-logo logo-mp">
+                      <img
+                        src={mercadoPagoIcon}
+                        alt="Mercado Pago"
+                        className="medio-logo-imagen"
+                      />
+
+                      <span className="medio-logo-texto">
+                        <span>mercado</span>
+                        <span>pago</span>
+                      </span>
+                    </span>
+
+                    <span className="medio-logo logo-mc">
+                      <img
+                        src={mercadoPagoIcon}
+                        alt="Mercado Crédito"
+                        className="medio-logo-imagen"
+                      />
+
+                      <span className="medio-logo-texto">
+                        <span>mercado</span>
+                        <span>crédito</span>
+                      </span>
+                    </span>
+
+                    <span className="medio-logo logo-saldo">
+                      <span className="medio-logo-texto medio-logo-texto--simple">
+                        <span>Saldo</span>
+                        <span>disponible</span>
+                      </span>
+                    </span>
+                  </div>
+                  <p className="medio-pago-descripcion">
+                    Pagá con saldo, tarjeta asociada o billetera digital.
+                  </p>
+                </button>
+              )}
+
+              {metodoExiste("TRANSFERENCIA") && (
+                <button
+                  type="button"
+                  className={`medio-pago-panel ${
+                    metodoPagoVisual === "TRANSFERENCIA" ? "activo" : ""
+                  }`}
+                  onClick={() =>
+                    seleccionarMetodoPago("TRANSFERENCIA", "TRANSFERENCIA")
+                  }
+                  disabled={procesando || procesandoPagoVisual}
+                >
+                  <span className="medio-pago-check">
+                    {metodoPagoVisual === "TRANSFERENCIA" && (
+                      <Check size={14} />
+                    )}
                   </span>
-                  <span className="metodo-descripcion">
-                    Visa, Mastercard y más.
-                  </span>
-                </span>
 
-                <span className="metodo-flecha">›</span>
-              </button>
-            )}
+                  <div className="medio-pago-icono-principal medio-pago-icono-banco">
+                    <Landmark size={36} />
+                  </div>
 
-            {metodoExiste("TRANSFERENCIA") && (
-              <button
-                type="button"
-                className={`metodo-opcion ${
-                  metodoPagoVisual === "TRANSFERENCIA" ? "activo" : ""
-                }`}
-                onClick={() =>
-                  seleccionarMetodoPago("TRANSFERENCIA", "TRANSFERENCIA")
-                }
-                disabled={procesando || procesandoPagoVisual}
-              >
-                <span className="metodo-radio">
-                  {metodoPagoVisual === "TRANSFERENCIA" && <Check size={13} />}
-                </span>
+                  <h5>Transferencia</h5>
+                  <p>bancaria</p>
 
-                <span className="metodo-icono">
-                  <Landmark size={18} />
-                </span>
+                  <div className="medio-pago-separador" />
 
-                <span className="metodo-texto">
-                  <span className="metodo-titulo">
-                    Transferencia bancaria
-                    <small>Aprobación manual</small>
-                  </span>
-                  <span className="metodo-descripcion">
-                    Pago pendiente de aprobación administrativa.
-                  </span>
-                </span>
+                  <small>Desde cualquier banco</small>
 
-                <span className="metodo-flecha">›</span>
-              </button>
-            )}
+                  <div className="medio-pago-logos bancos logos-bancos">
+                    <span className="medio-logo-img banco-logo-img">
+                      <img src={bbvaLogo} alt="BBVA" />
+                    </span>
 
-            {metodoExiste("TARJETA") && (
-              <button
-                type="button"
-                className={`metodo-opcion ${
-                  metodoPagoVisual === "PAYPAL" ? "activo" : ""
-                }`}
-                onClick={() => seleccionarMetodoPago("PAYPAL", "TARJETA")}
-                disabled={procesando || procesandoPagoVisual}
-              >
-                <span className="metodo-radio">
-                  {metodoPagoVisual === "PAYPAL" && <Check size={13} />}
-                </span>
+                    <span className="medio-logo-img banco-logo-img">
+                      <img src={icbcLogo} alt="ICBC" />
+                    </span>
 
-                <span className="metodo-icono">
-                  <CreditCard size={18} />
-                </span>
+                    <span className="medio-logo-img banco-logo-img">
+                      <img src={galiciaLogo} alt="Galicia" />
+                    </span>
 
-                <span className="metodo-texto">
-                  <span className="metodo-titulo">
-                    PayPal o billetera digital
-                  </span>
-                  <span className="metodo-descripcion">
-                    Pagá de forma rápida y segura.
-                  </span>
-                </span>
+                    <span className="medio-logo-img banco-logo-img">
+                      <img src={santanderLogo} alt="Santander" />
+                    </span>
 
-                <span className="metodo-flecha">›</span>
-              </button>
-            )}
+                    <span className="medio-logo-img banco-logo-img">
+                      <img src={macroLogo} alt="Banco Macro" />
+                    </span>
+
+                    <span className="medio-logo-img banco-logo-img">
+                      <img src={nacionLogo} alt="Banco Nación" />
+                    </span>
+
+                    <span className="medio-logo-img banco-logo-img">
+                      <img src={credicoopLogo} alt="Credicoop" />
+                    </span>
+
+                    <span className="medio-logo-img banco-logo-img">
+                      <img src={provinciaLogo} alt="Banco Provincia" />
+                    </span>
+                  </div>
+
+                  <p className="medio-pago-descripcion">
+                    Una vez realizada la transferencia, el acceso se habilita
+                    cuando el administrador aprueba el pago.
+                  </p>
+                </button>
+              )}
+            </div>
           </div>
         </div>
 

@@ -8,7 +8,7 @@ const verificarAdmin = (req, res, next) => {
 
     if (req.usuario.rol !== "ADMINISTRADOR") {
       return res.status(403).json({
-        mensaje: "Acceso denegado",
+        mensaje: "Acceso denegado. Se requiere rol administrador.",
       });
     }
 

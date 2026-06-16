@@ -1,14 +1,8 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 import { getImageUrl } from "../utils/getImageUrl";
 import "./MisFavoritos.css";
-
-function tokenValido(token) {
-  return (
-    token && token !== "null" && token !== "undefined" && token.trim() !== ""
-  );
-}
 
 function MisFavoritos() {
   const navigate = useNavigate();
@@ -18,19 +12,10 @@ function MisFavoritos() {
   const [error, setError] = useState("");
   const [favoritoEliminandoId, setFavoritoEliminandoId] = useState(null);
 
-  const cargarFavoritos = async () => {
+  const cargarFavoritos = useCallback(async () => {
     try {
       setLoading(true);
       setError("");
-
-      const token = localStorage.getItem("token");
-
-      if (!tokenValido(token)) {
-        navigate("/login", {
-          state: { from: "/mis-favoritos" },
-        });
-        return;
-      }
 
       const response = await api.get("/api/favoritos");
 
@@ -49,11 +34,11 @@ function MisFavoritos() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     cargarFavoritos();
-  }, []);
+  }, [cargarFavoritos]);
 
   const quitarFavorito = async (event, cursoId) => {
     event.stopPropagation();

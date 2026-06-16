@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 import "./Admin.css";
@@ -53,82 +53,85 @@ function Admin() {
     ultimaActualizacion: null,
   });
 
-  const adminCards = [
-    {
-      titulo: "Cursos",
-      descripcion: "Crear, editar y administrar cursos",
-      icono: "🎓",
-      ruta: "/admin/cursos",
-      color: "violet",
-      keywords: "curso cursos administrar crear editar",
-    },
-    {
-      titulo: "Lecciones",
-      descripcion: "Gestionar contenido y clases",
-      icono: "🎥",
-      ruta: "/admin/lecciones",
-      color: "blue",
-      keywords: "leccion lecciones clases contenido",
-    },
-    {
-      titulo: "Cupones",
-      descripcion: "Crear y administrar descuentos",
-      icono: "🏷️",
-      ruta: "/admin/cupones",
-      color: "green",
-      keywords: "cupon cupones descuento descuentos promocion codigo",
-    },
-    {
-      titulo: "Mensajes",
-      descripcion: "Consultar mensajes de contacto",
-      icono: "💬",
-      ruta: "/admin/mensajes",
-      color: "cyan",
-      keywords: "mensajes contacto consultas no leido leido respondido",
-    },
-    {
-      titulo: "Blog",
-      descripcion: "Publicaciones y noticias",
-      icono: "📝",
-      ruta: "/admin/publicaciones",
-      color: "pink",
-      keywords: "blog publicaciones noticias articulos",
-    },
-    {
-      titulo: "Usuarios",
-      descripcion: "Gestión de usuarios y roles",
-      icono: "👥",
-      ruta: "/admin/usuarios",
-      color: "cyan",
-      keywords: "usuarios clientes administradores roles",
-    },
-    {
-      titulo: "Pagos",
-      descripcion: "Aprobar o rechazar pagos",
-      icono: "💳",
-      ruta: "/admin/pagos",
-      color: "orange",
-      keywords: "pagos pago aprobar rechazar pendiente",
-    },
-    {
-      titulo: "Compras",
-      descripcion: "Consultar órdenes de compra",
-      icono: "🛒",
-      ruta: "/admin/compras",
-      color: "blue",
-      keywords: "compras ordenes ventas carrito",
-    },
-    {
-      titulo: "Facturación",
-      descripcion: "Consultar datos fiscales",
-      icono: "🧾",
-      ruta: "/admin/datos-facturacion",
-      color: "green",
-      keywords: "facturacion fiscal datos fiscales",
-    },
-  ];
+  const adminCards = useMemo(
+    () => [
+      {
+        titulo: "Cursos",
+        descripcion: "Crear, editar y administrar cursos",
+        icono: "🎓",
+        ruta: "/admin/cursos",
+        color: "violet",
+        keywords: "curso cursos administrar crear editar",
+      },
+      {
+        titulo: "Lecciones",
+        descripcion: "Gestionar contenido y clases",
+        icono: "🎥",
+        ruta: "/admin/lecciones",
+        color: "blue",
+        keywords: "leccion lecciones clases contenido",
+      },
+      {
+        titulo: "Cupones",
+        descripcion: "Crear y administrar descuentos",
+        icono: "🏷️",
+        ruta: "/admin/cupones",
+        color: "green",
+        keywords: "cupon cupones descuento descuentos promocion codigo",
+      },
+      {
+        titulo: "Mensajes",
+        descripcion: "Consultar mensajes de contacto",
+        icono: "💬",
+        ruta: "/admin/mensajes",
+        color: "cyan",
+        keywords: "mensajes contacto consultas no leido leido respondido",
+      },
+      {
+        titulo: "Blog",
+        descripcion: "Publicaciones y noticias",
+        icono: "📝",
+        ruta: "/admin/publicaciones",
+        color: "pink",
+        keywords: "blog publicaciones noticias articulos",
+      },
+      {
+        titulo: "Usuarios",
+        descripcion: "Gestión de usuarios y roles",
+        icono: "👥",
+        ruta: "/admin/usuarios",
+        color: "cyan",
+        keywords: "usuarios clientes administradores roles",
+      },
+      {
+        titulo: "Pagos",
+        descripcion: "Aprobar o rechazar pagos",
+        icono: "💳",
+        ruta: "/admin/pagos",
+        color: "orange",
+        keywords: "pagos pago aprobar rechazar pendiente",
+      },
+      {
+        titulo: "Compras",
+        descripcion: "Consultar órdenes de compra",
+        icono: "🛒",
+        ruta: "/admin/compras",
+        color: "blue",
+        keywords: "compras ordenes ventas carrito",
+      },
+      {
+        titulo: "Facturación",
+        descripcion: "Consultar datos fiscales",
+        icono: "🧾",
+        ruta: "/admin/datos-facturacion",
+        color: "green",
+        keywords: "facturacion fiscal datos fiscales",
+      },
+    ],
+    [],
+  );
 
-  const cargarResumen = async (periodoSeleccionado = periodo) => {
+  const cargarResumen = useCallback(async (periodoSeleccionado) => {
     try {
       setLoadingResumen(true);
 
@@ -160,11 +163,11 @@ function Admin() {
     } finally {
       setLoadingResumen(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     cargarResumen(periodo);
-  }, [periodo]);
+  }, [cargarResumen, periodo]);
 
   const stats = useMemo(
     () => [
@@ -239,7 +242,7 @@ function Admin() {
       const contenido = `${card.titulo} ${card.descripcion} ${card.keywords}`;
       return contenido.toLowerCase().includes(texto);
     });
-  }, [busqueda]);
+  }, [adminCards, busqueda]);
 
   const alertas = useMemo(
     () => [

@@ -22,7 +22,6 @@ function AdminCursos() {
   const [loading, setLoading] = useState(true);
   const [guardando, setGuardando] = useState(false);
   const [procesandoId, setProcesandoId] = useState("");
-  const [mensaje, setMensaje] = useState("");
   const [error, setError] = useState("");
   const [toast, setToast] = useState(null);
 
@@ -45,7 +44,6 @@ function AdminCursos() {
     setForm(ESTADO_INICIAL_FORM);
     setEditandoId(null);
     setError("");
-    setMensaje("");
   };
 
   const handleNuevoCurso = () => {
@@ -132,7 +130,7 @@ function AdminCursos() {
 
   const guardarCurso = async (e) => {
     e.preventDefault();
-    setMensaje("");
+
     setError("");
 
     const errores = validarForm();
@@ -163,13 +161,11 @@ function AdminCursos() {
         await api.put(`/api/cursos/${editandoId}`, cursoPayload);
 
         const textoExito = "Curso editado correctamente.";
-        setMensaje(textoExito);
         mostrarToast(textoExito, "success");
       } else {
         await api.post("/api/cursos", cursoPayload);
 
         const textoExito = "Curso creado correctamente.";
-        setMensaje(textoExito);
         mostrarToast(textoExito, "success");
       }
 
@@ -192,7 +188,6 @@ function AdminCursos() {
   };
 
   const abrirModalOcultar = (curso) => {
-    setMensaje("");
     setError("");
 
     const cursoId = obtenerIdCurso(curso);
@@ -221,14 +216,16 @@ function AdminCursos() {
 
     try {
       setProcesandoId(cursoId);
-      setMensaje("");
+
       setError("");
 
       await api.patch(`/api/cursos/${cursoId}/ocultar`);
 
-      const textoExito = `Curso ${modalOcultar.titulo} ocultado correctamente. Podés recuperarlo publicándolo nuevamente.`;
+      const textoExito = `${modalOcultar.titulo} ocultado correctamente. Podés recuperarlo publicándolo nuevamente.`;
 
-      setMensaje(textoExito);
+      mostrarToast(textoExito, "success");
+
+      // etMensaje(textoExito);
       mostrarToast(textoExito, "success");
       setModalOcultar(null);
 
@@ -260,17 +257,16 @@ function AdminCursos() {
 
     try {
       setProcesandoId(cursoId);
-      setMensaje("");
+
       setError("");
 
       await api.patch(`/api/cursos/${cursoId}/${accion}`);
 
       const textoExito =
         accion === "publicar"
-          ? `Curso ${curso.titulo} publicado correctamente.`
-          : `Curso ${curso.titulo} ocultado correctamente.`;
+          ? `${curso.titulo} publicado correctamente.`
+          : `${curso.titulo} ocultado correctamente.`;
 
-      setMensaje(textoExito);
       mostrarToast(textoExito, "success");
 
       await cargarDatos();
@@ -306,7 +302,6 @@ function AdminCursos() {
       imagenPortada: curso.imagenPortada || "",
     });
 
-    setMensaje("");
     setError("");
 
     window.scrollTo({

@@ -373,7 +373,7 @@ function DetalleCurso() {
   if (!curso) return <p className="detalle-curso-estado">No encontrado</p>;
 
   const puedeEntrarAlCurso = yaComprado || esAdmin;
-  const cantidadLecciones = curso.lecciones?.length || 0;
+
   const puedeReseniar = haySesion && yaComprado && !esAdmin;
 
   return (
