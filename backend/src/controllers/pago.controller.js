@@ -164,8 +164,37 @@ const aprobarPago = async (req, res) => {
       return res.status(404).json({ mensaje: "Pago no encontrado" });
     }
 
+    let notificacionEnviada = false;
+
+    try {
+      const emailUsuario = pago.usuario?.email;
+      const compra = pago.compra;
+
+      if (emailUsuario && compra?._id) {
+        const numeroOrdenCorto = compra._id.toString().slice(-6);
+
+        await mailer.sendOrderStatusEmail({
+          to: emailUsuario,
+          numeroOrden: numeroOrdenCorto,
+          orden: {
+            ...(compra.toObject ? compra.toObject() : compra),
+            estado: "PAGADA",
+          },
+        });
+
+        notificacionEnviada = true;
+      }
+    } catch (errorCorreo) {
+      console.error(
+        "El pago fue aprobado, pero no se pudo enviar la notificación por correo:",
+        errorCorreo.message,
+      );
+    }
+
     return res.status(200).json({
-      mensaje: "Pago aprobado correctamente",
+      mensaje: notificacionEnviada
+        ? "Pago aprobado correctamente. El acceso al curso fue habilitado y se notificó al usuario."
+        : "Pago aprobado correctamente. El acceso al curso fue habilitado.",
       datos: pago,
     });
   } catch (error) {
@@ -189,8 +218,37 @@ const rechazarPago = async (req, res) => {
       return res.status(404).json({ mensaje: "Pago no encontrado" });
     }
 
+    let notificacionEnviada = false;
+
+    try {
+      const emailUsuario = pago.usuario?.email;
+      const compra = pago.compra;
+
+      if (emailUsuario && compra?._id) {
+        const numeroOrdenCorto = compra._id.toString().slice(-6);
+
+        await mailer.sendOrderStatusEmail({
+          to: emailUsuario,
+          numeroOrden: numeroOrdenCorto,
+          orden: {
+            ...(compra.toObject ? compra.toObject() : compra),
+            estado: "CANCELADA",
+          },
+        });
+
+        notificacionEnviada = true;
+      }
+    } catch (errorCorreo) {
+      console.error(
+        "El pago fue rechazado, pero no se pudo enviar la notificación por correo:",
+        errorCorreo.message,
+      );
+    }
+
     return res.status(200).json({
-      mensaje: "Pago rechazado correctamente",
+      mensaje: notificacionEnviada
+        ? "Pago rechazado correctamente. La compra fue cancelada y se notificó al usuario."
+        : "Pago rechazado correctamente. La compra fue cancelada.",
       datos: pago,
     });
   } catch (error) {
