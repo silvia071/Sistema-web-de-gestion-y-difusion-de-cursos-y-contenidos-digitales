@@ -715,10 +715,11 @@
 
 .admin-compra-modal {
   position: relative;
-  width: min(100%, 620px);
-  max-height: min(88vh, 760px);
-  overflow: auto;
-  padding: 72px 34px 34px;
+  width: min(100%, 680px);
+  max-height: 90vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 72px 38px 38px;
   border-radius: 28px;
   color: #ffffff;
   text-align: left;
@@ -730,6 +731,23 @@
     0 34px 100px rgba(0, 0, 0, 0.52),
     0 0 70px rgba(99, 102, 241, 0.14),
     inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.admin-compra-modal::-webkit-scrollbar {
+  width: 8px;
+}
+
+.admin-compra-modal::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.admin-compra-modal::-webkit-scrollbar-thumb {
+  background: rgba(180, 190, 255, 0.38);
+  border-radius: 999px;
+}
+
+.admin-compra-modal::-webkit-scrollbar-thumb:hover {
+  background: rgba(180, 190, 255, 0.58);
 }
 
 .admin-compra-modal::before {
@@ -836,6 +854,52 @@
   font-size: 0.96rem;
   line-height: 1.45;
   overflow-wrap: anywhere;
+}
+
+.admin-compra-modal-actions {
+  margin-bottom: 22px;
+  padding: 14px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  align-items: center;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(150, 170, 255, 0.14);
+}
+
+.admin-compra-modal-actions select {
+  min-height: 44px;
+  border: 1px solid rgba(150, 170, 255, 0.28);
+  border-radius: 13px;
+  padding: 0 14px;
+  color: #ffffff;
+  font-weight: 900;
+  background: rgba(5, 10, 43, 0.92);
+  outline: none;
+}
+
+.admin-compra-notificar-btn {
+  min-height: 44px;
+  border: 0;
+  border-radius: 13px;
+  padding: 0 22px;
+  color: #ffffff;
+  font-weight: 900;
+  cursor: pointer;
+  background: linear-gradient(135deg, #7c5cff, #20c8ff);
+  box-shadow: 0 14px 28px rgba(32, 200, 255, 0.18);
+  transition: 0.2s ease;
+}
+
+.admin-compra-notificar-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  filter: brightness(1.05);
+}
+
+.admin-compra-notificar-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .admin-compra-modal-cursos h3 {
@@ -1038,6 +1102,26 @@
       radial-gradient(circle at top, rgba(96, 165, 250, 0.12), transparent 34%),
       rgba(10, 18, 70, 0.62);
     border: 1px solid rgba(151, 170, 255, 0.16);
+  }
+}
+
+@media (max-width: 700px) {
+  .admin-compra-modal {
+    width: 96vw;
+    max-height: 92vh;
+    padding: 70px 22px 28px;
+  }
+
+  .admin-compra-modal-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-compra-modal-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-compra-notificar-btn {
+    width: 100%;
   }
 }
 

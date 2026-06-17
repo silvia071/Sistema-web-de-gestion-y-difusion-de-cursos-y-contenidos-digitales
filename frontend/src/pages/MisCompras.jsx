@@ -60,6 +60,55 @@ function obtenerClaseEstado(estado) {
   return "";
 }
 
+function obtenerMetodoPago(compra) {
+  const metodo =
+    compra?.pago?.metodoPago ||
+    compra?.pago?.metodo ||
+    compra?.metodoPago ||
+    compra?.medioPago ||
+    compra?.formaPago ||
+    "";
+
+  const metodoNormalizado = String(metodo).toUpperCase();
+  const estadoNormalizado = normalizarEstado(compra?.estado);
+
+  if (metodoNormalizado.includes("TRANSFERENCIA")) {
+    return {
+      sigla: "TB",
+      texto: "Transferencia bancaria",
+    };
+  }
+
+  if (
+    metodoNormalizado.includes("MERCADO") ||
+    metodoNormalizado.includes("BILLETERA")
+  ) {
+    return {
+      sigla: "MP",
+      texto: "Mercado Pago",
+    };
+  }
+
+  if (metodoNormalizado.includes("TARJETA")) {
+    return {
+      sigla: "TC",
+      texto: "Tarjeta",
+    };
+  }
+
+  if (estadoNormalizado === "PENDIENTE") {
+    return {
+      sigla: "TB",
+      texto: "Transferencia bancaria",
+    };
+  }
+
+  return {
+    sigla: "MP",
+    texto: "Mercado Pago",
+  };
+}
+
 function compraHabilitada(estado) {
   const estadoNormalizado = normalizarEstado(estado);
 
@@ -277,9 +326,9 @@ export default function MisCompras() {
     } catch (error) {
       setError(
         error.response?.data?.mensaje ||
-        error.response?.data?.error ||
-        error.message ||
-        "No se pudieron cargar tus compras.",
+          error.response?.data?.error ||
+          error.message ||
+          "No se pudieron cargar tus compras.",
       );
 
       setCompras([]);
@@ -521,6 +570,7 @@ export default function MisCompras() {
                   const estadoClase = obtenerClaseEstado(estado);
                   const primerDetalle = detalles[0];
                   const cursosExtra = Math.max(detalles.length - 1, 0);
+                  const metodoPago = obtenerMetodoPago(compra);
 
                   return (
                     <article
@@ -543,8 +593,10 @@ export default function MisCompras() {
                         <strong>{formatearFecha(fecha, true)}</strong>
 
                         <p>
-                          <span className="payment-mini">MP</span>
-                          Mercado Pago
+                          <span className="payment-mini">
+                            {metodoPago.sigla}
+                          </span>
+                          {metodoPago.texto}
                         </p>
                       </div>
 
@@ -656,7 +708,7 @@ export default function MisCompras() {
                   <strong>
                     {formatearFecha(
                       compraSeleccionada.createdAt ||
-                      compraSeleccionada.fechaCompra,
+                        compraSeleccionada.fechaCompra,
                       true,
                     )}
                   </strong>
@@ -706,11 +758,19 @@ export default function MisCompras() {
 
                 <h3> Datos para transferencia</h3>
                 <br />
-                <p><strong>Titular:</strong> Mundo Dev SRL</p>
-                <p><strong>Banco:</strong> Banco de la Nación Argentina</p>
-                <p><strong>Alias:</strong> mundo_dev</p>
-                <p><strong>CBU:</strong> 0123456789012345678901</p>
-                 <br />
+                <p>
+                  <strong>Titular:</strong> Mundo Dev SRL
+                </p>
+                <p>
+                  <strong>Banco:</strong> Banco de la Nación Argentina
+                </p>
+                <p>
+                  <strong>Alias:</strong> mundo_dev
+                </p>
+                <p>
+                  <strong>CBU:</strong> 0123456789012345678901
+                </p>
+                <br />
                 <hr />
                 <p>
                   Una vez realizada la transferencia, enviá el comprobante para

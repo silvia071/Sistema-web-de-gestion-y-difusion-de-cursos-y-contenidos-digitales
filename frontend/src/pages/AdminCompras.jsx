@@ -877,7 +877,7 @@ export default function AdminCompras() {
             <div className="admin-compra-modal-cursos">
               <h3>Administrar compra</h3>
 
-              <div className="admin-compras-toolbar">
+              <div className="admin-compra-modal-actions">
                 <select
                   value={normalizarEstado(compraSeleccionada.estado)}
                   disabled={
@@ -896,6 +896,7 @@ export default function AdminCompras() {
 
                 <button
                   type="button"
+                  className="admin-compra-notificar-btn"
                   disabled={
                     notificandoId === obtenerIdCompra(compraSeleccionada)
                   }
