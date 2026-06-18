@@ -18,6 +18,10 @@ build/
 # Env
 .env
 .env.*
+!.env.example
+
+# Compressed files
+*.zip
 
 # Local files
 *.local

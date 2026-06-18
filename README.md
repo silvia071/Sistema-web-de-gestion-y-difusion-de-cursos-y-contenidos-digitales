@@ -306,6 +306,10 @@ JWT_SECRET=tu_clave_secreta_jwt
 FRONTEND_URL=http://localhost:5173
 BACKEND_URL=http://localhost:3000
 
+MP_ACCESS_TOKEN=TU_ACCESS_TOKEN
+MP_MOCK=true
+MP_WEBHOOK_SECRET=tu_webhook_secret
+
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
 SMTP_SECURE=false
@@ -492,13 +496,18 @@ PUT /api/datos-facturacion/:id
 DELETE /api/datos-facturacion/:id
 ```
 
+
 ### Accesos a cursos
 
 ```http
-GET /api/accesos/mis-cursos
-GET /api/accesos/usuario/:usuarioId
-PATCH /api/accesos/progreso
+POST /api/accesos
+GET /api/accesos/usuario/:id
+PATCH /api/accesos/:id/progreso
 ```
+
+Aclaración: GET /api/accesos/usuario/:id permite consultar los cursos adquiridos por un usuario.
+
+Aclaración: PATCH /api/accesos/:id/progreso permite actualizar el progreso de aprendizaje de un acceso existente.
 
 ### Mensajes de contacto
 

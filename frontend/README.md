@@ -188,8 +188,8 @@ VITE_API_URL=http://localhost:3000
 /cursos
 /cursos/:id
 /blog
-/sobre-nosotros
-/contacto
+/nosotros
+/contactos
 /login
 /registro
 /recuperar-contrasenia
