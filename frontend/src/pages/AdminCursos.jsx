@@ -31,6 +31,7 @@ function AdminCursos() {
   const [filtroEstado, setFiltroEstado] = useState("");
 
   const [modalOcultar, setModalOcultar] = useState(null);
+  const [modalCursoAbierto, setModalCursoAbierto] = useState(false);
 
   const formCursoRef = useRef(null);
   const inputTituloRef = useRef(null);
@@ -46,15 +47,16 @@ function AdminCursos() {
     setError("");
   };
 
+  const cerrarModalCurso = () => {
+    limpiarForm();
+    setModalCursoAbierto(false);
+  };
+
   const handleNuevoCurso = () => {
     limpiarForm();
+    setModalCursoAbierto(true);
 
     setTimeout(() => {
-      formCursoRef.current?.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
-
       inputTituloRef.current?.focus();
     }, 100);
   };
@@ -112,18 +114,62 @@ function AdminCursos() {
     const titulo = form.titulo.trim();
     const descripcion = form.descripcion.trim();
     const duracion = form.duracion.trim();
+    const imagenPortada = form.imagenPortada.trim();
     const precio = Number(form.precio);
 
-    if (!titulo) errores.push("El título es obligatorio.");
-    if (!descripcion) errores.push("La descripción es obligatoria.");
-    if (!form.precio) errores.push("El precio es obligatorio.");
-    if (Number.isNaN(precio) || precio <= 0) {
-      errores.push("El precio debe ser mayor a 0.");
+    const duracionNegativa = /^-\d+/.test(duracion);
+
+    if (!titulo) {
+      errores.push("El título es obligatorio.");
+    } else if (titulo.length < 5) {
+      errores.push("El título debe tener al menos 5 caracteres.");
+    } else if (titulo.length > 80) {
+      errores.push("El título no puede superar los 80 caracteres.");
     }
-    if (!duracion) errores.push("La duración es obligatoria.");
-    if (!form.nivel) errores.push("El nivel es obligatorio.");
-    if (!form.categoria) errores.push("La categoría es obligatoria.");
-    if (!form.estado) errores.push("El estado es obligatorio.");
+
+    if (!descripcion) {
+      errores.push("La descripción es obligatoria.");
+    } else if (descripcion.length < 20) {
+      errores.push("La descripción debe tener al menos 20 caracteres.");
+    } else if (descripcion.length > 500) {
+      errores.push("La descripción no puede superar los 500 caracteres.");
+    }
+
+    if (!form.precio) {
+      errores.push("El precio es obligatorio.");
+    } else if (Number.isNaN(precio) || precio <= 0) {
+      errores.push("El precio debe ser mayor a 0.");
+    } else if (precio > 1000000) {
+      errores.push("El precio no puede superar $1.000.000.");
+    }
+
+    if (!duracion) {
+      errores.push("La duración es obligatoria.");
+    } else if (duracionNegativa) {
+      errores.push("La duración no puede ser negativa.");
+    } else if (duracion.length < 3) {
+      errores.push("La duración debe tener al menos 3 caracteres.");
+    } else if (duracion.length > 40) {
+      errores.push("La duración no puede superar los 40 caracteres.");
+    }
+
+    if (imagenPortada.length > 300) {
+      errores.push(
+        "La URL o ruta de imagen no puede superar los 300 caracteres.",
+      );
+    }
+
+    if (!form.nivel) {
+      errores.push("El nivel es obligatorio.");
+    }
+
+    if (!form.categoria) {
+      errores.push("La categoría es obligatoria.");
+    }
+
+    if (!form.estado) {
+      errores.push("El estado es obligatorio.");
+    }
 
     return errores;
   };
@@ -159,17 +205,14 @@ function AdminCursos() {
 
       if (editandoId) {
         await api.put(`/api/cursos/${editandoId}`, cursoPayload);
-
-        const textoExito = "Curso editado correctamente.";
-        mostrarToast(textoExito, "success");
+        mostrarToast("Curso editado correctamente.", "success");
       } else {
         await api.post("/api/cursos", cursoPayload);
-
-        const textoExito = "Curso creado correctamente.";
-        mostrarToast(textoExito, "success");
+        mostrarToast("Curso creado correctamente.", "success");
       }
 
       limpiarForm();
+      setModalCursoAbierto(false);
       await cargarDatos();
     } catch (error) {
       console.error("Error guardando curso:", error);
@@ -216,7 +259,6 @@ function AdminCursos() {
 
     try {
       setProcesandoId(cursoId);
-
       setError("");
 
       await api.patch(`/api/cursos/${cursoId}/ocultar`);
@@ -224,13 +266,11 @@ function AdminCursos() {
       const textoExito = `${modalOcultar.titulo} ocultado correctamente. Podés recuperarlo publicándolo nuevamente.`;
 
       mostrarToast(textoExito, "success");
-
-      // etMensaje(textoExito);
-      mostrarToast(textoExito, "success");
       setModalOcultar(null);
 
       if (editandoId === cursoId) {
         limpiarForm();
+        setModalCursoAbierto(false);
       }
 
       await cargarDatos();
@@ -257,7 +297,6 @@ function AdminCursos() {
 
     try {
       setProcesandoId(cursoId);
-
       setError("");
 
       await api.patch(`/api/cursos/${cursoId}/${accion}`);
@@ -303,11 +342,11 @@ function AdminCursos() {
     });
 
     setError("");
+    setModalCursoAbierto(true);
 
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
+    setTimeout(() => {
+      inputTituloRef.current?.focus();
+    }, 100);
   };
 
   const formatearNivel = (nivel) => {
@@ -467,15 +506,9 @@ function AdminCursos() {
           </div>
         </header>
 
-        {(error || editandoId) && (
+        {error && !modalCursoAbierto && (
           <div className="admin-feedback-zone">
-            {error && <div className="admin-alert error">{error}</div>}
-
-            {editandoId && (
-              <div className="admin-alert info">
-                Estás editando un curso seleccionado.
-              </div>
-            )}
+            <div className="admin-alert error">{error}</div>
           </div>
         )}
 
@@ -548,6 +581,7 @@ function AdminCursos() {
               onChange={(e) => setFiltroCategoria(e.target.value)}
             >
               <option value="">Todas</option>
+
               {categorias.map((cat) => (
                 <option key={cat._id || cat.id} value={cat._id || cat.id}>
                   {cat.nombre}
@@ -579,165 +613,7 @@ function AdminCursos() {
         </div>
 
         <div className="admin-cursos-dashboard-grid">
-          <form
-            ref={formCursoRef}
-            className="admin-form-card"
-            onSubmit={guardarCurso}
-          >
-            <div className="admin-form-card-header">
-              <div className="admin-form-icon">✎</div>
-
-              <div>
-                <h2>{editandoId ? "Editar curso" : "Crear nuevo curso"}</h2>
-                <p>
-                  {editandoId
-                    ? "Modificá la información del curso seleccionado."
-                    : "Completá la información para agregar un nuevo curso."}
-                </p>
-              </div>
-            </div>
-
-            <div className="admin-form-grid">
-              <label>
-                <span>Título</span>
-                <input
-                  ref={inputTituloRef}
-                  name="titulo"
-                  placeholder="Ej. Curso de JavaScript"
-                  value={form.titulo}
-                  onChange={handleChange}
-                  required
-                />
-              </label>
-
-              <label>
-                <span>Descripción</span>
-                <textarea
-                  name="descripcion"
-                  placeholder="Describe brevemente el contenido del curso..."
-                  value={form.descripcion}
-                  onChange={handleChange}
-                  rows={3}
-                  required
-                />
-              </label>
-
-              <label>
-                <span>Precio</span>
-                <input
-                  name="precio"
-                  type="number"
-                  min="0.01"
-                  step="0.01"
-                  placeholder="Ej. 15000"
-                  value={form.precio}
-                  onChange={handleChange}
-                  required
-                />
-              </label>
-
-              <label>
-                <span>Duración</span>
-                <input
-                  name="duracion"
-                  placeholder="Ej. 20 horas"
-                  value={form.duracion}
-                  onChange={handleChange}
-                  required
-                />
-              </label>
-
-              <label>
-                <span>URL o ruta de imagen</span>
-                <input
-                  name="imagenPortada"
-                  placeholder="https://ejemplo.com/imagen.jpg"
-                  value={form.imagenPortada}
-                  onChange={handleChange}
-                />
-              </label>
-
-              <label>
-                <span>Nivel</span>
-                <select
-                  name="nivel"
-                  value={form.nivel}
-                  onChange={handleChange}
-                  required
-                >
-                  <option value="">Seleccioná el nivel</option>
-                  <option value="PRINCIPIANTE">Principiante</option>
-                  <option value="INTERMEDIO">Intermedio</option>
-                  <option value="AVANZADO">Avanzado</option>
-                </select>
-              </label>
-
-              <label>
-                <span>Categoría</span>
-                <select
-                  name="categoria"
-                  value={form.categoria}
-                  onChange={handleChange}
-                  required
-                >
-                  <option value="">Seleccioná la categoría</option>
-
-                  {categorias.map((cat) => (
-                    <option key={cat._id || cat.id} value={cat._id || cat.id}>
-                      {cat.nombre}
-                    </option>
-                  ))}
-                </select>
-              </label>
-
-              <label>
-                <span>Estado</span>
-                <select
-                  name="estado"
-                  value={form.estado}
-                  onChange={handleChange}
-                  required
-                >
-                  <option value="BORRADOR">Borrador</option>
-                  <option value="PUBLICADO">Publicado</option>
-                  <option value="OCULTO">Oculto</option>
-                </select>
-              </label>
-            </div>
-
-            <div className="admin-form-actions admin-form-actions-inline">
-              <button
-                type="button"
-                className="admin-clean-btn"
-                onClick={limpiarForm}
-                disabled={guardando}
-              >
-                {editandoId ? "Cancelar" : "Limpiar"}
-              </button>
-
-              <button
-                type="submit"
-                className="admin-save-btn"
-                disabled={guardando}
-              >
-                {guardando
-                  ? "Guardando..."
-                  : editandoId
-                    ? "Guardar cambios"
-                    : "Guardar curso"}
-              </button>
-            </div>
-
-            <div className="admin-cursos-help-card">
-              <div>💡</div>
-              <p>
-                Los cursos en estado <strong>Publicado</strong> quedan visibles
-                para los usuarios de la plataforma.
-              </p>
-            </div>
-          </form>
-
-          <div className="admin-list-card">
+          <div className="admin-list-card admin-list-card-full">
             <div className="admin-list-header">
               <div>
                 <h2>Cursos cargados</h2>
@@ -884,6 +760,195 @@ function AdminCursos() {
           </div>
         </div>
       </div>
+
+      {modalCursoAbierto && (
+        <div className="admin-modal-overlay">
+          <div className="admin-modal-card admin-modal-curso">
+            <button
+              type="button"
+              className="admin-modal-close"
+              onClick={cerrarModalCurso}
+              disabled={guardando}
+            >
+              ×
+            </button>
+
+            <form
+              ref={formCursoRef}
+              className="admin-form-card admin-form-card-modal"
+              onSubmit={guardarCurso}
+            >
+              <div className="admin-form-card-header">
+                <div className="admin-form-icon">✎</div>
+
+                <div>
+                  <h2>{editandoId ? "Editar curso" : "Crear nuevo curso"}</h2>
+                  <p>
+                    {editandoId
+                      ? "Modificá la información del curso seleccionado."
+                      : "Completá la información para agregar un nuevo curso."}
+                  </p>
+                </div>
+              </div>
+
+              {error && <div className="admin-alert error">{error}</div>}
+
+              <div className="admin-form-grid">
+                <label>
+                  <span>Título</span>
+                  <input
+                    ref={inputTituloRef}
+                    name="titulo"
+                    placeholder="Ej. Curso de JavaScript"
+                    value={form.titulo}
+                    onChange={handleChange}
+                    minLength={5}
+                    maxLength={80}
+                    required
+                  />
+                  <small className="admin-field-help">
+                    {form.descripcion.length}/500 caracteres
+                  </small>
+                </label>
+
+                <label>
+                  <span>Descripción</span>
+                  <textarea
+                    name="descripcion"
+                    placeholder="Describe brevemente el contenido del curso..."
+                    value={form.descripcion}
+                    onChange={handleChange}
+                    rows={3}
+                    minLength={20}
+                    maxLength={500}
+                    required
+                  />
+                  <small className="admin-field-help">
+                    {form.descripcion.length}/500 caracteres
+                  </small>
+                </label>
+
+                <label>
+                  <span>Precio</span>
+                  <input
+                    name="precio"
+                    type="number"
+                    min="0.01"
+                    max="1000000"
+                    step="0.01"
+                    placeholder="Ej. 15000"
+                    value={form.precio}
+                    onChange={handleChange}
+                    required
+                  />
+                </label>
+
+                <label>
+                  <span>Duración</span>
+                  <input
+                    name="duracion"
+                    placeholder="Ej. 20 horas"
+                    value={form.duracion}
+                    onChange={handleChange}
+                    minLength={3}
+                    maxLength={40}
+                    required
+                  />
+                </label>
+
+                <label>
+                  <span>URL o ruta de imagen</span>
+                  <input
+                    name="imagenPortada"
+                    placeholder="https://ejemplo.com/imagen.jpg"
+                    value={form.imagenPortada}
+                    onChange={handleChange}
+                    maxLength={300}
+                  />
+                </label>
+
+                <label>
+                  <span>Nivel</span>
+                  <select
+                    name="nivel"
+                    value={form.nivel}
+                    onChange={handleChange}
+                    required
+                  >
+                    <option value="">Seleccioná el nivel</option>
+                    <option value="PRINCIPIANTE">Principiante</option>
+                    <option value="INTERMEDIO">Intermedio</option>
+                    <option value="AVANZADO">Avanzado</option>
+                  </select>
+                </label>
+
+                <label>
+                  <span>Categoría</span>
+                  <select
+                    name="categoria"
+                    value={form.categoria}
+                    onChange={handleChange}
+                    required
+                  >
+                    <option value="">Seleccioná la categoría</option>
+
+                    {categorias.map((cat) => (
+                      <option key={cat._id || cat.id} value={cat._id || cat.id}>
+                        {cat.nombre}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <label>
+                  <span>Estado</span>
+                  <select
+                    name="estado"
+                    value={form.estado}
+                    onChange={handleChange}
+                    required
+                  >
+                    <option value="BORRADOR">Borrador</option>
+                    <option value="PUBLICADO">Publicado</option>
+                    <option value="OCULTO">Oculto</option>
+                  </select>
+                </label>
+              </div>
+
+              <div className="admin-form-actions admin-form-actions-inline">
+                <button
+                  type="button"
+                  className="admin-clean-btn"
+                  onClick={cerrarModalCurso}
+                  disabled={guardando}
+                >
+                  Cancelar
+                </button>
+
+                <button
+                  type="submit"
+                  className="admin-save-btn"
+                  disabled={guardando}
+                >
+                  {guardando
+                    ? "Guardando..."
+                    : editandoId
+                      ? "Guardar cambios"
+                      : "Guardar curso"}
+                </button>
+              </div>
+
+              <div className="admin-cursos-help-card">
+                <div>💡</div>
+                <p>
+                  Los cursos en estado <strong>Publicado</strong> quedan
+                  visibles para los usuarios de la plataforma.
+                </p>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {modalOcultar && (
         <div className="admin-modal-overlay">

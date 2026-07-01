@@ -31,19 +31,36 @@ function AdminPublicaciones() {
   const [filtroCategoria, setFiltroCategoria] = useState("");
 
   const [modalEliminar, setModalEliminar] = useState(null);
+  const [modalPublicacionAbierto, setModalPublicacionAbierto] = useState(false);
 
-  const formRef = useRef(null);
-
+  const inputTituloRef = useRef(null);
   const navigate = useNavigate();
 
   const limpiarForm = () => {
     setForm(ESTADO_INICIAL_FORM);
     setEditandoId(null);
+    setError("");
+  };
+
+  const abrirModalCrearPublicacion = () => {
+    limpiarForm();
+    setMensaje("");
+    setModalPublicacionAbierto(true);
+
+    setTimeout(() => {
+      inputTituloRef.current?.focus();
+    }, 100);
+  };
+
+  const cerrarModalPublicacion = () => {
+    limpiarForm();
+    setModalPublicacionAbierto(false);
   };
 
   const cargarDatos = async () => {
     try {
       setLoading(true);
+      setError("");
 
       const [pubRes, catRes] = await Promise.all([
         api.get("/api/publicaciones/admin/todas"),
@@ -54,7 +71,6 @@ function AdminPublicaciones() {
       setCategorias(catRes.data?.datos || catRes.data || []);
     } catch (err) {
       console.error(err);
-
       setError("No se pudieron cargar las publicaciones.");
     } finally {
       setLoading(false);
@@ -77,16 +93,50 @@ function AdminPublicaciones() {
   const validarForm = () => {
     const errores = [];
 
-    if (!form.titulo.trim()) {
+    const titulo = form.titulo.trim();
+    const resumen = form.resumen.trim();
+    const contenido = form.contenido.trim();
+    const imagen = form.imagen.trim();
+    const autor = form.autor.trim();
+
+    if (!titulo) {
       errores.push("El título es obligatorio.");
+    } else if (titulo.length < 5) {
+      errores.push("El título debe tener al menos 5 caracteres.");
+    } else if (titulo.length > 100) {
+      errores.push("El título no puede superar los 100 caracteres.");
     }
 
-    if (!form.contenido.trim()) {
+    if (resumen.length > 0 && resumen.length < 20) {
+      errores.push("El resumen debe tener al menos 20 caracteres.");
+    } else if (resumen.length > 300) {
+      errores.push("El resumen no puede superar los 300 caracteres.");
+    }
+
+    if (!contenido) {
       errores.push("El contenido es obligatorio.");
+    } else if (contenido.length < 50) {
+      errores.push("El contenido debe tener al menos 50 caracteres.");
+    } else if (contenido.length > 5000) {
+      errores.push("El contenido no puede superar los 5000 caracteres.");
+    }
+
+    if (imagen.length > 300) {
+      errores.push("La URL de la imagen no puede superar los 300 caracteres.");
+    }
+
+    if (autor.length > 0 && autor.length < 3) {
+      errores.push("El autor debe tener al menos 3 caracteres.");
+    } else if (autor.length > 80) {
+      errores.push("El autor no puede superar los 80 caracteres.");
     }
 
     if (!form.categoria) {
       errores.push("La categoría es obligatoria.");
+    }
+
+    if (!form.estado) {
+      errores.push("El estado es obligatorio.");
     }
 
     return errores;
@@ -119,28 +169,23 @@ function AdminPublicaciones() {
       };
 
       if (editandoId) {
-        await api.put(
-          `/api/publicaciones/${editandoId}`,
-          payload
-        );
-
+        await api.put(`/api/publicaciones/${editandoId}`, payload);
         setMensaje("Publicación actualizada correctamente.");
       } else {
         await api.post("/api/publicaciones", payload);
-
         setMensaje("Publicación creada correctamente.");
       }
 
       limpiarForm();
-
+      setModalPublicacionAbierto(false);
       await cargarDatos();
-
     } catch (err) {
       console.error(err);
 
       setError(
         err.response?.data?.mensaje ||
-        "Error al guardar publicación."
+          err.response?.data?.errores?.join(" ") ||
+          "Error al guardar publicación.",
       );
     } finally {
       setGuardando(false);
@@ -163,101 +208,95 @@ function AdminPublicaciones() {
       autor: pub.autor || "",
     });
 
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
+    setMensaje("");
+    setError("");
+    setModalPublicacionAbierto(true);
+
+    setTimeout(() => {
+      inputTituloRef.current?.focus();
+    }, 100);
   };
 
   const eliminarPublicacion = async () => {
     if (!modalEliminar) return;
 
     try {
-      await api.delete(
-        `/api/publicaciones/${modalEliminar._id}`
-      );
+      await api.delete(`/api/publicaciones/${modalEliminar._id}`);
 
       setMensaje("Publicación eliminada correctamente.");
-
       setModalEliminar(null);
 
-      await cargarDatos();
+      if (editandoId === modalEliminar._id) {
+        limpiarForm();
+        setModalPublicacionAbierto(false);
+      }
 
+      await cargarDatos();
     } catch (err) {
       console.error(err);
-
       setError("Error al eliminar publicación.");
     }
   };
 
   const publicacionesFiltradas = useMemo(() => {
     return publicaciones.filter((pub) => {
+      const textoBusqueda = busqueda.toLowerCase().trim();
 
       const coincideBusqueda =
-        !busqueda ||
-        pub.titulo?.toLowerCase().includes(busqueda.toLowerCase()) ||
-        pub.contenido?.toLowerCase().includes(busqueda.toLowerCase());
+        !textoBusqueda ||
+        pub.titulo?.toLowerCase().includes(textoBusqueda) ||
+        pub.resumen?.toLowerCase().includes(textoBusqueda) ||
+        pub.contenido?.toLowerCase().includes(textoBusqueda);
 
-      const coincideEstado =
-        !filtroEstado ||
-        pub.estado === filtroEstado;
+      const coincideEstado = !filtroEstado || pub.estado === filtroEstado;
 
       const categoriaId =
-        typeof pub.categoria === "object"
-          ? pub.categoria?._id
-          : pub.categoria;
+        typeof pub.categoria === "object" ? pub.categoria?._id : pub.categoria;
 
       const coincideCategoria =
-        !filtroCategoria ||
-        categoriaId === filtroCategoria;
+        !filtroCategoria || categoriaId === filtroCategoria;
 
-      return (
-        coincideBusqueda &&
-        coincideEstado &&
-        coincideCategoria
-      );
+      return coincideBusqueda && coincideEstado && coincideCategoria;
     });
-  }, [
-    publicaciones,
-    busqueda,
-    filtroEstado,
-    filtroCategoria,
-  ]);
+  }, [publicaciones, busqueda, filtroEstado, filtroCategoria]);
 
   const totalPublicadas = publicaciones.filter(
-    (p) => p.estado === "PUBLICADO"
+    (p) => p.estado === "PUBLICADO",
   ).length;
 
   const totalBorrador = publicaciones.filter(
-    (p) => p.estado === "BORRADOR"
+    (p) => p.estado === "BORRADOR",
   ).length;
 
   const totalOcultas = publicaciones.filter(
-    (p) => p.estado === "OCULTO"
+    (p) => p.estado === "OCULTO",
   ).length;
 
   if (loading) {
-    return <h2>Cargando...</h2>;
+    return (
+      <section className="admin-cursos-page">
+        <div className="admin-cursos-shell admin-loading-card">
+          <div className="admin-loading-icon">📰</div>
+          <h1>Gestión de publicaciones</h1>
+          <p>Cargando publicaciones...</p>
+        </div>
+      </section>
+    );
   }
 
   return (
     <section className="admin-cursos-page">
-
       <div className="admin-cursos-shell">
-
         <header className="admin-cursos-header">
-
           <div>
             <h1>Gestión de publicaciones</h1>
 
-            <p>
-              Administrá artículos y novedades del blog.
-            </p>
+            <p>Administrá artículos y novedades del blog.</p>
           </div>
 
           <div className="admin-header-actions">
-
             <button
+              type="button"
               className="admin-back-btn"
               onClick={() => navigate("/admin")}
             >
@@ -265,44 +304,27 @@ function AdminPublicaciones() {
             </button>
 
             <button
+              type="button"
               className="admin-primary-btn"
-              onClick={() => {
-                limpiarForm();
-
-                setTimeout(() => {
-                  formRef.current?.scrollIntoView({
-                    behavior: "smooth",
-                  });
-                }, 100);
-              }}
+              onClick={abrirModalCrearPublicacion}
             >
-              + Nueva publicación
+              <span>+</span>
+              Nueva publicación
             </button>
-
           </div>
-
         </header>
 
-        {(mensaje || error) && (
+        {(mensaje || (error && !modalPublicacionAbierto)) && (
           <div className="admin-feedback-zone">
+            {mensaje && <div className="admin-alert success">{mensaje}</div>}
 
-            {mensaje && (
-              <div className="admin-alert success">
-                {mensaje}
-              </div>
+            {error && !modalPublicacionAbierto && (
+              <div className="admin-alert error">{error}</div>
             )}
-
-            {error && (
-              <div className="admin-alert error">
-                {error}
-              </div>
-            )}
-
           </div>
         )}
 
         <section className="admin-cursos-stats">
-
           <article className="admin-curso-stat-card purple">
             <div className="admin-curso-stat-icon">📰</div>
 
@@ -338,11 +360,9 @@ function AdminPublicaciones() {
               <strong>{totalOcultas}</strong>
             </div>
           </article>
-
         </section>
 
         <div className="admin-toolbar">
-
           <div className="admin-search">
             <span>⌕</span>
 
@@ -355,358 +375,349 @@ function AdminPublicaciones() {
           </div>
 
           <label className="admin-filter">
-
             <span>Estado</span>
 
             <select
               value={filtroEstado}
-              onChange={(e) =>
-                setFiltroEstado(e.target.value)
-              }
+              onChange={(e) => setFiltroEstado(e.target.value)}
             >
               <option value="">Todos</option>
               <option value="PUBLICADO">Publicado</option>
               <option value="BORRADOR">Borrador</option>
               <option value="OCULTO">Oculto</option>
             </select>
-
           </label>
 
           <label className="admin-filter">
-
             <span>Categoría</span>
 
             <select
               value={filtroCategoria}
-              onChange={(e) =>
-                setFiltroCategoria(e.target.value)
-              }
+              onChange={(e) => setFiltroCategoria(e.target.value)}
             >
               <option value="">Todas</option>
 
               {categorias.map((cat) => (
-                <option
-                  key={cat._id}
-                  value={cat._id}
-                >
+                <option key={cat._id} value={cat._id}>
                   {cat.nombre}
                 </option>
               ))}
-
             </select>
-
           </label>
 
+          <button
+            type="button"
+            className="admin-secondary-btn"
+            onClick={cargarDatos}
+          >
+            ↻ Recargar
+          </button>
         </div>
 
         <div className="admin-cursos-dashboard-grid">
-
-          <form
-            ref={formRef}
-            className="admin-form-card"
-            onSubmit={guardarPublicacion}
-          >
-
-            <div className="admin-form-card-header">
-
-              <div className="admin-form-icon">
-                ✎
-              </div>
-
-              <div>
-                <h2>
-                  {editandoId
-                    ? "Editar publicación"
-                    : "Nueva publicación"}
-                </h2>
-
-                <p>
-                  Completá la información del artículo.
-                </p>
-              </div>
-
-            </div>
-
-            <div className="admin-form-grid">
-
-              <label>
-                <span>Título</span>
-
-                <input
-                  name="titulo"
-                  value={form.titulo}
-                  onChange={handleChange}
-                  required
-                />
-              </label>
-
-              <label>
-                <span>Resumen</span>
-
-                <textarea
-                  name="resumen"
-                  value={form.resumen}
-                  onChange={handleChange}
-                  rows={3}
-                />
-              </label>
-
-              <label>
-                <span>Contenido</span>
-
-                <textarea
-                  name="contenido"
-                  value={form.contenido}
-                  onChange={handleChange}
-                  rows={10}
-                  required
-                />
-              </label>
-
-              <label>
-                <span>Imagen URL</span>
-
-                <input
-                  name="imagen"
-                  value={form.imagen}
-                  onChange={handleChange}
-                />
-              </label>
-
-              <label>
-                <span>Autor</span>
-
-                <input
-                  name="autor"
-                  value={form.autor}
-                  onChange={handleChange}
-                />
-              </label>
-
-              <label>
-                <span>Categoría</span>
-
-                <select
-                  name="categoria"
-                  value={form.categoria}
-                  onChange={handleChange}
-                  required
-                >
-                  <option value="">
-                    Seleccionar
-                  </option>
-
-                  {categorias.map((cat) => (
-                    <option
-                      key={cat._id}
-                      value={cat._id}
-                    >
-                      {cat.nombre}
-                    </option>
-                  ))}
-
-                </select>
-              </label>
-
-              <label>
-                <span>Estado</span>
-
-                <select
-                  name="estado"
-                  value={form.estado}
-                  onChange={handleChange}
-                >
-                  <option value="BORRADOR">
-                    Borrador
-                  </option>
-
-                  <option value="PUBLICADO">
-                    Publicado
-                  </option>
-
-                  <option value="OCULTO">
-                    Oculto
-                  </option>
-
-                </select>
-              </label>
-
-            </div>
-
-            <div className="admin-form-actions">
-
-              <button
-                type="button"
-                className="admin-clean-btn"
-                onClick={limpiarForm}
-              >
-                Cancelar
-              </button>
-
-              <button
-                type="submit"
-                className="admin-save-btn"
-                disabled={guardando}
-              >
-                {guardando
-                  ? "Guardando..."
-                  : editandoId
-                  ? "Guardar cambios"
-                  : "Crear publicación"}
-              </button>
-
-            </div>
-
-          </form>
-
-          <div className="admin-list-card">
-
+          <div className="admin-list-card admin-list-card-full">
             <div className="admin-list-header">
-
               <div>
                 <h2>Publicaciones</h2>
 
-                <p>
-                  Publicaciones cargadas.
-                </p>
+                <p>Publicaciones cargadas.</p>
               </div>
 
-              <span>
-                {publicacionesFiltradas.length}
-              </span>
-
+              <span>{publicacionesFiltradas.length}</span>
             </div>
 
             <div className="admin-list">
+              {publicacionesFiltradas.length === 0 ? (
+                <div className="admin-empty-card">
+                  <div className="admin-empty-icon">📰</div>
+                  <h3>No se encontraron publicaciones</h3>
+                  <p>
+                    No hay publicaciones cargadas o no coinciden con los filtros
+                    aplicados.
+                  </p>
 
-              {publicacionesFiltradas.map((pub) => (
-
-                <article
-                  className="admin-item"
-                  key={pub._id}
-                >
-
-                  <div className="admin-course-main">
-
-                    <div className="admin-course-avatar">
-                      📰
-                    </div>
-
-                    <div>
-                      <h3>{pub.titulo}</h3>
-
-                      <p>
-                        {pub.resumen ||
-                          "Sin resumen"}
-                      </p>
-                    </div>
-
+                  <div className="admin-empty-actions">
+                    <button type="button" onClick={abrirModalCrearPublicacion}>
+                      Crear publicación
+                    </button>
                   </div>
+                </div>
+              ) : (
+                publicacionesFiltradas.map((pub) => (
+                  <article className="admin-item" key={pub._id}>
+                    <div className="admin-course-main">
+                      <div className="admin-course-avatar">📰</div>
 
-                  <div className="admin-course-meta">
+                      <div>
+                        <h3>{pub.titulo}</h3>
 
-                    <div>
-                      <span>Estado</span>
+                        <p>{pub.resumen || "Sin resumen"}</p>
+                      </div>
+                    </div>
 
-                      <strong
-                        className={`admin-pill status ${pub.estado?.toLowerCase()}`}
+                    <div className="admin-course-meta">
+                      <div>
+                        <span>Estado</span>
+
+                        <strong
+                          className={`admin-pill status ${pub.estado?.toLowerCase()}`}
+                        >
+                          {pub.estado}
+                        </strong>
+                      </div>
+
+                      <div>
+                        <span>Categoría</span>
+
+                        <strong>{pub.categoria?.nombre || "-"}</strong>
+                      </div>
+                    </div>
+
+                    <div className="admin-course-actions">
+                      <button
+                        type="button"
+                        className="admin-edit-btn"
+                        onClick={() => cargarParaEditar(pub)}
+                        title="Editar publicación"
                       >
-                        {pub.estado}
-                      </strong>
+                        ✎
+                      </button>
+
+                      <button
+                        type="button"
+                        className="admin-delete-btn"
+                        onClick={() => setModalEliminar(pub)}
+                        title="Eliminar publicación"
+                      >
+                        🗑
+                      </button>
                     </div>
-
-                    <div>
-                      <span>Categoría</span>
-
-                      <strong>
-                        {pub.categoria?.nombre ||
-                          "-"}
-                      </strong>
-                    </div>
-
-                  </div>
-
-                  <div className="admin-course-actions">
-
-                    <button
-                      className="admin-edit-btn"
-                      onClick={() =>
-                        cargarParaEditar(pub)
-                      }
-                    >
-                      ✎
-                    </button>
-
-                    <button
-                      className="admin-delete-btn"
-                      onClick={() =>
-                        setModalEliminar(pub)
-                      }
-                    >
-                      🗑
-                    </button>
-
-                  </div>
-
-                </article>
-
-              ))}
-
+                  </article>
+                ))
+              )}
             </div>
-
           </div>
-
         </div>
-
       </div>
 
-      {modalEliminar && (
-
+      {modalPublicacionAbierto && (
         <div className="admin-modal-overlay">
+          <div className="admin-modal-card admin-modal-publicacion">
+            <button
+              type="button"
+              className="admin-modal-close"
+              onClick={cerrarModalPublicacion}
+              disabled={guardando}
+            >
+              ×
+            </button>
 
+            <form
+              className="admin-form-card admin-form-card-modal"
+              onSubmit={guardarPublicacion}
+            >
+              <div className="admin-form-card-header">
+                <div className="admin-form-icon">✎</div>
+
+                <div>
+                  <h2>
+                    {editandoId ? "Editar publicación" : "Nueva publicación"}
+                  </h2>
+
+                  <p>
+                    {editandoId
+                      ? "Modificá la información del artículo seleccionado."
+                      : "Completá la información para crear un nuevo artículo."}
+                  </p>
+                </div>
+              </div>
+
+              {error && <div className="admin-alert error">{error}</div>}
+
+              <div className="admin-form-grid">
+                <label>
+                  <span>Título</span>
+
+                  <input
+                    ref={inputTituloRef}
+                    name="titulo"
+                    placeholder="Ej. Novedades de programación"
+                    value={form.titulo}
+                    onChange={handleChange}
+                    minLength={5}
+                    maxLength={100}
+                    required
+                  />
+
+                  <small className="admin-field-help">
+                    {form.titulo.length}/100 caracteres
+                  </small>
+                </label>
+
+                <label>
+                  <span>Resumen</span>
+
+                  <textarea
+                    name="resumen"
+                    placeholder="Resumen breve de la publicación..."
+                    value={form.resumen}
+                    onChange={handleChange}
+                    rows={3}
+                    minLength={20}
+                    maxLength={300}
+                  />
+
+                  <small className="admin-field-help">
+                    {form.resumen.length}/300 caracteres
+                  </small>
+                </label>
+
+                <label className="admin-publicacion-field-content">
+                  <span>Contenido</span>
+
+                  <textarea
+                    name="contenido"
+                    placeholder="Escribí el contenido completo del artículo..."
+                    value={form.contenido}
+                    onChange={handleChange}
+                    rows={8}
+                    minLength={50}
+                    maxLength={5000}
+                    required
+                  />
+
+                  <small className="admin-field-help">
+                    {form.contenido.length}/5000 caracteres
+                  </small>
+                </label>
+
+                <label>
+                  <span>Imagen URL</span>
+
+                  <input
+                    name="imagen"
+                    placeholder="https://ejemplo.com/imagen.jpg"
+                    value={form.imagen}
+                    onChange={handleChange}
+                    maxLength={300}
+                  />
+
+                  <small className="admin-field-help">
+                    {form.imagen.length}/300 caracteres
+                  </small>
+                </label>
+
+                <label>
+                  <span>Autor</span>
+
+                  <input
+                    name="autor"
+                    placeholder="Ej. Equipo Mundo Dev"
+                    value={form.autor}
+                    onChange={handleChange}
+                    minLength={3}
+                    maxLength={80}
+                  />
+
+                  <small className="admin-field-help">
+                    {form.autor.length}/80 caracteres
+                  </small>
+                </label>
+
+                <label>
+                  <span>Categoría</span>
+
+                  <select
+                    name="categoria"
+                    value={form.categoria}
+                    onChange={handleChange}
+                    required
+                  >
+                    <option value="">Seleccionar</option>
+
+                    {categorias.map((cat) => (
+                      <option key={cat._id} value={cat._id}>
+                        {cat.nombre}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <label>
+                  <span>Estado</span>
+
+                  <select
+                    name="estado"
+                    value={form.estado}
+                    onChange={handleChange}
+                    required
+                  >
+                    <option value="BORRADOR">Borrador</option>
+                    <option value="PUBLICADO">Publicado</option>
+                    <option value="OCULTO">Oculto</option>
+                  </select>
+                </label>
+              </div>
+
+              <div className="admin-form-actions">
+                <button
+                  type="button"
+                  className="admin-clean-btn"
+                  onClick={cerrarModalPublicacion}
+                  disabled={guardando}
+                >
+                  Cancelar
+                </button>
+
+                <button
+                  type="submit"
+                  className="admin-save-btn"
+                  disabled={guardando}
+                >
+                  {guardando
+                    ? "Guardando..."
+                    : editandoId
+                      ? "Guardar cambios"
+                      : "Crear publicación"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {modalEliminar && (
+        <div className="admin-modal-overlay">
           <div className="admin-modal-card">
-
-            <div className="admin-modal-icon">
-              🗑
-            </div>
+            <div className="admin-modal-icon">🗑</div>
 
             <h2>Eliminar publicación</h2>
 
             <p>
-              ¿Seguro que querés eliminar:
-              <strong>
-                {" "}
-                {modalEliminar.titulo}
-              </strong>
-              ?
+              ¿Seguro que querés eliminar:{" "}
+              <strong>{modalEliminar.titulo}</strong>?
             </p>
 
             <div className="admin-modal-actions">
-
               <button
+                type="button"
                 className="admin-modal-cancel"
-                onClick={() =>
-                  setModalEliminar(null)
-                }
+                onClick={() => setModalEliminar(null)}
               >
                 Cancelar
               </button>
 
               <button
+                type="button"
                 className="admin-modal-danger"
                 onClick={eliminarPublicacion}
               >
                 Eliminar
               </button>
-
             </div>
-
           </div>
-
         </div>
-
       )}
-
     </section>
   );
 }

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import api from "../services/api";
 import "./AdminPagos.css";
@@ -11,6 +12,16 @@ function normalizarFiltroEstado(valor) {
   return estadosValidos.includes(estado) ? estado : "";
 }
 
+const METODO_PAGO_INICIAL = {
+  nombre: "",
+  tipo: "TRANSFERENCIA",
+  descripcion: "",
+  alias: "",
+  cbu: "",
+  titular: "",
+  activo: true,
+};
+
 function AdminPagos() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -18,7 +29,9 @@ function AdminPagos() {
   const estadoInicial = normalizarFiltroEstado(searchParams.get("estado"));
 
   const [pagos, setPagos] = useState([]);
+  const [metodosGestion, setMetodosGestion] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMetodos, setLoadingMetodos] = useState(true);
   const [mensaje, setMensaje] = useState("");
   const [errorAccion, setErrorAccion] = useState("");
   const [errorCarga, setErrorCarga] = useState("");
@@ -31,6 +44,36 @@ function AdminPagos() {
   const [modalConfirmacion, setModalConfirmacion] = useState(false);
   const [accionPendiente, setAccionPendiente] = useState(null);
   const [pagoPendiente, setPagoPendiente] = useState(null);
+
+  const [modalMetodoPago, setModalMetodoPago] = useState(false);
+  const [nuevoMetodoPago, setNuevoMetodoPago] = useState(METODO_PAGO_INICIAL);
+  const [editandoMetodoId, setEditandoMetodoId] = useState(null);
+  const [guardandoMetodoPago, setGuardandoMetodoPago] = useState(false);
+  const [procesandoMetodoId, setProcesandoMetodoId] = useState(null);
+  const [modalEliminarMetodo, setModalEliminarMetodo] = useState(null);
+  const [modalErrorMetodo, setModalErrorMetodo] = useState("");
+
+  const obtenerMetodosPago = async () => {
+    try {
+      setLoadingMetodos(true);
+
+      const response = await api.get("/api/metodos-pago/admin/todos");
+      const datos =
+        response.data?.datos ||
+        (Array.isArray(response.data) ? response.data : []);
+
+      setMetodosGestion(Array.isArray(datos) ? datos : []);
+    } catch (error) {
+      console.error("Error obteniendo métodos de pago:", error);
+      setErrorAccion(
+        error.response?.data?.mensaje ||
+          "No se pudieron cargar los métodos de pago.",
+      );
+      setMetodosGestion([]);
+    } finally {
+      setLoadingMetodos(false);
+    }
+  };
 
   const obtenerPagos = async () => {
     try {
@@ -56,6 +99,7 @@ function AdminPagos() {
 
   useEffect(() => {
     obtenerPagos();
+    obtenerMetodosPago();
   }, []);
 
   useEffect(() => {
@@ -65,6 +109,192 @@ function AdminPagos() {
       setFiltroEstado(estadoUrl);
     }
   }, [searchParams]);
+
+  const abrirModalMetodoPago = (metodo = null) => {
+    setMensaje("");
+    setErrorAccion("");
+
+    if (metodo) {
+      setEditandoMetodoId(metodo._id);
+      setNuevoMetodoPago({
+        nombre: metodo.nombre || "",
+        tipo: metodo.tipo || "OTRO",
+        descripcion: metodo.descripcion || "",
+        alias: metodo.alias || "",
+        cbu: metodo.cbu || "",
+        titular: metodo.titular || "",
+        activo: metodo.activo !== false,
+      });
+    } else {
+      setEditandoMetodoId(null);
+      setNuevoMetodoPago(METODO_PAGO_INICIAL);
+    }
+
+    setModalMetodoPago(true);
+  };
+
+  const cerrarModalMetodoPago = () => {
+    setNuevoMetodoPago(METODO_PAGO_INICIAL);
+    setEditandoMetodoId(null);
+    setModalMetodoPago(false);
+  };
+
+  const handleChangeMetodoPago = (e) => {
+    const { name, value, type, checked } = e.target;
+
+    setNuevoMetodoPago((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
+  };
+
+  const validarMetodoPago = () => {
+    const errores = [];
+
+    const nombre = nuevoMetodoPago.nombre.trim();
+    const descripcion = nuevoMetodoPago.descripcion.trim();
+    const alias = nuevoMetodoPago.alias.trim();
+    const cbu = nuevoMetodoPago.cbu.trim();
+    const titular = nuevoMetodoPago.titular.trim();
+
+    if (!nombre) {
+      errores.push("El nombre del método de pago es obligatorio.");
+    } else if (nombre.length < 3) {
+      errores.push("El nombre debe tener al menos 3 caracteres.");
+    } else if (nombre.length > 60) {
+      errores.push("El nombre no puede superar los 60 caracteres.");
+    }
+
+    if (!nuevoMetodoPago.tipo) {
+      errores.push("El tipo de método de pago es obligatorio.");
+    }
+
+    if (descripcion.length > 200) {
+      errores.push("La descripción no puede superar los 200 caracteres.");
+    }
+
+    if (alias.length > 50) {
+      errores.push("El alias no puede superar los 50 caracteres.");
+    }
+
+    if (cbu.length > 0 && !/^\d{22}$/.test(cbu)) {
+      errores.push("El CBU debe tener 22 números.");
+    }
+
+    if (titular.length > 80) {
+      errores.push("El titular no puede superar los 80 caracteres.");
+    }
+
+    return errores;
+  };
+
+  const guardarMetodoPago = async (e) => {
+    e.preventDefault();
+
+    setMensaje("");
+    setErrorAccion("");
+
+    const errores = validarMetodoPago();
+
+    if (errores.length > 0) {
+      setErrorAccion(errores.join(" "));
+      return;
+    }
+
+    const payload = {
+      nombre: nuevoMetodoPago.nombre.trim(),
+      tipo: nuevoMetodoPago.tipo,
+      descripcion: nuevoMetodoPago.descripcion.trim(),
+      alias: nuevoMetodoPago.alias.trim(),
+      cbu: nuevoMetodoPago.cbu.trim(),
+      titular: nuevoMetodoPago.titular.trim(),
+      activo: nuevoMetodoPago.activo,
+    };
+
+    try {
+      setGuardandoMetodoPago(true);
+
+      if (editandoMetodoId) {
+        await api.put(`/api/metodos-pago/${editandoMetodoId}`, payload);
+        setMensaje("Método de pago actualizado correctamente.");
+      } else {
+        await api.post("/api/metodos-pago", payload);
+        setMensaje("Método de pago creado correctamente.");
+      }
+
+      cerrarModalMetodoPago();
+
+      await Promise.all([obtenerPagos(), obtenerMetodosPago()]);
+    } catch (error) {
+      console.error("Error creando método de pago:", error);
+
+      setErrorAccion(
+        error.response?.data?.mensaje ||
+          error.response?.data?.detalle ||
+          "No se pudo crear el método de pago.",
+      );
+    } finally {
+      setGuardandoMetodoPago(false);
+    }
+  };
+
+  const cambiarEstadoMetodoPago = async (metodo) => {
+    try {
+      setProcesandoMetodoId(metodo._id);
+      setMensaje("");
+      setErrorAccion("");
+
+      await api.patch(`/api/metodos-pago/${metodo._id}/estado`, {
+        activo: metodo.activo === false,
+      });
+
+      setMensaje(
+        metodo.activo === false
+          ? "Método de pago activado correctamente."
+          : "Método de pago desactivado correctamente.",
+      );
+
+      await obtenerMetodosPago();
+    } catch (error) {
+      console.error("Error cambiando estado del método:", error);
+      setErrorAccion(
+        error.response?.data?.mensaje ||
+          "No se pudo cambiar el estado del método de pago.",
+      );
+    } finally {
+      setProcesandoMetodoId(null);
+    }
+  };
+
+  const eliminarMetodoPago = async () => {
+    if (!modalEliminarMetodo?._id) return;
+
+    const metodoAEliminar = modalEliminarMetodo;
+
+    try {
+      setProcesandoMetodoId(metodoAEliminar._id);
+      setMensaje("");
+      setErrorAccion("");
+
+      await api.delete(`/api/metodos-pago/${metodoAEliminar._id}`);
+
+      setModalEliminarMetodo(null);
+      setMensaje("Método de pago eliminado correctamente.");
+
+      await obtenerMetodosPago();
+    } catch (error) {
+      console.error("Error eliminando método de pago:", error);
+
+      setModalEliminarMetodo(null);
+
+      setModalErrorMetodo(
+        error.response?.data?.mensaje ||
+          "No se pudo eliminar el método de pago.",
+      );
+    } finally {
+      setProcesandoMetodoId(null);
+    }
+  };
 
   const abrirModalConfirmacion = (pagoId, accion) => {
     setPagoPendiente(pagoId);
@@ -197,6 +427,8 @@ function AdminPagos() {
     if (metodo === "TRANSFERENCIA") return "Transferencia";
     if (metodo === "TARJETA") return "Tarjeta";
     if (metodo === "MERCADO_PAGO") return "Mercado Pago";
+    if (metodo === "EFECTIVO") return "Efectivo";
+    if (metodo === "OTRO") return "Otro";
 
     return metodo;
   };
@@ -375,6 +607,15 @@ function AdminPagos() {
             >
               ← Volver al panel
             </button>
+
+            <button
+              type="button"
+              className="admin-pagos-primary-btn"
+              onClick={abrirModalMetodoPago}
+            >
+              <span>+</span>
+              Nuevo método
+            </button>
           </div>
         </header>
 
@@ -552,6 +793,113 @@ function AdminPagos() {
             ↻ Recargar
           </button>
         </div>
+
+        <section className="admin-metodos-card">
+          <div className="admin-metodos-header">
+            <div>
+              <h2>Métodos de pago</h2>
+              <p>
+                Creá, editá, activá o desactivá los medios disponibles en el
+                checkout.
+              </p>
+            </div>
+
+            <span>
+              {metodosGestion.length === 1
+                ? "1 método"
+                : `${metodosGestion.length} métodos`}
+            </span>
+          </div>
+
+          {loadingMetodos ? (
+            <div className="admin-metodos-empty">
+              Cargando métodos de pago...
+            </div>
+          ) : metodosGestion.length === 0 ? (
+            <div className="admin-metodos-empty">
+              <p>No hay métodos de pago cargados.</p>
+              <button type="button" onClick={() => abrirModalMetodoPago()}>
+                Crear primer método
+              </button>
+            </div>
+          ) : (
+            <div className="admin-metodos-grid">
+              {metodosGestion.map((metodo) => {
+                const activo = metodo.activo !== false;
+                const procesando = procesandoMetodoId === metodo._id;
+
+                return (
+                  <article
+                    key={metodo._id}
+                    className={`admin-metodo-item ${
+                      activo ? "activo" : "inactivo"
+                    }`}
+                  >
+                    <div className="admin-metodo-icon">💳</div>
+
+                    <div className="admin-metodo-content">
+                      <div className="admin-metodo-title">
+                        <h3>{metodo.nombre || formatearMetodoPago(metodo)}</h3>
+                        <span className={activo ? "activo" : "inactivo"}>
+                          {activo ? "Activo" : "Inactivo"}
+                        </span>
+                      </div>
+
+                      <p>
+                        {metodo.descripcion ||
+                          "Sin descripción para este método de pago."}
+                      </p>
+
+                      <div className="admin-metodo-meta">
+                        <small>
+                          Tipo: <strong>{formatearMetodoPago(metodo)}</strong>
+                        </small>
+
+                        {metodo.alias && (
+                          <small>
+                            Alias: <strong>{metodo.alias}</strong>
+                          </small>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="admin-metodo-actions">
+                      <button
+                        type="button"
+                        className="editar"
+                        onClick={() => abrirModalMetodoPago(metodo)}
+                        disabled={procesando}
+                        title="Editar método"
+                      >
+                        ✎
+                      </button>
+
+                      <button
+                        type="button"
+                        className={activo ? "desactivar" : "activar"}
+                        onClick={() => cambiarEstadoMetodoPago(metodo)}
+                        disabled={procesando}
+                        title={activo ? "Desactivar método" : "Activar método"}
+                      >
+                        {activo ? "◌" : "✓"}
+                      </button>
+
+                      <button
+                        type="button"
+                        className="eliminar"
+                        onClick={() => setModalEliminarMetodo(metodo)}
+                        disabled={procesando}
+                        title="Eliminar método"
+                      >
+                        🗑
+                      </button>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          )}
+        </section>
 
         <div className="admin-pagos-list-card">
           <div className="admin-pagos-list-header">
@@ -751,6 +1099,242 @@ function AdminPagos() {
                 </button>
               </div>
             </div>
+          </div>
+        )}
+        {modalEliminarMetodo &&
+          createPortal(
+            <div className="admin-pagos-modal-overlay">
+              <div className="admin-pagos-modal">
+                <div className="admin-pagos-modal-icon">🗑</div>
+
+                <h3>Eliminar método de pago</h3>
+
+                <p>
+                  ¿Seguro que querés eliminar{" "}
+                  <strong>{modalEliminarMetodo.nombre}</strong>? Dejará de estar
+                  disponible en el checkout.
+                </p>
+
+                <div className="admin-pagos-modal-actions">
+                  <button
+                    type="button"
+                    className="admin-pagos-modal-cancel"
+                    onClick={() => setModalEliminarMetodo(null)}
+                    disabled={procesandoMetodoId === modalEliminarMetodo._id}
+                  >
+                    Cancelar
+                  </button>
+
+                  <button
+                    type="button"
+                    className="admin-pagos-modal-confirm danger"
+                    onClick={eliminarMetodoPago}
+                    disabled={procesandoMetodoId === modalEliminarMetodo._id}
+                  >
+                    {procesandoMetodoId === modalEliminarMetodo._id
+                      ? "Eliminando..."
+                      : "Eliminar"}
+                  </button>
+                </div>
+              </div>
+            </div>,
+            document.body,
+          )}
+
+        {modalErrorMetodo &&
+          createPortal(
+            <div className="admin-pagos-modal-overlay">
+              <div className="admin-pagos-modal">
+                <div className="admin-pagos-modal-icon">⚠️</div>
+
+                <h3>No se puede eliminar</h3>
+
+                <p>{modalErrorMetodo}</p>
+
+                <div className="admin-pagos-modal-actions">
+                  <button
+                    type="button"
+                    className="admin-pagos-modal-confirm"
+                    onClick={() => setModalErrorMetodo("")}
+                  >
+                    Entendido
+                  </button>
+                </div>
+              </div>
+            </div>,
+            document.body,
+          )}
+
+        {modalMetodoPago && (
+          <div className="admin-pagos-modal-overlay">...</div>
+        )}
+
+        {modalMetodoPago && (
+          <div className="admin-pagos-modal-overlay">
+            <form
+              className="admin-pagos-modal admin-pagos-modal-metodo"
+              onSubmit={guardarMetodoPago}
+            >
+              <button
+                type="button"
+                className="admin-pagos-modal-close"
+                onClick={cerrarModalMetodoPago}
+                disabled={guardandoMetodoPago}
+              >
+                ×
+              </button>
+
+              <div className="admin-pagos-modal-icon">💳</div>
+
+              <h3>
+                {editandoMetodoId
+                  ? "Editar método de pago"
+                  : "Nuevo método de pago"}
+              </h3>
+
+              <p>
+                {editandoMetodoId
+                  ? "Modificá los datos del método de pago seleccionado."
+                  : "Completá los datos para agregar una nueva forma de pago disponible en la plataforma."}
+              </p>
+
+              {errorAccion && (
+                <div className="admin-pagos-alert error">{errorAccion}</div>
+              )}
+
+              <div className="admin-pagos-modal-form-grid">
+                <label>
+                  <span>Nombre</span>
+                  <input
+                    type="text"
+                    name="nombre"
+                    placeholder="Ej. Transferencia bancaria"
+                    value={nuevoMetodoPago.nombre}
+                    onChange={handleChangeMetodoPago}
+                    minLength={3}
+                    maxLength={60}
+                    required
+                  />
+
+                  <small className="admin-field-help">
+                    {nuevoMetodoPago.nombre.length}/60 caracteres
+                  </small>
+                </label>
+
+                <label>
+                  <span>Tipo</span>
+                  <select
+                    name="tipo"
+                    value={nuevoMetodoPago.tipo}
+                    onChange={handleChangeMetodoPago}
+                    required
+                  >
+                    <option value="TRANSFERENCIA">Transferencia</option>
+                    <option value="TARJETA">Tarjeta</option>
+                    <option value="MERCADO_PAGO">Mercado Pago</option>
+                    <option value="EFECTIVO">Efectivo</option>
+                    <option value="OTRO">Otro</option>
+                  </select>
+                </label>
+
+                <label className="admin-pagos-modal-field-full">
+                  <span>Descripción</span>
+                  <textarea
+                    name="descripcion"
+                    placeholder="Ej. Pago por transferencia bancaria. Enviar comprobante luego de realizar el pago."
+                    value={nuevoMetodoPago.descripcion}
+                    onChange={handleChangeMetodoPago}
+                    rows={3}
+                    maxLength={200}
+                  />
+
+                  <small className="admin-field-help">
+                    {nuevoMetodoPago.descripcion.length}/200 caracteres
+                  </small>
+                </label>
+
+                <label>
+                  <span>Alias</span>
+                  <input
+                    type="text"
+                    name="alias"
+                    placeholder="Ej. mundodev.pagos"
+                    value={nuevoMetodoPago.alias}
+                    onChange={handleChangeMetodoPago}
+                    maxLength={50}
+                  />
+
+                  <small className="admin-field-help">
+                    {nuevoMetodoPago.alias.length}/50 caracteres
+                  </small>
+                </label>
+
+                <label>
+                  <span>CBU</span>
+                  <input
+                    type="text"
+                    name="cbu"
+                    placeholder="22 números"
+                    value={nuevoMetodoPago.cbu}
+                    onChange={handleChangeMetodoPago}
+                    maxLength={22}
+                  />
+
+                  <small className="admin-field-help">
+                    {nuevoMetodoPago.cbu.length}/22 números
+                  </small>
+                </label>
+
+                <label className="admin-pagos-modal-field-full">
+                  <span>Titular</span>
+                  <input
+                    type="text"
+                    name="titular"
+                    placeholder="Ej. Mundo Dev"
+                    value={nuevoMetodoPago.titular}
+                    onChange={handleChangeMetodoPago}
+                    maxLength={80}
+                  />
+
+                  <small className="admin-field-help">
+                    {nuevoMetodoPago.titular.length}/80 caracteres
+                  </small>
+                </label>
+
+                <label className="admin-pagos-check">
+                  <input
+                    type="checkbox"
+                    name="activo"
+                    checked={nuevoMetodoPago.activo}
+                    onChange={handleChangeMetodoPago}
+                  />
+                  <span>Método activo</span>
+                </label>
+              </div>
+
+              <div className="admin-pagos-modal-actions">
+                <button
+                  type="button"
+                  className="admin-pagos-modal-cancel"
+                  onClick={cerrarModalMetodoPago}
+                  disabled={guardandoMetodoPago}
+                >
+                  Cancelar
+                </button>
+
+                <button
+                  type="submit"
+                  className="admin-pagos-modal-confirm"
+                  disabled={guardandoMetodoPago}
+                >
+                  {guardandoMetodoPago
+                    ? "Guardando..."
+                    : editandoMetodoId
+                      ? "Guardar cambios"
+                      : "Crear método"}
+                </button>
+              </div>
+            </form>
           </div>
         )}
       </div>

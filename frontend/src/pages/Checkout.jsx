@@ -9,7 +9,6 @@ import amexLogo from "../assets/payment/amex.svg";
 import cabalLogo from "../assets/payment/cabal.svg";
 import naranjaLogo from "../assets/payment/naranja-x.svg";
 import maestroLogo from "../assets/payment/maestro.svg";
-
 import bbvaLogo from "../assets/payment/bbva.svg";
 import icbcLogo from "../assets/payment/icbc.svg";
 import galiciaLogo from "../assets/payment/galicia.svg";
@@ -18,7 +17,6 @@ import macroLogo from "../assets/payment/macro.svg";
 import nacionLogo from "../assets/payment/nacion.svg";
 import credicoopLogo from "../assets/payment/credicoop.svg";
 import provinciaLogo from "../assets/payment/provincia.svg";
-
 import api from "../services/api";
 import {
   Check,
@@ -48,9 +46,11 @@ function Checkout() {
   const navigate = useNavigate();
   const metodosPagoRef = useRef(null);
 
-  const [metodoPago, setMetodoPago] = useState("TRANSFERENCIA");
-  const [metodoPagoVisual, setMetodoPagoVisual] = useState("TRANSFERENCIA");
+  const [metodoPagoId, setMetodoPagoId] = useState("");
   const [metodosPago, setMetodosPago] = useState([]);
+  const [cargandoMetodosPago, setCargandoMetodosPago] = useState(true);
+  const [errorMetodosPago, setErrorMetodosPago] = useState("");
+
   const [procesando, setProcesando] = useState(false);
   const [procesandoPagoVisual, setProcesandoPagoVisual] = useState(false);
 
@@ -85,6 +85,34 @@ function Checkout() {
   const subtotalVisual = useMemo(() => {
     return carrito.reduce((acc, item) => acc + Number(item.precio || 0), 0);
   }, [carrito]);
+
+  const metodoPagoSeleccionado = useMemo(() => {
+    return metodosPago.find((metodo) => metodo._id === metodoPagoId) || null;
+  }, [metodosPago, metodoPagoId]);
+
+  const metodoTarjeta = useMemo(
+    () => metodosPago.find((metodo) => metodo.tipo === "TARJETA"),
+    [metodosPago],
+  );
+
+  const metodoMercadoPago = useMemo(
+    () => metodosPago.find((metodo) => metodo.tipo === "MERCADO_PAGO"),
+    [metodosPago],
+  );
+
+  const metodoTransferencia = useMemo(
+    () => metodosPago.find((metodo) => metodo.tipo === "TRANSFERENCIA"),
+    [metodosPago],
+  );
+
+  const metodosPersonalizados = useMemo(
+    () =>
+      metodosPago.filter(
+        (metodo) =>
+          !["TARJETA", "MERCADO_PAGO", "TRANSFERENCIA"].includes(metodo.tipo),
+      ),
+    [metodosPago],
+  );
 
   useEffect(() => {
     const obtenerResumenCarrito = async () => {
@@ -128,23 +156,42 @@ function Checkout() {
   useEffect(() => {
     const obtenerMetodosPago = async () => {
       try {
+        setCargandoMetodosPago(true);
+        setErrorMetodosPago("");
+
         const response = await api.get("/api/metodos-pago");
-        const metodos = Array.isArray(response.data) ? response.data : [];
 
-        setMetodosPago(metodos);
+        const datos =
+          response.data?.datos ||
+          (Array.isArray(response.data) ? response.data : []);
 
-        if (metodos.some((metodo) => metodo.tipo === "TARJETA")) {
-          setMetodoPago("TARJETA");
-          setMetodoPagoVisual("MERCADO_PAGO");
-        } else if (metodos.some((metodo) => metodo.tipo === "TRANSFERENCIA")) {
-          setMetodoPago("TRANSFERENCIA");
-          setMetodoPagoVisual("TRANSFERENCIA");
-        } else if (metodos[0]?.tipo) {
-          setMetodoPago(metodos[0].tipo);
-          setMetodoPagoVisual(metodos[0].tipo);
+        const metodosActivos = Array.isArray(datos)
+          ? datos.filter((metodo) => metodo.activo !== false)
+          : [];
+
+        setMetodosPago(metodosActivos);
+
+        if (metodosActivos.length > 0) {
+          setMetodoPagoId((actual) => {
+            const sigueDisponible = metodosActivos.some(
+              (metodo) => metodo._id === actual,
+            );
+
+            return sigueDisponible ? actual : metodosActivos[0]._id;
+          });
+        } else {
+          setMetodoPagoId("");
         }
       } catch (error) {
         console.error("Error al obtener métodos de pago:", error);
+        setMetodosPago([]);
+        setMetodoPagoId("");
+        setErrorMetodosPago(
+          error.response?.data?.mensaje ||
+            "No se pudieron cargar los métodos de pago.",
+        );
+      } finally {
+        setCargandoMetodosPago(false);
       }
     };
 
@@ -219,45 +266,72 @@ function Checkout() {
     }
   };
 
-  const obtenerMetodoPagoSeleccionado = () => {
-    return metodosPago.find((metodo) => metodo.tipo === metodoPago);
-  };
+  const obtenerNombreMetodo = (metodo) => {
+    if (!metodo) return "Método no seleccionado";
 
-  const metodoExiste = (tipo) =>
-    metodosPago.some((metodo) => metodo.tipo === tipo);
+    if (metodo.nombre?.trim()) {
+      return metodo.nombre.trim();
+    }
 
-  const obtenerNombreMetodoVisual = () => {
-    const nombres = {
-      MERCADO_PAGO: "Billetera virtual",
-      TARJETA_DEBITO_CREDITO: "Tarjeta de crédito / débito",
+    const nombresPorTipo = {
+      MERCADO_PAGO: "Mercado Pago",
+      TARJETA: "Tarjeta de crédito / débito",
       TRANSFERENCIA: "Transferencia bancaria",
+      EFECTIVO: "Efectivo",
+      OTRO: "Otro método",
     };
 
-    return nombres[metodoPagoVisual] || "Método no seleccionado";
+    return nombresPorTipo[metodo.tipo] || metodo.tipo || "Método de pago";
   };
 
-  const obtenerIconoMetodoVisual = () => {
-    const iconos = {
-      MERCADO_PAGO: (
+  const obtenerDescripcionMetodo = (metodo) => {
+    if (!metodo) return "";
+
+    if (metodo.descripcion?.trim()) {
+      return metodo.descripcion.trim();
+    }
+
+    const descripcionesPorTipo = {
+      MERCADO_PAGO: "Pagá con saldo, tarjeta asociada o billetera digital.",
+      TARJETA: "Pagá con tarjeta de crédito o débito de forma segura.",
+      TRANSFERENCIA:
+        "El acceso se habilita cuando el administrador aprueba el pago.",
+      EFECTIVO: "El pago quedará pendiente hasta su confirmación.",
+      OTRO: "Utilizá este medio para completar tu compra.",
+    };
+
+    return descripcionesPorTipo[metodo.tipo] || "Método de pago disponible.";
+  };
+
+  const obtenerIconoMetodo = (metodo, tamanio = 26) => {
+    if (!metodo) return <CreditCard size={tamanio} />;
+
+    const nombre = String(metodo.nombre || "").toLowerCase();
+
+    if (metodo.tipo === "MERCADO_PAGO" || nombre.includes("mercado pago")) {
+      return (
         <img
           src={mercadoPagoIcon}
           alt="Mercado Pago"
           className="checkout-metodo-logo"
         />
-      ),
-      TARJETA_DEBITO_CREDITO: <WalletCards size={20} />,
-      TRANSFERENCIA: <Landmark size={20} />,
-      PAYPAL: <CreditCard size={20} />,
-    };
+      );
+    }
 
-    return iconos[metodoPagoVisual] || <CreditCard size={20} />;
+    if (metodo.tipo === "TRANSFERENCIA") {
+      return <Landmark size={tamanio} />;
+    }
+
+    if (metodo.tipo === "TARJETA") {
+      return <WalletCards size={tamanio} />;
+    }
+
+    return <CreditCard size={tamanio} />;
   };
 
-  const seleccionarMetodoPago = (visual, backend) => {
+  const seleccionarMetodoPago = (metodoId) => {
     if (procesando || procesandoPagoVisual) return;
-
-    setMetodoPagoVisual(visual);
-    setMetodoPago(backend);
+    setMetodoPagoId(metodoId);
   };
 
   const irAMetodosPago = () => {
@@ -281,6 +355,7 @@ function Checkout() {
     if (!datosFacturacion.domicilio.trim()) {
       errores.domicilio = "Ingresá el domicilio.";
     }
+
     if (!datosFacturacion.condicionFiscal.trim()) {
       errores.condicionFiscal = "Seleccioná la condición fiscal.";
     }
@@ -341,13 +416,10 @@ function Checkout() {
         return;
       }
 
-      const metodoSeleccionado = obtenerMetodoPagoSeleccionado();
-
-      if (!metodoSeleccionado?._id) {
+      if (!metodoPagoSeleccionado?._id) {
         mostrarModal({
           titulo: "Método de pago no disponible",
-          mensaje:
-            "No se encontró el método de pago seleccionado en el backend.",
+          mensaje: "Seleccioná un método de pago activo antes de continuar.",
           tipo: "warning",
         });
 
@@ -382,7 +454,7 @@ function Checkout() {
 
       const { data: pagoResponse } = await api.post("/api/pagos", {
         monto: compra.total,
-        metodoPago: metodoSeleccionado._id,
+        metodoPago: metodoPagoSeleccionado._id,
         compra: compra._id,
       });
 
@@ -407,14 +479,39 @@ function Checkout() {
 
         return;
       }
-
-      if (resultadoPago?.tipo === "transferencia") {
+      if (
+        resultadoPago?.tipo === "transferencia" ||
+        resultadoPago?.tipo === "manual" ||
+        resultadoPago?.tipo === "pendiente"
+      ) {
         setProcesandoPagoVisual(true);
         setProcesando(false);
 
         setTimeout(() => {
           limpiarCarritoVisual();
-          navigate("/pago-pendiente", { replace: true });
+
+          navigate("/pago-pendiente", {
+            replace: true,
+            state: {
+              tipoResultado: resultadoPago?.tipo,
+              metodo: {
+                nombre:
+                  metodoPagoSeleccionado?.nombre ||
+                  metodoPagoSeleccionado?.tipo ||
+                  "Método de pago",
+                tipo: metodoPagoSeleccionado?.tipo || "",
+                descripcion: metodoPagoSeleccionado?.descripcion || "",
+                alias:
+                  resultadoPago?.alias || metodoPagoSeleccionado?.alias || "",
+                cbu: resultadoPago?.cbu || metodoPagoSeleccionado?.cbu || "",
+                titular:
+                  resultadoPago?.titular ||
+                  metodoPagoSeleccionado?.titular ||
+                  "",
+                banco: resultadoPago?.banco || "",
+              },
+            },
+          });
         }, 1600);
 
         return;
@@ -612,12 +709,14 @@ function Checkout() {
                 Completá los datos necesarios para registrar la compra a tu
                 nombre.
               </p>
+
               {datosFacturacionCargados && (
                 <p className="checkout-facturacion-ok">
                   ✓ Datos de facturación recuperados de tu perfil. Podés
                   modificarlos antes de confirmar la compra.
                 </p>
               )}
+
               <div className="checkout-form">
                 <label>
                   Nombre completo
@@ -656,6 +755,7 @@ function Checkout() {
                     <span>{erroresFacturacion.dni}</span>
                   )}
                 </label>
+
                 <label>
                   Condición fiscal
                   <div className="checkout-input-wrap">
@@ -714,204 +814,210 @@ function Checkout() {
               <p>Seleccioná una opción para continuar con la compra.</p>
             </div>
 
-            <div className="medios-pago-grid">
-              {metodoExiste("TARJETA") && (
-                <button
-                  type="button"
-                  className={`medio-pago-panel ${
-                    metodoPagoVisual === "TARJETA_DEBITO_CREDITO"
-                      ? "activo"
-                      : ""
-                  }`}
-                  onClick={() =>
-                    seleccionarMetodoPago("TARJETA_DEBITO_CREDITO", "TARJETA")
-                  }
-                  disabled={procesando || procesandoPagoVisual}
-                >
-                  <span className="medio-pago-check">
-                    {metodoPagoVisual === "TARJETA_DEBITO_CREDITO" && (
-                      <Check size={14} />
-                    )}
-                  </span>
-
-                  <div className="medio-pago-icono-principal">
-                    <WalletCards size={34} />
-                  </div>
-
-                  <h5>Tarjetas</h5>
-                  <p>crédito / débito</p>
-
-                  <div className="medio-pago-separador" />
-
-                  <small>Tarjetas aceptadas</small>
-
-                  <div className="medio-pago-logos logos-tarjetas">
-                    <span className="medio-logo-img">
-                      <img src={visaLogo} alt="Visa" />
+            {cargandoMetodosPago ? (
+              <div className="checkout-metodos-vacio">
+                Cargando métodos de pago...
+              </div>
+            ) : errorMetodosPago ? (
+              <div className="checkout-metodos-vacio checkout-metodos-error">
+                {errorMetodosPago}
+              </div>
+            ) : metodosPago.length === 0 ? (
+              <div className="checkout-metodos-vacio">
+                No hay métodos de pago activos disponibles.
+              </div>
+            ) : (
+              <div className="medios-pago-grid">
+                {metodoTarjeta && (
+                  <button
+                    type="button"
+                    className={`medio-pago-panel ${
+                      metodoPagoId === metodoTarjeta._id ? "activo" : ""
+                    }`}
+                    onClick={() => seleccionarMetodoPago(metodoTarjeta._id)}
+                    disabled={procesando || procesandoPagoVisual}
+                  >
+                    <span className="medio-pago-check">
+                      {metodoPagoId === metodoTarjeta._id && (
+                        <Check size={14} />
+                      )}
                     </span>
-
-                    <span className="medio-logo-img">
-                      <img src={mastercardLogo} alt="Mastercard" />
-                    </span>
-
-                    <span className="medio-logo-img">
-                      <img src={amexLogo} alt="American Express" />
-                    </span>
-
-                    <span className="medio-logo-img">
-                      <img src={cabalLogo} alt="Cabal" />
-                    </span>
-
-                    <span className="medio-logo-img logo-naranja-img">
-                      <img src={naranjaLogo} alt="Naranja X" />
-                    </span>
-
-                    <span className="medio-logo-img logo-maestro-img">
-                      <img src={maestroLogo} alt="Maestro" />
-                    </span>
-                  </div>
-
-                  <p className="medio-pago-descripcion">
-                    Pagá con tarjeta de crédito o débito de forma segura.
-                  </p>
-                </button>
-              )}
-
-              {metodoExiste("TARJETA") && (
-                <button
-                  type="button"
-                  className={`medio-pago-panel medio-pago-panel-billetera ${
-                    metodoPagoVisual === "MERCADO_PAGO" ? "activo" : ""
-                  }`}
-                  onClick={() =>
-                    seleccionarMetodoPago("MERCADO_PAGO", "TARJETA")
-                  }
-                  disabled={procesando || procesandoPagoVisual}
-                >
-                  <span className="medio-pago-check">
-                    {metodoPagoVisual === "MERCADO_PAGO" && <Check size={14} />}
-                  </span>
-
-                  <div className="medio-pago-icono-principal medio-pago-icono-mp">
-                    <img src={mercadoPagoIcon} alt="Mercado Pago" />
-                  </div>
-
-                  <h5>Billetera virtual</h5>
-                  <p>Mercado Pago</p>
-
-                  <div className="medio-pago-separador" />
-
-                  <small>Pago rápido</small>
-
-                  <div className="medio-pago-logos medios-billetera">
-                    <span className="medio-logo logo-mp">
-                      <img
-                        src={mercadoPagoIcon}
-                        alt="Mercado Pago"
-                        className="medio-logo-imagen"
-                      />
-
-                      <span className="medio-logo-texto">
-                        <span>mercado</span>
-                        <span>pago</span>
+                    <div className="medio-pago-icono-principal">
+                      <WalletCards size={34} />
+                    </div>
+                    <h5>{metodoTarjeta.nombre || "Tarjetas"}</h5>
+                    <p>crédito / débito</p>
+                    <div className="medio-pago-separador" />
+                    <small>Tarjetas aceptadas</small>
+                    <div className="medio-pago-logos logos-tarjetas">
+                      <span className="medio-logo-img">
+                        <img src={visaLogo} alt="Visa" />
                       </span>
-                    </span>
-
-                    <span className="medio-logo logo-mc">
-                      <img
-                        src={mercadoPagoIcon}
-                        alt="Mercado Crédito"
-                        className="medio-logo-imagen"
-                      />
-
-                      <span className="medio-logo-texto">
-                        <span>mercado</span>
-                        <span>crédito</span>
+                      <span className="medio-logo-img">
+                        <img src={mastercardLogo} alt="Mastercard" />
                       </span>
-                    </span>
-
-                    <span className="medio-logo logo-saldo">
-                      <span className="medio-logo-texto medio-logo-texto--simple">
-                        <span>Saldo</span>
-                        <span>disponible</span>
+                      <span className="medio-logo-img">
+                        <img src={amexLogo} alt="American Express" />
                       </span>
+                      <span className="medio-logo-img">
+                        <img src={cabalLogo} alt="Cabal" />
+                      </span>
+                      <span className="medio-logo-img logo-naranja-img">
+                        <img src={naranjaLogo} alt="Naranja X" />
+                      </span>
+                      <span className="medio-logo-img logo-maestro-img">
+                        <img src={maestroLogo} alt="Maestro" />
+                      </span>
+                    </div>
+                    <p className="medio-pago-descripcion">
+                      {metodoTarjeta.descripcion ||
+                        "Pagá con tarjeta de crédito o débito de forma segura."}
+                    </p>
+                  </button>
+                )}
+
+                {metodoMercadoPago && (
+                  <button
+                    type="button"
+                    className={`medio-pago-panel medio-pago-panel-billetera ${
+                      metodoPagoId === metodoMercadoPago._id ? "activo" : ""
+                    }`}
+                    onClick={() => seleccionarMetodoPago(metodoMercadoPago._id)}
+                    disabled={procesando || procesandoPagoVisual}
+                  >
+                    <span className="medio-pago-check">
+                      {metodoPagoId === metodoMercadoPago._id && (
+                        <Check size={14} />
+                      )}
                     </span>
-                  </div>
-                  <p className="medio-pago-descripcion">
-                    Pagá con saldo, tarjeta asociada o billetera digital.
-                  </p>
-                </button>
-              )}
+                    <div className="medio-pago-icono-principal medio-pago-icono-mp">
+                      <img src={mercadoPagoIcon} alt="Mercado Pago" />
+                    </div>
+                    <h5>{metodoMercadoPago.nombre || "Billetera virtual"}</h5>
+                    <p>Mercado Pago</p>
+                    <div className="medio-pago-separador" />
+                    <small>Pago rápido</small>
+                    <div className="medio-pago-logos medios-billetera">
+                      <span className="medio-logo logo-mp">
+                        <img
+                          src={mercadoPagoIcon}
+                          alt="Mercado Pago"
+                          className="medio-logo-imagen"
+                        />
+                        <span className="medio-logo-texto">
+                          <span>mercado</span>
+                          <span>pago</span>
+                        </span>
+                      </span>
+                      <span className="medio-logo logo-mc">
+                        <img
+                          src={mercadoPagoIcon}
+                          alt="Mercado Crédito"
+                          className="medio-logo-imagen"
+                        />
+                        <span className="medio-logo-texto">
+                          <span>mercado</span>
+                          <span>crédito</span>
+                        </span>
+                      </span>
+                      <span className="medio-logo logo-saldo">
+                        <span className="medio-logo-texto medio-logo-texto--simple">
+                          <span>Saldo</span>
+                          <span>disponible</span>
+                        </span>
+                      </span>
+                    </div>
+                    <p className="medio-pago-descripcion">
+                      {metodoMercadoPago.descripcion ||
+                        "Pagá con saldo, tarjeta asociada o billetera digital."}
+                    </p>
+                  </button>
+                )}
 
-              {metodoExiste("TRANSFERENCIA") && (
-                <button
-                  type="button"
-                  className={`medio-pago-panel ${
-                    metodoPagoVisual === "TRANSFERENCIA" ? "activo" : ""
-                  }`}
-                  onClick={() =>
-                    seleccionarMetodoPago("TRANSFERENCIA", "TRANSFERENCIA")
-                  }
-                  disabled={procesando || procesandoPagoVisual}
-                >
-                  <span className="medio-pago-check">
-                    {metodoPagoVisual === "TRANSFERENCIA" && (
-                      <Check size={14} />
-                    )}
-                  </span>
-
-                  <div className="medio-pago-icono-principal medio-pago-icono-banco">
-                    <Landmark size={36} />
-                  </div>
-
-                  <h5>Transferencia</h5>
-                  <p>bancaria</p>
-
-                  <div className="medio-pago-separador" />
-
-                  <small>Desde cualquier banco</small>
-
-                  <div className="medio-pago-logos bancos logos-bancos">
-                    <span className="medio-logo-img banco-logo-img">
-                      <img src={bbvaLogo} alt="BBVA" />
+                {metodoTransferencia && (
+                  <button
+                    type="button"
+                    className={`medio-pago-panel ${
+                      metodoPagoId === metodoTransferencia._id ? "activo" : ""
+                    }`}
+                    onClick={() =>
+                      seleccionarMetodoPago(metodoTransferencia._id)
+                    }
+                    disabled={procesando || procesandoPagoVisual}
+                  >
+                    <span className="medio-pago-check">
+                      {metodoPagoId === metodoTransferencia._id && (
+                        <Check size={14} />
+                      )}
                     </span>
+                    <div className="medio-pago-icono-principal medio-pago-icono-banco">
+                      <Landmark size={36} />
+                    </div>
+                    <h5>{metodoTransferencia.nombre || "Transferencia"}</h5>
+                    <p>bancaria</p>
+                    <div className="medio-pago-separador" />
+                    <small>Desde cualquier banco</small>
+                    <div className="medio-pago-logos bancos logos-bancos">
+                      <span className="medio-logo-img banco-logo-img">
+                        <img src={bbvaLogo} alt="BBVA" />
+                      </span>
+                      <span className="medio-logo-img banco-logo-img">
+                        <img src={icbcLogo} alt="ICBC" />
+                      </span>
+                      <span className="medio-logo-img banco-logo-img">
+                        <img src={galiciaLogo} alt="Galicia" />
+                      </span>
+                      <span className="medio-logo-img banco-logo-img">
+                        <img src={santanderLogo} alt="Santander" />
+                      </span>
+                      <span className="medio-logo-img banco-logo-img">
+                        <img src={macroLogo} alt="Banco Macro" />
+                      </span>
+                      <span className="medio-logo-img banco-logo-img">
+                        <img src={nacionLogo} alt="Banco Nación" />
+                      </span>
+                      <span className="medio-logo-img banco-logo-img">
+                        <img src={credicoopLogo} alt="Credicoop" />
+                      </span>
+                      <span className="medio-logo-img banco-logo-img">
+                        <img src={provinciaLogo} alt="Banco Provincia" />
+                      </span>
+                    </div>
+                    <p className="medio-pago-descripcion">
+                      {metodoTransferencia.descripcion ||
+                        "El acceso se habilita cuando el administrador aprueba el pago."}
+                    </p>
+                  </button>
+                )}
 
-                    <span className="medio-logo-img banco-logo-img">
-                      <img src={icbcLogo} alt="ICBC" />
+                {metodosPersonalizados.map((metodo) => (
+                  <button
+                    key={metodo._id}
+                    type="button"
+                    className={`medio-pago-panel medio-pago-panel-personalizado ${
+                      metodoPagoId === metodo._id ? "activo" : ""
+                    }`}
+                    onClick={() => seleccionarMetodoPago(metodo._id)}
+                    disabled={procesando || procesandoPagoVisual}
+                  >
+                    <span className="medio-pago-check">
+                      {metodoPagoId === metodo._id && <Check size={14} />}
                     </span>
-
-                    <span className="medio-logo-img banco-logo-img">
-                      <img src={galiciaLogo} alt="Galicia" />
-                    </span>
-
-                    <span className="medio-logo-img banco-logo-img">
-                      <img src={santanderLogo} alt="Santander" />
-                    </span>
-
-                    <span className="medio-logo-img banco-logo-img">
-                      <img src={macroLogo} alt="Banco Macro" />
-                    </span>
-
-                    <span className="medio-logo-img banco-logo-img">
-                      <img src={nacionLogo} alt="Banco Nación" />
-                    </span>
-
-                    <span className="medio-logo-img banco-logo-img">
-                      <img src={credicoopLogo} alt="Credicoop" />
-                    </span>
-
-                    <span className="medio-logo-img banco-logo-img">
-                      <img src={provinciaLogo} alt="Banco Provincia" />
-                    </span>
-                  </div>
-
-                  <p className="medio-pago-descripcion">
-                    Una vez realizada la transferencia, el acceso se habilita
-                    cuando el administrador aprueba el pago.
-                  </p>
-                </button>
-              )}
-            </div>
+                    <div className="medio-pago-icono-principal">
+                      <CreditCard size={34} />
+                    </div>
+                    <h5>{metodo.nombre || "Otro método"}</h5>
+                    <p>Pago alternativo</p>
+                    <div className="medio-pago-separador" />
+                    <small>Método personalizado</small>
+                    <p className="medio-pago-descripcion">
+                      {metodo.descripcion ||
+                        "Utilizá este método para completar tu compra."}
+                    </p>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
@@ -960,7 +1066,12 @@ function Checkout() {
             type="button"
             className="btn-finalizar"
             onClick={handleConfirmarCompra}
-            disabled={procesando || procesandoPagoVisual}
+            disabled={
+              procesando ||
+              procesandoPagoVisual ||
+              cargandoMetodosPago ||
+              !metodoPagoSeleccionado
+            }
           >
             {procesando || procesandoPagoVisual ? (
               "Procesando..."
@@ -986,8 +1097,8 @@ function Checkout() {
             </div>
 
             <div className="checkout-metodo-resumen-body">
-              <span>{obtenerIconoMetodoVisual()}</span>
-              <p>{obtenerNombreMetodoVisual()}</p>
+              <span>{obtenerIconoMetodo(metodoPagoSeleccionado, 20)}</span>
+              <p>{obtenerNombreMetodo(metodoPagoSeleccionado)}</p>
             </div>
           </div>
 

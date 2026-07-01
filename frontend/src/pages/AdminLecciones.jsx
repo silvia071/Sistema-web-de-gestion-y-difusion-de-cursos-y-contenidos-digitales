@@ -27,7 +27,8 @@ function AdminLecciones() {
   const [guardando, setGuardando] = useState(false);
   const [mensaje, setMensaje] = useState("");
   const [error, setError] = useState("");
-  const formLeccionRef = useRef(null);
+  const [modalLeccionAbierto, setModalLeccionAbierto] = useState(false);
+
   const inputTituloRef = useRef(null);
   const navigate = useNavigate();
 
@@ -90,15 +91,21 @@ function AdminLecciones() {
     setMensaje("");
   };
 
-  const handleNuevaLeccion = () => {
+  const cerrarModalLeccion = () => {
     limpiarForm();
+    setModalLeccionAbierto(false);
+  };
+
+  const handleNuevaLeccion = () => {
+    if (!cursoSeleccionado) {
+      setError("Primero seleccioná un curso para crear una lección.");
+      return;
+    }
+
+    limpiarForm();
+    setModalLeccionAbierto(true);
 
     setTimeout(() => {
-      formLeccionRef.current?.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
-
       inputTituloRef.current?.focus();
     }, 100);
   };
@@ -115,27 +122,64 @@ function AdminLecciones() {
   const validarForm = () => {
     const errores = [];
 
-    if (!cursoSeleccionado) errores.push("Seleccioná un curso.");
-    if (!form.titulo.trim()) errores.push("El título es obligatorio.");
-    if (!form.descripcion.trim()) {
-      errores.push("La descripción es obligatoria.");
-    }
-    if (!form.contenido.trim()) errores.push("El contenido es obligatorio.");
-
+    const titulo = form.titulo.trim();
+    const descripcion = form.descripcion.trim();
+    const contenido = form.contenido.trim();
+    const videoUrl = form.videoUrl.trim();
     const duracion = Number(form.duracionMinutos);
     const orden = Number(form.orden);
 
-    if (!form.duracionMinutos) errores.push("La duración es obligatoria.");
-    if (Number.isNaN(duracion) || duracion <= 0) {
+    if (!cursoSeleccionado) {
+      errores.push("Seleccioná un curso.");
+    }
+
+    if (!titulo) {
+      errores.push("El título es obligatorio.");
+    } else if (titulo.length < 5) {
+      errores.push("El título debe tener al menos 5 caracteres.");
+    } else if (titulo.length > 80) {
+      errores.push("El título no puede superar los 80 caracteres.");
+    }
+
+    if (!descripcion) {
+      errores.push("La descripción es obligatoria.");
+    } else if (descripcion.length < 20) {
+      errores.push("La descripción debe tener al menos 20 caracteres.");
+    } else if (descripcion.length > 300) {
+      errores.push("La descripción no puede superar los 300 caracteres.");
+    }
+
+    if (!contenido) {
+      errores.push("El contenido es obligatorio.");
+    } else if (contenido.length < 20) {
+      errores.push("El contenido debe tener al menos 20 caracteres.");
+    } else if (contenido.length > 1000) {
+      errores.push("El contenido no puede superar los 1000 caracteres.");
+    }
+
+    if (videoUrl.length > 300) {
+      errores.push("La URL del video no puede superar los 300 caracteres.");
+    }
+
+    if (!form.duracionMinutos) {
+      errores.push("La duración es obligatoria.");
+    } else if (Number.isNaN(duracion) || duracion <= 0) {
       errores.push("La duración debe ser mayor a 0.");
+    } else if (duracion > 1000) {
+      errores.push("La duración no puede superar los 1000 minutos.");
     }
 
-    if (!form.orden) errores.push("El orden es obligatorio.");
-    if (Number.isNaN(orden) || orden <= 0) {
+    if (!form.orden) {
+      errores.push("El orden es obligatorio.");
+    } else if (Number.isNaN(orden) || orden <= 0) {
       errores.push("El orden debe ser mayor a 0.");
+    } else if (!Number.isInteger(orden)) {
+      errores.push("El orden debe ser un número entero.");
     }
 
-    if (!form.estado) errores.push("El estado es obligatorio.");
+    if (!form.estado) {
+      errores.push("El estado es obligatorio.");
+    }
 
     return errores;
   };
@@ -175,6 +219,7 @@ function AdminLecciones() {
       }
 
       limpiarForm();
+      setModalLeccionAbierto(false);
       await obtenerLecciones(cursoSeleccionado);
     } catch (error) {
       console.error(error);
@@ -204,11 +249,11 @@ function AdminLecciones() {
 
     setMensaje("");
     setError("");
+    setModalLeccionAbierto(true);
 
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
+    setTimeout(() => {
+      inputTituloRef.current?.focus();
+    }, 100);
   };
 
   const eliminarLeccion = async (id) => {
@@ -327,20 +372,14 @@ function AdminLecciones() {
           </div>
         </header>
 
-        {(mensaje || error || editandoId) && (
+        {(mensaje || (error && !modalLeccionAbierto)) && (
           <div className="admin-lecciones-feedback">
             {mensaje && (
               <div className="admin-lecciones-alert success">{mensaje}</div>
             )}
 
-            {error && (
+            {error && !modalLeccionAbierto && (
               <div className="admin-lecciones-alert error">{error}</div>
-            )}
-
-            {editandoId && (
-              <div className="admin-lecciones-alert info">
-                Estás editando una lección seleccionada.
-              </div>
             )}
           </div>
         )}
@@ -391,6 +430,7 @@ function AdminLecciones() {
               onChange={(e) => {
                 setCursoSeleccionado(e.target.value);
                 limpiarForm();
+                setModalLeccionAbierto(false);
               }}
               required
             >
@@ -437,151 +477,7 @@ function AdminLecciones() {
         </div>
 
         <div className="admin-lecciones-dashboard-grid">
-          <form
-            ref={formLeccionRef}
-            className="admin-leccion-form-card"
-            onSubmit={guardarLeccion}
-          >
-            <div className="admin-leccion-form-header">
-              <div className="admin-leccion-form-icon">▣</div>
-
-              <div>
-                <h2>{editandoId ? "Editar lección" : "Crear nueva lección"}</h2>
-                <p>
-                  {editandoId
-                    ? "Modificá la información de la lección seleccionada."
-                    : "Completá los datos para agregar una nueva lección."}
-                </p>
-              </div>
-            </div>
-
-            <div className="admin-leccion-course-box">
-              <span>Curso seleccionado</span>
-              <strong>{cursoActivo?.titulo || "Sin curso seleccionado"}</strong>
-            </div>
-
-            <div className="admin-leccion-form-grid">
-              <label>
-                <span>Título de la lección</span>
-                <input
-                  ref={inputTituloRef}
-                  type="text"
-                  name="titulo"
-                  placeholder="Ej: Introducción al curso"
-                  value={form.titulo}
-                  onChange={handleChange}
-                  required
-                />
-              </label>
-
-              <label>
-                <span>Descripción</span>
-                <input
-                  type="text"
-                  name="descripcion"
-                  placeholder="Breve descripción de la lección..."
-                  value={form.descripcion}
-                  onChange={handleChange}
-                  required
-                />
-              </label>
-
-              <label className="admin-leccion-field-content">
-                <span>Contenido</span>
-                <textarea
-                  name="contenido"
-                  placeholder="¿Qué aprenderá el estudiante?"
-                  value={form.contenido}
-                  onChange={handleChange}
-                  rows={3}
-                  required
-                />
-              </label>
-
-              <label>
-                <span>URL del video</span>
-                <input
-                  type="text"
-                  name="videoUrl"
-                  placeholder="https://youtube.com/..."
-                  value={form.videoUrl}
-                  onChange={handleChange}
-                />
-              </label>
-
-              <label>
-                <span>Duración en minutos</span>
-                <input
-                  type="number"
-                  min="1"
-                  name="duracionMinutos"
-                  placeholder="Ej: 15"
-                  value={form.duracionMinutos}
-                  onChange={handleChange}
-                  required
-                />
-              </label>
-
-              <label>
-                <span>Orden</span>
-                <input
-                  type="number"
-                  min="1"
-                  name="orden"
-                  placeholder="Ej: 1"
-                  value={form.orden}
-                  onChange={handleChange}
-                  required
-                />
-              </label>
-
-              <label>
-                <span>Estado</span>
-                <select
-                  name="estado"
-                  value={form.estado}
-                  onChange={handleChange}
-                >
-                  <option value="PUBLICADO">Publicado</option>
-                  <option value="BORRADOR">Borrador</option>
-                  <option value="OCULTO">Oculto</option>
-                </select>
-              </label>
-            </div>
-
-            <div className="admin-leccion-form-actions">
-              <button
-                type="button"
-                className="admin-lecciones-clean-btn"
-                onClick={limpiarForm}
-                disabled={guardando}
-              >
-                {editandoId ? "Cancelar" : "Limpiar"}
-              </button>
-
-              <button
-                type="submit"
-                className="admin-lecciones-save-btn"
-                disabled={guardando}
-              >
-                {guardando
-                  ? "Guardando..."
-                  : editandoId
-                    ? "Guardar cambios"
-                    : "Guardar lección"}
-              </button>
-            </div>
-
-            <div className="admin-lecciones-help-card">
-              <div>💡</div>
-              <p>
-                Las lecciones publicadas quedan visibles dentro del curso para
-                los estudiantes con acceso.
-              </p>
-            </div>
-          </form>
-
-          <div className="admin-lecciones-list-card">
+          <div className="admin-lecciones-list-card admin-lecciones-list-card-full">
             <div className="admin-lecciones-list-header">
               <div>
                 <h2>Lecciones del curso</h2>
@@ -635,7 +531,7 @@ function AdminLecciones() {
 
                   <p>
                     {lecciones.length === 0
-                      ? "Este curso todavía no tiene lecciones. Podés crear la primera desde el formulario."
+                      ? "Este curso todavía no tiene lecciones. Podés crear la primera desde el botón Nueva lección."
                       : "El curso tiene lecciones cargadas, pero ninguna coincide con la búsqueda o el estado seleccionado."}
                   </p>
 
@@ -727,6 +623,199 @@ function AdminLecciones() {
           </div>
         </div>
       </div>
+
+      {modalLeccionAbierto && (
+        <div className="admin-modal-overlay">
+          <div className="admin-modal-card admin-modal-leccion">
+            <button
+              type="button"
+              className="admin-modal-close"
+              onClick={cerrarModalLeccion}
+              disabled={guardando}
+            >
+              ×
+            </button>
+
+            <form
+              className="admin-leccion-form-card admin-leccion-form-card-modal"
+              onSubmit={guardarLeccion}
+            >
+              <div className="admin-leccion-form-header">
+                <div className="admin-leccion-form-icon">▣</div>
+
+                <div>
+                  <h2>
+                    {editandoId ? "Editar lección" : "Crear nueva lección"}
+                  </h2>
+                  <p>
+                    {editandoId
+                      ? "Modificá la información de la lección seleccionada."
+                      : "Completá los datos para agregar una nueva lección."}
+                  </p>
+                </div>
+              </div>
+
+              <div className="admin-leccion-course-box">
+                <span>Curso seleccionado</span>
+                <strong>
+                  {cursoActivo?.titulo || "Sin curso seleccionado"}
+                </strong>
+              </div>
+
+              {error && (
+                <div className="admin-lecciones-alert error">{error}</div>
+              )}
+
+              <div className="admin-leccion-form-grid">
+                <label>
+                  <span>Título de la lección</span>
+                  <input
+                    ref={inputTituloRef}
+                    type="text"
+                    name="titulo"
+                    placeholder="Ej: Introducción al curso"
+                    value={form.titulo}
+                    onChange={handleChange}
+                    minLength={5}
+                    maxLength={80}
+                    required
+                  />
+
+                  <small className="admin-field-help">
+                    {form.titulo.length}/80 caracteres
+                  </small>
+                </label>
+
+                <label>
+                  <span>Descripción</span>
+                  <input
+                    type="text"
+                    name="descripcion"
+                    placeholder="Breve descripción de la lección..."
+                    value={form.descripcion}
+                    onChange={handleChange}
+                    minLength={20}
+                    maxLength={300}
+                    required
+                  />
+
+                  <small className="admin-field-help">
+                    {form.descripcion.length}/300 caracteres
+                  </small>
+                </label>
+
+                <label className="admin-leccion-field-content">
+                  <span>Contenido</span>
+                  <textarea
+                    name="contenido"
+                    placeholder="¿Qué aprenderá el estudiante?"
+                    value={form.contenido}
+                    onChange={handleChange}
+                    rows={3}
+                    minLength={20}
+                    maxLength={1000}
+                    required
+                  />
+
+                  <small className="admin-field-help">
+                    {form.contenido.length}/1000 caracteres
+                  </small>
+                </label>
+
+                <label>
+                  <span>URL del video</span>
+                  <input
+                    type="text"
+                    name="videoUrl"
+                    placeholder="https://youtube.com/..."
+                    value={form.videoUrl}
+                    onChange={handleChange}
+                    maxLength={300}
+                  />
+
+                  <small className="admin-field-help">
+                    {form.videoUrl.length}/300 caracteres
+                  </small>
+                </label>
+
+                <label>
+                  <span>Duración en minutos</span>
+                  <input
+                    type="number"
+                    min="1"
+                    max="1000"
+                    step="1"
+                    name="duracionMinutos"
+                    placeholder="Ej: 15"
+                    value={form.duracionMinutos}
+                    onChange={handleChange}
+                    required
+                  />
+                </label>
+
+                <label>
+                  <span>Orden</span>
+                  <input
+                    type="number"
+                    min="1"
+                    step="1"
+                    name="orden"
+                    placeholder="Ej: 1"
+                    value={form.orden}
+                    onChange={handleChange}
+                    required
+                  />
+                </label>
+
+                <label>
+                  <span>Estado</span>
+                  <select
+                    name="estado"
+                    value={form.estado}
+                    onChange={handleChange}
+                    required
+                  >
+                    <option value="PUBLICADO">Publicado</option>
+                    <option value="BORRADOR">Borrador</option>
+                    <option value="OCULTO">Oculto</option>
+                  </select>
+                </label>
+              </div>
+
+              <div className="admin-leccion-form-actions">
+                <button
+                  type="button"
+                  className="admin-lecciones-clean-btn"
+                  onClick={cerrarModalLeccion}
+                  disabled={guardando}
+                >
+                  Cancelar
+                </button>
+
+                <button
+                  type="submit"
+                  className="admin-lecciones-save-btn"
+                  disabled={guardando}
+                >
+                  {guardando
+                    ? "Guardando..."
+                    : editandoId
+                      ? "Guardar cambios"
+                      : "Guardar lección"}
+                </button>
+              </div>
+
+              <div className="admin-lecciones-help-card">
+                <div>💡</div>
+                <p>
+                  Las lecciones publicadas quedan visibles dentro del curso para
+                  los estudiantes con acceso.
+                </p>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

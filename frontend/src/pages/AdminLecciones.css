@@ -1460,3 +1460,51 @@
     justify-content: center;
   }
 }
+
+.admin-lecciones-list-card-full {
+  grid-column: 1 / -1;
+}
+
+.admin-modal-leccion {
+  position: relative;
+  width: min(820px, 96vw);
+  max-height: 92vh;
+  overflow-y: auto;
+  padding: 24px;
+}
+
+.admin-leccion-form-card-modal {
+  min-height: auto;
+  border: 0;
+  box-shadow: none;
+  background: transparent;
+  padding: 0;
+}
+
+.admin-modal-close {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(120, 150, 255, 0.35);
+  border-radius: 12px;
+  background: rgba(10, 18, 55, 0.9);
+  color: #ffffff;
+  font-size: 22px;
+  font-weight: 800;
+  cursor: pointer;
+  line-height: 1;
+  z-index: 2;
+}
+
+.admin-modal-close:hover {
+  background: rgba(90, 120, 255, 0.35);
+}
+
+.admin-field-help {
+  display: block;
+  margin-top: 6px;
+  color: rgba(220, 230, 255, 0.65);
+  font-size: 0.78rem;
+}

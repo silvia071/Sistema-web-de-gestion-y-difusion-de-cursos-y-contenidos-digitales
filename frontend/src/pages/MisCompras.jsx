@@ -61,7 +61,7 @@ function obtenerClaseEstado(estado) {
 }
 
 function obtenerMetodoPago(compra) {
-  const metodo =
+  const metodoCrudo =
     compra?.pago?.metodoPago ||
     compra?.pago?.metodo ||
     compra?.metodoPago ||
@@ -69,44 +69,100 @@ function obtenerMetodoPago(compra) {
     compra?.formaPago ||
     "";
 
-  const metodoNormalizado = String(metodo).toUpperCase();
-  const estadoNormalizado = normalizarEstado(compra?.estado);
+  const metodo =
+    metodoCrudo && typeof metodoCrudo === "object" ? metodoCrudo : {};
 
-  if (metodoNormalizado.includes("TRANSFERENCIA")) {
+  const tipo = String(
+    metodo.tipo ||
+      compra?.pago?.tipoMetodo ||
+      compra?.tipoMetodoPago ||
+      (typeof metodoCrudo === "string" ? metodoCrudo : ""),
+  ).toUpperCase();
+
+  const nombre =
+    metodo.nombre ||
+    compra?.pago?.nombreMetodo ||
+    compra?.nombreMetodoPago ||
+    (typeof metodoCrudo === "string" ? metodoCrudo : "");
+
+  const textoNormalizado = `${tipo} ${nombre}`.toUpperCase();
+
+  if (textoNormalizado.includes("TRANSFERENCIA")) {
     return {
       sigla: "TB",
-      texto: "Transferencia bancaria",
+      texto: nombre || "Transferencia bancaria",
+      tipo: "TRANSFERENCIA",
+      nombre: nombre || "Transferencia bancaria",
+      descripcion: metodo.descripcion || "",
+      banco: metodo.banco || "",
+      alias: metodo.alias || "",
+      cbu: metodo.cbu || "",
+      titular: metodo.titular || "",
     };
   }
 
   if (
-    metodoNormalizado.includes("MERCADO") ||
-    metodoNormalizado.includes("BILLETERA")
+    textoNormalizado.includes("MERCADO") ||
+    textoNormalizado.includes("BILLETERA")
   ) {
     return {
       sigla: "MP",
-      texto: "Mercado Pago",
+      texto: nombre || "Mercado Pago",
+      tipo: "MERCADO_PAGO",
+      nombre: nombre || "Mercado Pago",
+      descripcion: metodo.descripcion || "",
+      banco: "",
+      alias: "",
+      cbu: "",
+      titular: "",
     };
   }
 
-  if (metodoNormalizado.includes("TARJETA")) {
+  if (textoNormalizado.includes("TARJETA")) {
     return {
       sigla: "TC",
-      texto: "Tarjeta",
+      texto: nombre || "Tarjeta",
+      tipo: "TARJETA",
+      nombre: nombre || "Tarjeta",
+      descripcion: metodo.descripcion || "",
+      banco: "",
+      alias: "",
+      cbu: "",
+      titular: "",
     };
   }
 
-  if (estadoNormalizado === "PENDIENTE") {
+  if (nombre || tipo) {
+    const nombreVisible = nombre || tipo;
+
     return {
-      sigla: "TB",
-      texto: "Transferencia bancaria",
+      sigla: nombreVisible.slice(0, 2).toUpperCase(),
+      texto: nombreVisible,
+      tipo: tipo || "OTRO",
+      nombre: nombreVisible,
+      descripcion: metodo.descripcion || "",
+      banco: metodo.banco || "",
+      alias: metodo.alias || "",
+      cbu: metodo.cbu || "",
+      titular: metodo.titular || "",
     };
   }
 
   return {
-    sigla: "MP",
-    texto: "Mercado Pago",
+    sigla: "--",
+    texto: "Método no informado",
+    tipo: "",
+    nombre: "Método no informado",
+    descripcion: "",
+    banco: "",
+    alias: "",
+    cbu: "",
+    titular: "",
   };
+}
+
+function esTransferencia(compra) {
+  return obtenerMetodoPago(compra).tipo === "TRANSFERENCIA";
 }
 
 function compraHabilitada(estado) {
@@ -747,37 +803,84 @@ export default function MisCompras() {
               )}
             </div>
 
-            {!compraHabilitada(compraSeleccionada.estado) && (
-              <div className="mis-compra-modal-aviso">
-                <p>
-                  Tu compra todavía no está aprobada. El acceso al curso se
-                  habilitará cuando el pago sea confirmado.
-                </p>
+            {!compraHabilitada(compraSeleccionada.estado) &&
+              (() => {
+                const metodoDetalle = obtenerMetodoPago(compraSeleccionada);
+                const transferencia = esTransferencia(compraSeleccionada);
 
-                <hr />
+                return (
+                  <div className="mis-compra-modal-aviso">
+                    <p>
+                      Tu compra todavía no está aprobada. El acceso al curso se
+                      habilitará cuando el pago sea confirmado.
+                    </p>
 
-                <h3> Datos para transferencia</h3>
-                <br />
-                <p>
-                  <strong>Titular:</strong> Mundo Dev SRL
-                </p>
-                <p>
-                  <strong>Banco:</strong> Banco de la Nación Argentina
-                </p>
-                <p>
-                  <strong>Alias:</strong> mundo_dev
-                </p>
-                <p>
-                  <strong>CBU:</strong> 0123456789012345678901
-                </p>
-                <br />
-                <hr />
-                <p>
-                  Una vez realizada la transferencia, enviá el comprobante para
-                  validar el pago y habilitar el acceso al curso.
-                </p>
-              </div>
-            )}
+                    <hr />
+
+                    {transferencia ? (
+                      <>
+                        <h3>Datos para transferencia</h3>
+                        <br />
+
+                        <p>
+                          <strong>Titular:</strong>{" "}
+                          {metodoDetalle.titular || "Mundo Dev SRL"}
+                        </p>
+
+                        <p>
+                          <strong>Banco:</strong>{" "}
+                          {metodoDetalle.banco ||
+                            "Banco de la Nación Argentina"}
+                        </p>
+
+                        <p>
+                          <strong>Alias:</strong>{" "}
+                          {metodoDetalle.alias || "mundo_dev"}
+                        </p>
+
+                        <p>
+                          <strong>CBU:</strong>{" "}
+                          {metodoDetalle.cbu || "0123456789012345678901"}
+                        </p>
+
+                        <br />
+                        <hr />
+
+                        <p>
+                          Una vez realizada la transferencia, enviá el
+                          comprobante para validar el pago y habilitar el acceso
+                          al curso.
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <h3>Método de pago seleccionado</h3>
+                        <br />
+
+                        <p>
+                          <strong>Método:</strong> {metodoDetalle.nombre}
+                        </p>
+
+                        {metodoDetalle.descripcion && (
+                          <p>
+                            <strong>Descripción:</strong>{" "}
+                            {metodoDetalle.descripcion}
+                          </p>
+                        )}
+
+                        <br />
+                        <hr />
+
+                        <p>
+                          El pago quedó pendiente de confirmación
+                          administrativa. Cuando el administrador lo apruebe, se
+                          habilitará automáticamente el acceso al curso.
+                        </p>
+                      </>
+                    )}
+                  </div>
+                );
+              })()}
 
             <div className="mis-compra-modal-section-title">
               <span>📖</span>

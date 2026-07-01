@@ -1053,20 +1053,36 @@
 .admin-pagos-modal-overlay {
   position: fixed;
   inset: 0;
-  z-index: 9999;
+  z-index: 99999;
+
   display: grid;
   place-items: center;
-  padding: 20px;
-  background: rgba(2, 6, 23, 0.78);
-  backdrop-filter: blur(8px);
+
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: 24px;
+
+  overflow-y: auto;
+  overscroll-behavior: contain;
+
+  background: rgba(2, 8, 32, 0.82);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }
 
 .admin-pagos-modal {
   width: min(100%, 430px);
+  max-height: calc(100dvh - 48px);
+  margin: 0;
   padding: 28px;
+  overflow-y: auto;
+
   border: 1px solid rgba(120, 145, 255, 0.28);
   border-radius: 22px;
   text-align: center;
+
   background:
     radial-gradient(
       circle at 100% 0%,
@@ -1074,6 +1090,7 @@
       transparent 34%
     ),
     linear-gradient(180deg, rgba(18, 30, 88, 0.96), rgba(7, 15, 52, 0.98));
+
   box-shadow:
     0 34px 90px rgba(0, 0, 0, 0.58),
     inset 0 1px 0 rgba(255, 255, 255, 0.08);
@@ -1333,6 +1350,15 @@
 /* CELULAR */
 
 @media (max-width: 760px) {
+  .admin-pagos-modal-overlay {
+    padding: 14px;
+  }
+
+  .admin-pagos-modal {
+    max-height: calc(100dvh - 28px);
+    padding: 22px 18px;
+  }
+
   .admin-pagos-page {
     padding: 12px;
     margin-top: 0;
@@ -1425,5 +1451,282 @@
 @media (min-width: 1251px) {
   .admin-pago-meta span {
     display: none;
+  }
+}
+.admin-pagos-modal-metodo {
+  position: relative;
+  width: min(760px, 100%);
+  max-height: calc(100dvh - 48px);
+  overflow-y: auto;
+}
+
+.admin-pagos-modal-close {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(120, 150, 255, 0.35);
+  border-radius: 12px;
+  background: rgba(10, 18, 55, 0.9);
+  color: #ffffff;
+  font-size: 22px;
+  font-weight: 800;
+  cursor: pointer;
+  line-height: 1;
+  z-index: 2;
+}
+
+.admin-pagos-modal-close:hover {
+  background: rgba(90, 120, 255, 0.35);
+}
+
+.admin-pagos-modal-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  background: rgba(124, 92, 255, 0.18);
+  border: 1px solid rgba(124, 92, 255, 0.35);
+  margin-bottom: 12px;
+}
+
+.admin-pagos-modal-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 18px;
+}
+
+.admin-pagos-modal-form-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.admin-pagos-modal-form-grid label span {
+  color: rgba(230, 236, 255, 0.8);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.admin-pagos-modal-form-grid input,
+.admin-pagos-modal-form-grid textarea,
+.admin-pagos-modal-form-grid select {
+  width: 100%;
+  border: 1px solid rgba(140, 160, 255, 0.25);
+  border-radius: 12px;
+  background: rgba(6, 14, 45, 0.78);
+  color: #ffffff;
+  padding: 12px 14px;
+  outline: none;
+}
+
+.admin-pagos-modal-form-grid textarea {
+  resize: vertical;
+}
+
+.admin-pagos-modal-field-full {
+  grid-column: 1 / -1;
+}
+
+.admin-pagos-check {
+  flex-direction: row !important;
+  align-items: center;
+  gap: 10px !important;
+}
+
+.admin-pagos-check input {
+  width: auto;
+}
+
+.admin-field-help {
+  display: block;
+  margin-top: 2px;
+  color: rgba(220, 230, 255, 0.65);
+  font-size: 0.78rem;
+}
+
+@media (max-width: 720px) {
+  .admin-pagos-modal-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-pagos-modal-field-full {
+    grid-column: auto;
+  }
+}
+
+.admin-metodos-card {
+  margin: 22px 0;
+  padding: 20px;
+  border: 1px solid rgba(105, 135, 255, 0.28);
+  border-radius: 20px;
+  background: rgba(11, 23, 72, 0.72);
+}
+
+.admin-metodos-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(120, 145, 255, 0.18);
+}
+
+.admin-metodos-header h2 {
+  margin: 0;
+  color: #ffffff;
+}
+
+.admin-metodos-header p {
+  margin: 5px 0 0;
+  color: rgba(225, 232, 255, 0.68);
+}
+
+.admin-metodos-header > span {
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: rgba(100, 85, 255, 0.25);
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.admin-metodos-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.admin-metodo-item {
+  display: grid;
+  grid-template-columns: 48px 1fr auto;
+  align-items: start;
+  gap: 14px;
+  padding: 17px;
+  border: 1px solid rgba(115, 145, 255, 0.23);
+  border-radius: 17px;
+  background: rgba(5, 15, 52, 0.7);
+}
+
+.admin-metodo-item.inactivo {
+  opacity: 0.62;
+}
+
+.admin-metodo-icon {
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #48b5ff, #b42cff);
+  font-size: 1.25rem;
+}
+
+.admin-metodo-content {
+  min-width: 0;
+}
+
+.admin-metodo-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.admin-metodo-title h3 {
+  margin: 0;
+  color: #ffffff;
+  font-size: 1rem;
+}
+
+.admin-metodo-title span {
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.admin-metodo-title span.activo {
+  background: rgba(35, 200, 135, 0.18);
+  color: #56e5ad;
+}
+
+.admin-metodo-title span.inactivo {
+  background: rgba(255, 93, 108, 0.16);
+  color: #ff8c99;
+}
+
+.admin-metodo-content > p {
+  margin: 7px 0;
+  color: rgba(225, 232, 255, 0.7);
+  line-height: 1.4;
+}
+
+.admin-metodo-meta {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  color: rgba(225, 232, 255, 0.62);
+}
+
+.admin-metodo-meta strong {
+  color: #ffffff;
+}
+
+.admin-metodo-actions {
+  display: flex;
+  gap: 7px;
+}
+
+.admin-metodo-actions button {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(120, 150, 255, 0.3);
+  border-radius: 10px;
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.admin-metodo-actions .editar {
+  background: rgba(50, 105, 230, 0.25);
+}
+
+.admin-metodo-actions .activar {
+  background: rgba(35, 200, 135, 0.24);
+}
+
+.admin-metodo-actions .desactivar {
+  background: rgba(245, 170, 30, 0.22);
+}
+
+.admin-metodo-actions .eliminar {
+  background: rgba(255, 70, 90, 0.24);
+}
+
+.admin-metodos-empty {
+  padding: 28px;
+  text-align: center;
+  color: rgba(225, 232, 255, 0.7);
+}
+
+.admin-metodos-empty button {
+  margin-top: 12px;
+  border: 0;
+  border-radius: 12px;
+  padding: 10px 15px;
+  background: linear-gradient(135deg, #55b9ff, #b52cff);
+  color: #ffffff;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+@media (max-width: 900px) {
+  .admin-metodos-grid {
+    grid-template-columns: 1fr;
   }
 }

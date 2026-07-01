@@ -335,11 +335,15 @@ const procesarPago = async (req, res) => {
     const { pagoId } = req.body;
 
     if (!pagoId) {
-      return res.status(400).json({ mensaje: "El pagoId es obligatorio" });
+      return res.status(400).json({
+        mensaje: "El pagoId es obligatorio",
+      });
     }
 
     if (!esObjectIdValido(pagoId)) {
-      return res.status(400).json({ mensaje: "pagoId inválido" });
+      return res.status(400).json({
+        mensaje: "pagoId inválido",
+      });
     }
 
     const pago = await Pago.findById(pagoId)
@@ -348,7 +352,21 @@ const procesarPago = async (req, res) => {
       .populate("compra");
 
     if (!pago) {
-      return res.status(404).json({ mensaje: "Pago no encontrado" });
+      return res.status(404).json({
+        mensaje: "Pago no encontrado",
+      });
+    }
+
+    if (!pago.metodoPago) {
+      return res.status(400).json({
+        mensaje: "El pago no tiene un método de pago asociado",
+      });
+    }
+
+    if (pago.metodoPago.activo === false) {
+      return res.status(400).json({
+        mensaje: "El método de pago seleccionado no está disponible",
+      });
     }
 
     if (!esAdmin(req) && !usuarioEsPropietarioPago(pago, req.usuario._id)) {
@@ -357,9 +375,16 @@ const procesarPago = async (req, res) => {
       });
     }
 
-    const tipoMetodo = pago.metodoPago?.tipo;
+    const tipoMetodo = String(pago.metodoPago.tipo || "").toUpperCase();
 
-    if (tipoMetodo === "TARJETA") {
+    const nombreMetodo =
+      pago.metodoPago.nombre || pago.metodoPago.tipo || "Método de pago";
+
+    /*
+     * Tarjeta o Mercado Pago:
+     * se procesan mediante Mercado Pago real o simulado.
+     */
+    if (tipoMetodo === "TARJETA" || tipoMetodo === "MERCADO_PAGO") {
       const usarMock =
         process.env.MP_MOCK === "true" ||
         !process.env.MP_ACCESS_TOKEN ||
@@ -372,6 +397,7 @@ const procesarPago = async (req, res) => {
           mensaje: "Pago simulado correctamente",
           datos: {
             tipo: "mercadopago",
+            estado: "APROBADO",
             init_point: `${FRONTEND_URL}/pago-exitoso`,
             simulado: true,
           },
@@ -403,40 +429,64 @@ const procesarPago = async (req, res) => {
 
       pago.mpPreferenceId = response.id;
       pago.externalReference = pago._id.toString();
+
       await pago.save();
 
       return res.status(200).json({
         mensaje: "Pago procesado correctamente",
         datos: {
           tipo: "mercadopago",
+          estado: "PENDIENTE",
           init_point: response.init_point,
           simulado: false,
         },
       });
     }
 
+    /*
+     * Transferencia:
+     * queda pendiente hasta que el administrador la apruebe.
+     */
     if (tipoMetodo === "TRANSFERENCIA") {
       return res.status(200).json({
         mensaje: "Pago pendiente por transferencia",
         datos: {
           tipo: "transferencia",
+          estado: "PENDIENTE",
           banco: "Banco de la Nación Argentina",
-          alias: "mundo_dev",
-          cbu: "0123456789012345678901",
-          titular: "Mundo Dev SRL",
+          alias: pago.metodoPago.alias || "mundo_dev",
+          cbu: pago.metodoPago.cbu || "0123456789012345678901",
+          titular: pago.metodoPago.titular || "Mundo Dev SRL",
+        },
+      });
+    }
+
+    /*
+     * Métodos personalizados:
+     * PayPal, Ualá, Cuenta DNI, efectivo, etc.
+     * quedan pendientes de aprobación manual.
+     */
+    if (tipoMetodo === "OTRO" || tipoMetodo === "EFECTIVO") {
+      return res.status(200).json({
+        mensaje: `El pago mediante ${nombreMetodo} quedó pendiente de confirmación administrativa.`,
+        datos: {
+          tipo: "manual",
+          estado: "PENDIENTE",
+          metodo: nombreMetodo,
+          descripcion:
+            pago.metodoPago.descripcion || "Pago pendiente de confirmación.",
         },
       });
     }
 
     return res.status(400).json({
-      mensaje: "Método de pago no soportado",
+      mensaje: `El método de pago ${nombreMetodo} no está configurado para procesarse`,
     });
   } catch (error) {
-    console.error("Error al procesar pago:", error.message);
+    console.error("Error al procesar pago:", error);
 
     return res.status(500).json({
-      mensaje: "Error al procesar el pago",
-      error: error.message,
+      mensaje: error.message || "Error al procesar el pago",
     });
   }
 };

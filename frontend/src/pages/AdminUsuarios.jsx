@@ -26,11 +26,11 @@ function AdminUsuarios() {
 
   const [modalConfirmacion, setModalConfirmacion] = useState(null);
   const [modalEdicion, setModalEdicion] = useState(null);
+  const [modalCrearUsuario, setModalCrearUsuario] = useState(false);
 
   const navigate = useNavigate();
 
   const [nuevoUsuario, setNuevoUsuario] = useState(USUARIO_INICIAL);
-  const formUsuarioRef = useRef(null);
   const inputNombreRef = useRef(null);
 
   const cargarUsuarios = async () => {
@@ -85,15 +85,16 @@ function AdminUsuarios() {
     setError("");
   };
 
+  const cerrarModalCrearUsuario = () => {
+    limpiarForm();
+    setModalCrearUsuario(false);
+  };
+
   const handleNuevoUsuario = () => {
     limpiarForm();
+    setModalCrearUsuario(true);
 
     setTimeout(() => {
-      formUsuarioRef.current?.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
-
       inputNombreRef.current?.focus();
     }, 100);
   };
@@ -108,31 +109,52 @@ function AdminUsuarios() {
   };
 
   const validarFormulario = () => {
-    if (!nuevoUsuario.nombre.trim()) {
-      return "El nombre es obligatorio.";
+    const errores = [];
+
+    const nombre = nuevoUsuario.nombre.trim();
+    const apellido = nuevoUsuario.apellido.trim();
+    const email = nuevoUsuario.email.trim();
+    const contrasenia = nuevoUsuario.contrasenia.trim();
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!nombre) {
+      errores.push("El nombre es obligatorio.");
+    } else if (nombre.length < 2) {
+      errores.push("El nombre debe tener al menos 2 caracteres.");
+    } else if (nombre.length > 50) {
+      errores.push("El nombre no puede superar los 50 caracteres.");
     }
 
-    if (!nuevoUsuario.apellido.trim()) {
-      return "El apellido es obligatorio.";
+    if (!apellido) {
+      errores.push("El apellido es obligatorio.");
+    } else if (apellido.length < 2) {
+      errores.push("El apellido debe tener al menos 2 caracteres.");
+    } else if (apellido.length > 50) {
+      errores.push("El apellido no puede superar los 50 caracteres.");
     }
 
-    if (!nuevoUsuario.email.trim()) {
-      return "El email es obligatorio.";
+    if (!email) {
+      errores.push("El email es obligatorio.");
+    } else if (!emailRegex.test(email)) {
+      errores.push("Ingresá un email válido.");
+    } else if (email.length > 100) {
+      errores.push("El email no puede superar los 100 caracteres.");
     }
 
-    if (!nuevoUsuario.contrasenia.trim()) {
-      return "La contraseña es obligatoria.";
-    }
-
-    if (nuevoUsuario.contrasenia.length < 6) {
-      return "La contraseña debe tener al menos 6 caracteres.";
+    if (!contrasenia) {
+      errores.push("La contraseña es obligatoria.");
+    } else if (contrasenia.length < 6) {
+      errores.push("La contraseña debe tener al menos 6 caracteres.");
+    } else if (contrasenia.length > 30) {
+      errores.push("La contraseña no puede superar los 30 caracteres.");
     }
 
     if (!["CLIENTE", "ADMINISTRADOR"].includes(nuevoUsuario.rol)) {
-      return "El rol seleccionado no es válido.";
+      errores.push("El rol seleccionado no es válido.");
     }
 
-    return "";
+    return errores;
   };
 
   const handleSubmit = async (e) => {
@@ -140,10 +162,10 @@ function AdminUsuarios() {
     setMensaje("");
     setError("");
 
-    const errorValidacion = validarFormulario();
+    const errores = validarFormulario();
 
-    if (errorValidacion) {
-      setError(errorValidacion);
+    if (errores.length > 0) {
+      setError(errores.join(" "));
       return;
     }
 
@@ -154,14 +176,18 @@ function AdminUsuarios() {
         nombre: nuevoUsuario.nombre.trim(),
         apellido: nuevoUsuario.apellido.trim(),
         email: nuevoUsuario.email.trim().toLowerCase(),
-        contrasenia: nuevoUsuario.contrasenia,
+        contrasenia: nuevoUsuario.contrasenia.trim(),
         rol: nuevoUsuario.rol,
       };
 
       await api.post("/api/usuarios", usuarioAEnviar);
 
-      setMensaje("Usuario creado correctamente.");
+      const textoExito = "Usuario creado correctamente.";
+      setMensaje(textoExito);
+      mostrarToast(textoExito, "success");
+
       setNuevoUsuario(USUARIO_INICIAL);
+      setModalCrearUsuario(false);
 
       await cargarUsuarios();
     } catch (err) {
@@ -210,6 +236,7 @@ function AdminUsuarios() {
       if (tipo === "eliminar") {
         setError("No podés dar de baja tu propia cuenta desde esta pantalla.");
       }
+
       return;
     }
 
@@ -364,13 +391,33 @@ function AdminUsuarios() {
     const telefonoLimpio = modalEdicion.telefono.trim();
     const direccionLimpia = modalEdicion.direccion.trim();
 
-    if (nombreLimpio.length < 2) {
-      setError("El nombre debe tener al menos 2 caracteres.");
+    if (!nombreLimpio) {
+      setError("El nombre es obligatorio.");
+      return;
+    }
+
+    if (nombreLimpio.length < 2 || nombreLimpio.length > 50) {
+      setError("El nombre debe tener entre 2 y 50 caracteres.");
       return;
     }
 
     if (!apellidoLimpio) {
       setError("El apellido es obligatorio.");
+      return;
+    }
+
+    if (apellidoLimpio.length < 2 || apellidoLimpio.length > 50) {
+      setError("El apellido debe tener entre 2 y 50 caracteres.");
+      return;
+    }
+
+    if (telefonoLimpio.length > 30) {
+      setError("El teléfono no puede superar los 30 caracteres.");
+      return;
+    }
+
+    if (direccionLimpia.length > 120) {
+      setError("La dirección no puede superar los 120 caracteres.");
       return;
     }
 
@@ -510,7 +557,7 @@ function AdminUsuarios() {
           </div>
         </header>
 
-        {(error || mensaje) && (
+        {(error || mensaje) && !modalCrearUsuario && !modalEdicion && (
           <div className="admin-usuarios-feedback">
             {error && <div className="admin-usuarios-alert error">{error}</div>}
 
@@ -604,115 +651,7 @@ function AdminUsuarios() {
         </div>
 
         <div className="admin-usuarios-dashboard-grid">
-          <form
-            ref={formUsuarioRef}
-            className="admin-usuarios-form-card"
-            onSubmit={handleSubmit}
-          >
-            <div className="admin-usuarios-form-header">
-              <div className="admin-usuarios-form-icon">♙</div>
-
-              <div>
-                <h2>Crear nuevo usuario</h2>
-                <p>
-                  Completá los datos para crear un nuevo usuario en la
-                  plataforma.
-                </p>
-              </div>
-            </div>
-
-            <div className="admin-usuarios-form-grid">
-              <label>
-                <span>Nombre</span>
-                <input
-                  ref={inputNombreRef}
-                  type="text"
-                  name="nombre"
-                  placeholder="Ej. Juan"
-                  value={nuevoUsuario.nombre}
-                  onChange={handleChange}
-                  required
-                />
-              </label>
-
-              <label>
-                <span>Apellido</span>
-                <input
-                  type="text"
-                  name="apellido"
-                  placeholder="Ej. Pérez"
-                  value={nuevoUsuario.apellido}
-                  onChange={handleChange}
-                  required
-                />
-              </label>
-
-              <label>
-                <span>Email</span>
-                <input
-                  type="email"
-                  name="email"
-                  placeholder="Ej. juan.perez@correo.com"
-                  value={nuevoUsuario.email}
-                  onChange={handleChange}
-                  required
-                />
-              </label>
-
-              <label>
-                <span>Contraseña</span>
-                <input
-                  type="password"
-                  name="contrasenia"
-                  placeholder="Mínimo 6 caracteres"
-                  value={nuevoUsuario.contrasenia}
-                  onChange={handleChange}
-                  required
-                />
-              </label>
-
-              <label>
-                <span>Rol</span>
-                <select
-                  name="rol"
-                  value={nuevoUsuario.rol}
-                  onChange={handleChange}
-                >
-                  <option value="CLIENTE">Cliente</option>
-                  <option value="ADMINISTRADOR">Administrador</option>
-                </select>
-              </label>
-            </div>
-
-            <div className="admin-usuarios-form-actions">
-              <button
-                type="button"
-                className="admin-usuarios-clean-btn"
-                onClick={limpiarForm}
-                disabled={guardando}
-              >
-                Limpiar
-              </button>
-
-              <button
-                type="submit"
-                className="admin-usuarios-save-btn"
-                disabled={guardando}
-              >
-                {guardando ? "Creando..." : "Crear usuario"}
-              </button>
-            </div>
-
-            <div className="admin-usuarios-permission-card">
-              <div>🛡</div>
-              <p>
-                Los usuarios con rol <strong>Administrador</strong> tienen
-                acceso completo al panel.
-              </p>
-            </div>
-          </form>
-
-          <div className="admin-usuarios-list-card">
+          <div className="admin-usuarios-list-card admin-usuarios-list-card-full">
             <div className="admin-usuarios-list-header">
               <div>
                 <h2>Usuarios registrados</h2>
@@ -893,6 +832,148 @@ function AdminUsuarios() {
         )}
       </div>
 
+      {modalCrearUsuario && (
+        <div className="admin-modal-overlay">
+          <form
+            className="admin-modal-card admin-modal-form admin-modal-usuario"
+            onSubmit={handleSubmit}
+          >
+            <button
+              type="button"
+              className="admin-modal-close"
+              onClick={cerrarModalCrearUsuario}
+              disabled={guardando}
+            >
+              ×
+            </button>
+
+            <div className="admin-modal-icon">♙</div>
+
+            <h2>Crear nuevo usuario</h2>
+
+            <p>
+              Completá los datos para crear un nuevo usuario en la plataforma.
+            </p>
+
+            {error && <div className="admin-usuarios-alert error">{error}</div>}
+
+            <div className="admin-modal-form-grid">
+              <label>
+                <span>Nombre</span>
+                <input
+                  ref={inputNombreRef}
+                  type="text"
+                  name="nombre"
+                  placeholder="Ej. Juan"
+                  value={nuevoUsuario.nombre}
+                  onChange={handleChange}
+                  minLength={2}
+                  maxLength={50}
+                  required
+                />
+
+                <small className="admin-field-help">
+                  {nuevoUsuario.nombre.length}/50 caracteres
+                </small>
+              </label>
+
+              <label>
+                <span>Apellido</span>
+                <input
+                  type="text"
+                  name="apellido"
+                  placeholder="Ej. Pérez"
+                  value={nuevoUsuario.apellido}
+                  onChange={handleChange}
+                  minLength={2}
+                  maxLength={50}
+                  required
+                />
+
+                <small className="admin-field-help">
+                  {nuevoUsuario.apellido.length}/50 caracteres
+                </small>
+              </label>
+
+              <label>
+                <span>Email</span>
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="Ej. juan.perez@correo.com"
+                  value={nuevoUsuario.email}
+                  onChange={handleChange}
+                  maxLength={100}
+                  required
+                />
+
+                <small className="admin-field-help">
+                  {nuevoUsuario.email.length}/100 caracteres
+                </small>
+              </label>
+
+              <label>
+                <span>Contraseña</span>
+                <input
+                  type="password"
+                  name="contrasenia"
+                  placeholder="Mínimo 6 caracteres"
+                  value={nuevoUsuario.contrasenia}
+                  onChange={handleChange}
+                  minLength={6}
+                  maxLength={30}
+                  required
+                />
+
+                <small className="admin-field-help">
+                  {nuevoUsuario.contrasenia.length}/30 caracteres
+                </small>
+              </label>
+
+              <label>
+                <span>Rol</span>
+                <select
+                  name="rol"
+                  value={nuevoUsuario.rol}
+                  onChange={handleChange}
+                  required
+                >
+                  <option value="CLIENTE">Cliente</option>
+                  <option value="ADMINISTRADOR">Administrador</option>
+                </select>
+              </label>
+            </div>
+
+            <div className="admin-modal-actions">
+              <button
+                type="button"
+                className="admin-modal-cancel"
+                onClick={cerrarModalCrearUsuario}
+                disabled={guardando}
+              >
+                Cancelar
+              </button>
+
+              <button
+                type="submit"
+                className="admin-modal-confirm"
+                disabled={guardando}
+              >
+                {guardando ? "Creando..." : "Crear usuario"}
+              </button>
+            </div>
+
+            <div className="admin-usuarios-permission-card">
+              <div>🛡</div>
+              <p>
+                Los usuarios con rol <strong>Administrador</strong> tienen
+                acceso completo al panel.
+              </p>
+            </div>
+          </form>
+        </div>
+      )}
+
       {modalConfirmacion && (
         <div className="admin-modal-overlay">
           <div className="admin-modal-card">
@@ -934,6 +1015,7 @@ function AdminUsuarios() {
           </div>
         </div>
       )}
+
       {modalEdicion && (
         <div className="admin-modal-overlay">
           <form
@@ -949,12 +1031,16 @@ function AdminUsuarios() {
               {modalEdicion.usuario.apellido}.
             </p>
 
+            {error && <div className="admin-usuarios-alert error">{error}</div>}
+
             <div className="admin-modal-form-grid">
               <label>
                 <span>Nombre</span>
                 <input
                   type="text"
                   value={modalEdicion.nombre}
+                  minLength={2}
+                  maxLength={50}
                   onChange={(e) =>
                     setModalEdicion((prev) => ({
                       ...prev,
@@ -963,6 +1049,10 @@ function AdminUsuarios() {
                   }
                   required
                 />
+
+                <small className="admin-field-help">
+                  {modalEdicion.nombre.length}/50 caracteres
+                </small>
               </label>
 
               <label>
@@ -970,6 +1060,8 @@ function AdminUsuarios() {
                 <input
                   type="text"
                   value={modalEdicion.apellido}
+                  minLength={2}
+                  maxLength={50}
                   onChange={(e) =>
                     setModalEdicion((prev) => ({
                       ...prev,
@@ -978,6 +1070,10 @@ function AdminUsuarios() {
                   }
                   required
                 />
+
+                <small className="admin-field-help">
+                  {modalEdicion.apellido.length}/50 caracteres
+                </small>
               </label>
 
               <label>
@@ -985,6 +1081,7 @@ function AdminUsuarios() {
                 <input
                   type="text"
                   value={modalEdicion.telefono}
+                  maxLength={30}
                   onChange={(e) =>
                     setModalEdicion((prev) => ({
                       ...prev,
@@ -993,6 +1090,10 @@ function AdminUsuarios() {
                   }
                   placeholder="Opcional"
                 />
+
+                <small className="admin-field-help">
+                  {modalEdicion.telefono.length}/30 caracteres
+                </small>
               </label>
 
               <label>
@@ -1000,6 +1101,7 @@ function AdminUsuarios() {
                 <input
                   type="text"
                   value={modalEdicion.direccion}
+                  maxLength={120}
                   onChange={(e) =>
                     setModalEdicion((prev) => ({
                       ...prev,
@@ -1008,6 +1110,10 @@ function AdminUsuarios() {
                   }
                   placeholder="Opcional"
                 />
+
+                <small className="admin-field-help">
+                  {modalEdicion.direccion.length}/120 caracteres
+                </small>
               </label>
             </div>
 
@@ -1032,6 +1138,7 @@ function AdminUsuarios() {
           </form>
         </div>
       )}
+
       {toast && (
         <div className={`admin-toast ${toast.tipo}`}>
           <div className="admin-toast-icon">

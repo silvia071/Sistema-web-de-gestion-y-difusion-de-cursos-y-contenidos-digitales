@@ -146,7 +146,6 @@ const rechazarPago = async (id) => {
     .populate("usuario")
     .populate("compra");
 };
-
 const procesarPago = async (pagoId) => {
   if (!pagoId) {
     throw new Error("El pagoId es obligatorio");
@@ -165,17 +164,45 @@ const procesarPago = async (pagoId) => {
     throw new Error("El pago no tiene método de pago asociado");
   }
 
-  const tipoMetodo = pago.metodoPago.tipo;
+  if (pago.metodoPago.activo === false) {
+    throw new Error("El método de pago seleccionado no está disponible");
+  }
 
+  const tipoMetodo = String(pago.metodoPago.tipo || "").toUpperCase();
+  const nombreMetodo =
+    pago.metodoPago.nombre || "el método de pago seleccionado";
+
+  /*
+   * Transferencia:
+   * queda pendiente hasta que el administrador la apruebe.
+   */
   if (tipoMetodo === "TRANSFERENCIA") {
     return {
       tipo: "transferencia",
+      estado: EstadoPago.PENDIENTE,
       mensaje:
         "La compra quedó pendiente de aprobación administrativa por transferencia.",
     };
   }
 
-  if (tipoMetodo === "TARJETA") {
+  /*
+   * Métodos personalizados:
+   * PayPal, Ualá, Cuenta DNI, efectivo u otros métodos creados por el admin
+   * quedan pendientes de confirmación manual.
+   */
+  if (tipoMetodo === "OTRO" || tipoMetodo === "EFECTIVO") {
+    return {
+      tipo: "manual",
+      estado: EstadoPago.PENDIENTE,
+      mensaje: `El pago mediante ${nombreMetodo} quedó pendiente de confirmación administrativa.`,
+    };
+  }
+
+  /*
+   * Tarjeta y Mercado Pago:
+   * en esta versión funcionan mediante pago simulado.
+   */
+  if (tipoMetodo === "TARJETA" || tipoMetodo === "MERCADO_PAGO") {
     const usarMock =
       process.env.MP_MOCK === "true" ||
       !process.env.MP_ACCESS_TOKEN ||
@@ -191,12 +218,17 @@ const procesarPago = async (pagoId) => {
 
     return {
       tipo: "mercadopago",
-      init_point: `${process.env.FRONTEND_URL || "http://localhost:5173"}/pago-exitoso`,
+      estado: EstadoPago.APROBADO,
+      init_point: `${
+        process.env.FRONTEND_URL || "http://localhost:5173"
+      }/pago-exitoso`,
       mensaje: "Pago simulado correctamente.",
     };
   }
 
-  throw new Error("Método de pago no soportado");
+  throw new Error(
+    `El método de pago ${nombreMetodo} no está configurado para procesarse.`,
+  );
 };
 
 const listarPagos = async () => {
